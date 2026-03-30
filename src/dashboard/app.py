@@ -512,7 +512,7 @@ with st.sidebar:
                   margin-top:.3rem;letter-spacing:.06em'>T20 · 2001–2025</div>
     </div>""", unsafe_allow_html=True)
 
-    page = st.radio("", [
+    page = st.radio("Navigation", [
         "01  Player Explorer",
         "02  Head-to-Head",
         "03  Pitch Intelligence",
@@ -857,7 +857,7 @@ if "01" in page:
                                 tickfont=dict(family="Space Mono", size=9)),
                     title=f"{sel} — Season by Season"
                 )
-                st.plotly_chart(_plotly_defaults(fig), use_container_width=True,
+                st.plotly_chart(_plotly_defaults(fig), width="stretch",
                                 config={"displayModeBar": False})
 
         with t2:
@@ -880,7 +880,7 @@ if "01" in page:
                                 tickfont=dict(family="Space Mono", size=9)),
                     title="Performance by Batting Position"
                 )
-                st.plotly_chart(_plotly_defaults(fig), use_container_width=True,
+                st.plotly_chart(_plotly_defaults(fig), width="stretch",
                                 config={"displayModeBar": False})
                 st.dataframe(pos, hide_index=True)
 
@@ -892,7 +892,7 @@ if "01" in page:
                               title="Average vs Opponent (top 20 by innings)",
                               color_continuous_scale=["#E8E4D8", "#3A86FF"])
                 fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
-                st.plotly_chart(_plotly_defaults(fig), use_container_width=True,
+                st.plotly_chart(_plotly_defaults(fig), width="stretch",
                                 config={"displayModeBar": False})
                 st.dataframe(opp, hide_index=True)
 
@@ -905,7 +905,7 @@ if "01" in page:
                     marker=dict(color="#FFE500", line=dict(color="#0D0D0D", width=2.5)),
                     text=counts.values, textposition="outside",
                 ))
-                st.plotly_chart(_plotly_defaults(fig, 260), use_container_width=True,
+                st.plotly_chart(_plotly_defaults(fig, 260), width="stretch",
                                 config={"displayModeBar": False})
                 st.dataframe(mils, hide_index=True)
 
@@ -920,7 +920,7 @@ if "01" in page:
                 fig.add_vline(x=1.0, line_dash="dash", line_color="#0D0D0D",
                                annotation_text="neutral")
                 fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
-                st.plotly_chart(_plotly_defaults(fig), use_container_width=True,
+                st.plotly_chart(_plotly_defaults(fig), width="stretch",
                                 config={"displayModeBar": False})
                 st.dataframe(vdf, hide_index=True)
 
@@ -978,7 +978,7 @@ elif "02" in page:
         st.markdown('<div class="nb-label">Specialisation Radar</div>',
                     unsafe_allow_html=True)
         st.plotly_chart(_radar(radar_labs, va, vb, name_a, name_b),
-                        use_container_width=True, config={"displayModeBar": False})
+                        width="stretch", config={"displayModeBar": False})
 
     with rc2:
         st.markdown('<div class="nb-label">Key Stats</div>', unsafe_allow_html=True)
@@ -1037,7 +1037,7 @@ elif "02" in page:
                           marker=dict(color=COLORS["B"], line=dict(color="#0D0D0D",width=2)),
                           text=[f"{v:.0f}" for v in phb], textposition="outside"))
     fig.update_layout(barmode="group")
-    st.plotly_chart(_plotly_defaults(fig, 300), use_container_width=True,
+    st.plotly_chart(_plotly_defaults(fig, 300), width="stretch",
                     config={"displayModeBar": False})
 
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
@@ -1067,7 +1067,7 @@ elif "02" in page:
                 text=[f"{v:.1f}" for v in vals], textposition="outside",
             ))
             fig.update_layout(title=nm)
-            st.plotly_chart(_plotly_defaults(fig, 280), use_container_width=True,
+            st.plotly_chart(_plotly_defaults(fig, 280), width="stretch",
                             config={"displayModeBar": False})
 
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
@@ -1089,9 +1089,7 @@ elif "02" in page:
                 f"{name_b} SR":  vb_s["strike_rate"],
                 "Bat Factor":    va_s["bat_factor"],
             }).dropna(how="all").sort_values(f"{name_a} Avg", ascending=False)
-            st.dataframe(cmp.style.background_gradient(
-                subset=[f"{name_a} Avg", f"{name_b} Avg"],
-                cmap="RdYlGn"), height=320)
+            st.dataframe(cmp, height=320)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1133,7 +1131,7 @@ elif "03" in page:
         xaxis_title="Bat Factor (>1 = batter friendly)",
         yaxis_title="Boundary Rate (%)",
     )
-    st.plotly_chart(_plotly_defaults(fig, 420), use_container_width=True,
+    st.plotly_chart(_plotly_defaults(fig, 420), width="stretch",
                     config={"displayModeBar": False})
 
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
@@ -1163,7 +1161,7 @@ elif "03" in page:
                 text=[f"{v:.1f}" for v in tb["average"]], textposition="outside",
             ))
             fig.update_layout(yaxis=dict(autorange="reversed"))
-            st.plotly_chart(_plotly_defaults(fig, 380), use_container_width=True,
+            st.plotly_chart(_plotly_defaults(fig, 380), width="stretch",
                             config={"displayModeBar": False})
 
     with tc2:
@@ -1177,7 +1175,7 @@ elif "03" in page:
             ))
             fig.update_layout(yaxis=dict(autorange="reversed"),
                                xaxis=dict(autorange="reversed"))
-            st.plotly_chart(_plotly_defaults(fig, 380), use_container_width=True,
+            st.plotly_chart(_plotly_defaults(fig, 380), width="stretch",
                             config={"displayModeBar": False})
 
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
@@ -1250,7 +1248,7 @@ elif "04" in page:
             ))
             fig.update_layout(title="Batting Model — Feature Importance",
                                yaxis=dict(autorange="reversed"))
-            st.plotly_chart(_plotly_defaults(fig, 400), use_container_width=True,
+            st.plotly_chart(_plotly_defaults(fig, 400), width="stretch",
                             config={"displayModeBar": False})
         with fi2:
             fi_bowl = feature_importance_df("bowl")
@@ -1260,7 +1258,7 @@ elif "04" in page:
             ))
             fig.update_layout(title="Bowling Model — Feature Importance",
                                yaxis=dict(autorange="reversed"))
-            st.plotly_chart(_plotly_defaults(fig, 400), use_container_width=True,
+            st.plotly_chart(_plotly_defaults(fig, 400), width="stretch",
                             config={"displayModeBar": False})
 
         st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
@@ -1431,5 +1429,5 @@ elif "04" in page:
                     barmode="group",
                     title=f"Predicted Performance at {mp_venue}",
                 )
-                st.plotly_chart(_plotly_defaults(fig, 340), use_container_width=True,
+                st.plotly_chart(_plotly_defaults(fig, 340), width="stretch",
                                 config={"displayModeBar": False})
