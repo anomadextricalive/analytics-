@@ -564,7 +564,7 @@ if not year_df.empty:
                    tickfont=dict(family="Space Mono", size=10)),
         bargap=0.25,
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 else:
     st.markdown('<p style="font-family:Space Mono;font-size:.8rem;opacity:.5">No year data yet — ingest data first.</p>', unsafe_allow_html=True)
 
