@@ -13,18 +13,18 @@ build/
 venv/
 env/
 
-# Data — raw files and large DB not committed
+# Data — raw files excluded, compressed DB committed
 data/raw/
 data/processed/
 data/cricket.db
 data/cricket.db-shm
 data/cricket.db-wal
-data/*.db
 data/*.db-shm
 data/*.db-wal
 
-# Keep models and the data dir structure
+# Keep compressed DB, models, and data dir structure
 !data/
+!data/cricket.db.gz
 !data/models/
 !data/models/.gitkeep
 
