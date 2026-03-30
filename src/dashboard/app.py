@@ -16,88 +16,8 @@ from sqlalchemy.orm import Session
 
 ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(ROOT))
-from config import DB_PATH, DATA_RAW, DOWNLOADS
+from config import DB_PATH
 from src.db.schema import get_engine
-
-# ─────────────────────────────────────────────────────────
-# BOOTSTRAP — auto-build DB on first cloud run
-# ─────────────────────────────────────────────────────────
-_db_ready = DB_PATH.exists() and DB_PATH.stat().st_size > 5_000_000
-
-if not _db_ready:
-    st.set_page_config(page_title="Cricket Analytics — Setup", page_icon="🏏", layout="centered")
-    st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
-    html,body,[data-testid="stAppViewContainer"],.main {
-        background:#0D0D0D!important;color:#FFE500!important;
-        font-family:'Space Mono',monospace!important;
-    }
-    .stButton button{background:#FFE500!important;color:#0D0D0D!important;
-        border:3px solid #FFE500!important;border-radius:0!important;
-        font-family:'Space Mono',monospace!important;font-weight:700!important;}
-    p,span,div,label{color:#FFE500!important;}
-    </style>""", unsafe_allow_html=True)
-
-    st.markdown("# 🏏 CRICKET ANALYTICS")
-    st.markdown("### FIRST-RUN SETUP")
-    st.warning("Database not found — needs to be built from cricsheet.org. Takes ~2 minutes.")
-
-    if st.button("▶  START SETUP"):
-        from src.db.schema import init_db
-        from src.ingest.downloader import download_all
-        from src.ingest.parser import ingest_directory
-        from src.analytics.pitch import compute_venue_factors
-        from src.analytics.metrics import rebuild_all_metrics
-        from src.analytics.rating import rebuild_ratings
-        from src.analytics.model import train
-
-        prog   = st.progress(0)
-        status = st.empty()
-
-        status.text("Initialising database…")
-        engine = init_db(DB_PATH)
-        prog.progress(8)
-
-        status.text("Downloading data from cricsheet.org…")
-        download_all(["t20i_male", "t20_wc_male"], force=False)
-        prog.progress(30)
-
-        with Session(engine) as session:
-            status.text("Ingesting matches (~3,400 files)…")
-            for name in ["t20i_male", "t20_wc_male"]:
-                d = DATA_RAW / name
-                if d.exists():
-                    ingest_directory(session, d, tournament=name, verbose=False)
-            prog.progress(60)
-
-            status.text("Computing venue factors…")
-            compute_venue_factors(session)
-            prog.progress(70)
-
-            status.text("Building aggregate tables…")
-            rebuild_all_metrics(session)
-            prog.progress(82)
-
-            status.text("Computing player ratings…")
-            rebuild_ratings(session, tournament="ALL")
-            prog.progress(92)
-
-            status.text("Training prediction models…")
-            train(session, verbose=False)
-
-        prog.progress(100)
-        status.success("Done! Loading dashboard…")
-        st.rerun()
-
-    else:
-        st.markdown("""
-**What happens:**
-- Downloads ball-by-ball T20I JSON from cricsheet.org (~10 MB)
-- Parses 3,400+ matches into SQLite
-- Computes ratings, venue factors, trains GBM prediction models
-        """)
-    st.stop()
 
 st.set_page_config(
     page_title="Cricket Analytics",
