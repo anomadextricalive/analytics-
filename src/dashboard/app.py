@@ -517,6 +517,7 @@ with st.sidebar:
         "02  Head-to-Head",
         "03  Pitch Intelligence",
         "04  Prediction Engine",
+        "05  Matchup Lab",
     ], label_visibility="collapsed")
 
     st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
@@ -673,6 +674,67 @@ def venue_top_bowlers(vid: int) -> pd.DataFrame:
         WHERE pvb.venue_id = :vid AND pvb.innings >= 3
         ORDER BY pvb.economy ASC LIMIT 15
     """, vid=vid)
+
+
+@st.cache_data(ttl=120)
+def matchup_stats(batter_id: int, bowler_id: int) -> pd.DataFrame:
+    """Ball-by-ball stats for a specific batter vs bowler matchup."""
+    return sql("""
+        SELECT
+            d.bat_runs, d.is_wicket, d.wicket_kind,
+            d.is_boundary_4, d.is_boundary_6, d.is_dot,
+            d.wide, d.no_ball, d.phase,
+            d.over_number,
+            m.tournament, m.season, m.match_date,
+            v.name AS venue
+        FROM deliveries d
+        JOIN innings  i ON i.id  = d.innings_id
+        JOIN matches  m ON m.id  = i.match_id
+        LEFT JOIN venues v ON v.id = m.venue_id
+        WHERE d.batter_id  = :bid
+          AND d.bowler_id  = :oid
+          AND d.wide = 0
+    """, bid=batter_id, oid=bowler_id)
+
+
+@st.cache_data(ttl=120)
+def bowler_vs_all(bowler_id: int, min_balls: int = 6) -> pd.DataFrame:
+    """All batters a bowler has faced — aggregated."""
+    return sql("""
+        SELECT
+            p.cricsheet_key AS batter,
+            COUNT(*) AS balls,
+            SUM(d.bat_runs) AS runs,
+            SUM(d.is_wicket) AS dismissals,
+            SUM(d.is_dot) AS dots,
+            SUM(d.is_boundary_4 + d.is_boundary_6) AS boundaries
+        FROM deliveries d
+        JOIN players p ON p.id = d.batter_id
+        WHERE d.bowler_id = :oid AND d.wide = 0
+        GROUP BY d.batter_id
+        HAVING balls >= :mb
+        ORDER BY balls DESC
+    """, oid=bowler_id, mb=min_balls)
+
+
+@st.cache_data(ttl=120)
+def batter_vs_all(batter_id: int, min_balls: int = 6) -> pd.DataFrame:
+    """All bowlers a batter has faced — aggregated."""
+    return sql("""
+        SELECT
+            p.cricsheet_key AS bowler,
+            COUNT(*) AS balls,
+            SUM(d.bat_runs) AS runs,
+            SUM(d.is_wicket) AS dismissals,
+            SUM(d.is_dot) AS dots,
+            SUM(d.is_boundary_4 + d.is_boundary_6) AS boundaries
+        FROM deliveries d
+        JOIN players p ON p.id = d.bowler_id
+        WHERE d.batter_id = :bid AND d.wide = 0
+        GROUP BY d.bowler_id
+        HAVING balls >= :mb
+        ORDER BY balls DESC
+    """, bid=batter_id, mb=min_balls)
 
 
 def _get_player(name: str) -> dict:
@@ -1431,3 +1493,172 @@ elif "04" in page:
                 )
                 st.plotly_chart(_plotly_defaults(fig, 340), width="stretch",
                                 config={"displayModeBar": False})
+
+# ─────────────────────────────────────────────────────────
+# PAGE 5 — MATCHUP LAB
+# ─────────────────────────────────────────────────────────
+if page == "05  Matchup Lab":
+    st.markdown('<h1 class="nb-title">Matchup Lab</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="nb-subtitle">Ball-by-ball batter vs bowler analysis — real delivery data, no estimates</p>',
+                unsafe_allow_html=True)
+
+    all_df   = all_players()
+    names    = all_df["name"].tolist()
+
+    tab_matchup, tab_bvall, tab_allvb = st.tabs([
+        "Batter vs Bowler", "Batter vs All Bowlers", "Bowler vs All Batters"
+    ])
+
+    # ── TAB 1: specific matchup ──────────────────────────────────────────
+    with tab_matchup:
+        col1, col2 = st.columns(2)
+        with col1:
+            batter_name = st.selectbox("Batter", names, key="mu_bat")
+        with col2:
+            bowler_name = st.selectbox("Bowler", names, key="mu_bowl",
+                                       index=min(1, len(names)-1))
+
+        if batter_name and bowler_name and batter_name != bowler_name:
+            b_row = all_df[all_df["name"] == batter_name].iloc[0]
+            o_row = all_df[all_df["name"] == bowler_name].iloc[0]
+            df = matchup_stats(int(b_row["id"]), int(o_row["id"]))
+
+            if df.empty:
+                st.info(f"No ball-by-ball data found for {batter_name} vs {bowler_name}.")
+            else:
+                balls      = len(df)
+                runs       = int(df["bat_runs"].sum())
+                dismissals = int(df["is_wicket"].sum())
+                dots       = int(df["is_dot"].sum())
+                fours      = int(df["is_boundary_4"].sum())
+                sixes      = int(df["is_boundary_6"].sum())
+                sr         = round(runs / balls * 100, 1) if balls else 0
+                dot_pct    = round(dots / balls * 100, 1) if balls else 0
+                boundary_pct = round((fours + sixes) / balls * 100, 1) if balls else 0
+
+                # Stat cards
+                c1, c2, c3, c4, c5, c6 = st.columns(6)
+                for col, label, val in [
+                    (c1, "Balls",       balls),
+                    (c2, "Runs",        runs),
+                    (c3, "Dismissals",  dismissals),
+                    (c4, "SR",          sr),
+                    (c5, "Dot %",       f"{dot_pct}%"),
+                    (c6, "Boundary %",  f"{boundary_pct}%"),
+                ]:
+                    col.markdown(f"""
+                    <div class="nb-card" style="text-align:center;padding:.8rem">
+                      <div style="font-size:1.6rem;font-weight:800">{val}</div>
+                      <div style="font-size:.7rem;opacity:.6;font-family:'Space Mono'">{label}</div>
+                    </div>""", unsafe_allow_html=True)
+
+                st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+
+                # Dismissal breakdown
+                if dismissals > 0:
+                    dism_counts = df[df["is_wicket"]==1]["wicket_kind"].value_counts()
+                    st.markdown(f"**Dismissals:** " +
+                                ", ".join([f"{k} ×{v}" for k, v in dism_counts.items()]))
+
+                # Phase breakdown
+                phase_labels = {0: "Powerplay", 1: "Middle", 2: "Death"}
+                phase_df = (df.groupby("phase")
+                              .agg(balls=("bat_runs","count"),
+                                   runs=("bat_runs","sum"),
+                                   wkts=("is_wicket","sum"))
+                              .reset_index())
+                phase_df["SR"]   = (phase_df["runs"] / phase_df["balls"] * 100).round(1)
+                phase_df["phase"] = phase_df["phase"].map(phase_labels)
+                phase_df = phase_df.rename(columns={"balls":"Balls","runs":"Runs",
+                                                     "wkts":"Wkts","phase":"Phase"})
+
+                st.markdown("**Phase Breakdown**")
+                st.dataframe(phase_df[["Phase","Balls","Runs","Wkts","SR"]],
+                             hide_index=True, use_container_width=True)
+
+                # Runs per ball over time (scatter)
+                df_sorted = df.reset_index(drop=True)
+                df_sorted["ball_num"] = range(1, len(df_sorted)+1)
+                fig = go.Figure()
+                fig.add_trace(go.Bar(
+                    x=df_sorted["ball_num"], y=df_sorted["bat_runs"],
+                    marker_color="#FFE500", name="Runs per ball"
+                ))
+                fig.add_hline(y=sr/100, line_dash="dash", line_color="#FF3B3B",
+                              annotation_text=f"avg {sr/100:.2f} r/ball")
+                fig.update_layout(
+                    title=f"{batter_name} vs {bowler_name} — ball by ball",
+                    xaxis_title="Delivery #", yaxis_title="Runs",
+                    showlegend=False,
+                )
+                st.plotly_chart(_plotly_defaults(fig, 300), width="stretch",
+                                config={"displayModeBar": False})
+
+                # Matches where this matchup occurred
+                match_summary = (df.groupby(["tournament","season","venue"])
+                                   .agg(balls=("bat_runs","count"),
+                                        runs=("bat_runs","sum"),
+                                        wkts=("is_wicket","sum"))
+                                   .reset_index()
+                                   .sort_values("balls", ascending=False))
+                st.markdown("**By Match Context**")
+                st.dataframe(match_summary, hide_index=True, use_container_width=True)
+
+    # ── TAB 2: batter vs all bowlers ─────────────────────────────────────
+    with tab_bvall:
+        batter_name2 = st.selectbox("Batter", names, key="bvall_bat")
+        if batter_name2:
+            b_row2 = all_df[all_df["name"] == batter_name2].iloc[0]
+            df2 = batter_vs_all(int(b_row2["id"]))
+
+            if df2.empty:
+                st.info("No matchup data found.")
+            else:
+                df2["SR"]      = (df2["runs"] / df2["balls"] * 100).round(1)
+                df2["dot_%"]   = (df2["dots"] / df2["balls"] * 100).round(1)
+                df2["bdry_%"]  = (df2["boundaries"] / df2["balls"] * 100).round(1)
+
+                col_l, col_r = st.columns(2)
+                with col_l:
+                    st.markdown("**Struggles against (lowest SR, min 12 balls)**")
+                    hard = df2[df2["balls"] >= 12].nsmallest(10, "SR")[
+                        ["bowler","balls","runs","dismissals","SR","dot_%"]]
+                    st.dataframe(hard, hide_index=True, use_container_width=True)
+                with col_r:
+                    st.markdown("**Dominates (highest SR, min 12 balls)**")
+                    easy = df2[df2["balls"] >= 12].nlargest(10, "SR")[
+                        ["bowler","balls","runs","dismissals","SR","dot_%"]]
+                    st.dataframe(easy, hide_index=True, use_container_width=True)
+
+                # Most dismissed by
+                if df2["dismissals"].sum() > 0:
+                    st.markdown("**Most dismissed by**")
+                    dism = df2[df2["dismissals"] > 0].nlargest(10, "dismissals")[
+                        ["bowler","balls","runs","dismissals","SR"]]
+                    st.dataframe(dism, hide_index=True, use_container_width=True)
+
+    # ── TAB 3: bowler vs all batters ─────────────────────────────────────
+    with tab_allvb:
+        bowler_name3 = st.selectbox("Bowler", names, key="allvb_bowl")
+        if bowler_name3:
+            o_row3 = all_df[all_df["name"] == bowler_name3].iloc[0]
+            df3 = bowler_vs_all(int(o_row3["id"]))
+
+            if df3.empty:
+                st.info("No matchup data found.")
+            else:
+                df3["SR"]     = (df3["runs"] / df3["balls"] * 100).round(1)
+                df3["dot_%"]  = (df3["dots"] / df3["balls"] * 100).round(1)
+                df3["bdry_%"] = (df3["boundaries"] / df3["balls"] * 100).round(1)
+
+                col_l, col_r = st.columns(2)
+                with col_l:
+                    st.markdown("**Gets out easily (most dismissals, min 12 balls)**")
+                    easy = df3[df3["balls"] >= 12].nlargest(10, "dismissals")[
+                        ["batter","balls","runs","dismissals","SR","dot_%"]]
+                    st.dataframe(easy, hide_index=True, use_container_width=True)
+                with col_r:
+                    st.markdown("**Struggles against (highest SR conceded, min 12 balls)**")
+                    hard = df3[df3["balls"] >= 12].nlargest(10, "SR")[
+                        ["batter","balls","runs","dismissals","SR","dot_%"]]
+                    st.dataframe(hard, hide_index=True, use_container_width=True)
