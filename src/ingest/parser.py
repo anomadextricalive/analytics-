@@ -51,31 +51,58 @@ def _phase(over_1: int) -> int:
 # ---------------------------------------------------------------------------
 
 class Registry:
-    """In-memory id caches so we never query the DB for lookups."""
+    """
+    In-memory id caches so we never query the DB for lookups.
+
+    Player deduplication uses cricsheet UUIDs as the canonical key.
+    Every cricsheet JSON has info.registry.people = {name: uuid}.
+    Using UUIDs prevents duplicate player records when the same
+    physical player appears under slightly different name spellings
+    across tournaments (e.g. "V Kohli" vs "Virat Kohli").
+    """
 
     def __init__(self, session: Session):
         self.session = session
-        self.players: dict[str, int] = {}   # cricsheet_key → id
-        self.teams:   dict[str, int] = {}   # name → id
-        self.venues:  dict[str, int] = {}   # name → id
+        self.uuid_to_id:  dict[str, int] = {}   # cricsheet uuid  → player.id
+        self.name_to_id:  dict[str, int] = {}   # display name   → player.id (fallback)
+        self.teams:       dict[str, int] = {}   # name → id
+        self.venues:      dict[str, int] = {}   # name → id
         self._load()
 
     def _load(self):
         for p in self.session.query(Player).all():
-            self.players[p.cricsheet_key] = p.id
+            if p.cricsheet_uuid:
+                self.uuid_to_id[p.cricsheet_uuid] = p.id
+            self.name_to_id[p.cricsheet_key] = p.id
         for t in self.session.query(Team).all():
             self.teams[t.name] = t.id
         for v in self.session.query(Venue).all():
             self.venues[v.name] = v.id
 
-    # -- players --
-    def player_id(self, name: str) -> int:
-        if name not in self.players:
-            p = Player(cricsheet_key=name)
-            self.session.add(p)
-            self.session.flush()
-            self.players[name] = p.id
-        return self.players[name]
+    # -- players (UUID-first deduplication) --
+    def player_id(self, name: str, uuid: str | None = None) -> int:
+        # 1. UUID match — canonical, cross-tournament safe
+        if uuid and uuid in self.uuid_to_id:
+            return self.uuid_to_id[uuid]
+        # 2. Name match — within-tournament fallback
+        if name in self.name_to_id:
+            pid = self.name_to_id[name]
+            # backfill uuid if we now have one
+            if uuid and uuid not in self.uuid_to_id:
+                p = self.session.get(Player, pid)
+                if p and not p.cricsheet_uuid:
+                    p.cricsheet_uuid = uuid
+                    self.session.flush()
+                self.uuid_to_id[uuid] = pid
+            return pid
+        # 3. New player
+        p = Player(cricsheet_key=name, cricsheet_uuid=uuid)
+        self.session.add(p)
+        self.session.flush()
+        self.name_to_id[name] = p.id
+        if uuid:
+            self.uuid_to_id[uuid] = p.id
+        return p.id
 
     # -- teams --
     def team_id(self, name: str) -> int:
@@ -134,6 +161,11 @@ class MatchParser:
             return False
 
         info = raw.get("info", {})
+
+        # --- Anti-hallucination gate: only ingest real T20 matches ---
+        if info.get("match_type") != "T20":
+            return False
+
         dates = info.get("dates", [])
         if not dates:
             return False
@@ -144,6 +176,10 @@ class MatchParser:
         existing = self.s.query(Match.id).filter_by(cricsheet_id=path.stem).first()
         if existing:
             return False
+
+        # Extract per-file player UUID registry: name → uuid
+        # This is the canonical identity source from cricsheet.
+        people_uuids: dict[str, str] = info.get("registry", {}).get("people", {})
 
         reg = self.reg
 
@@ -206,7 +242,7 @@ class MatchParser:
         # Player of Match
         for pom_name in info.get("player_of_match", []):
             self._buf_pom.append({
-                "player_id":   reg.player_id(pom_name),
+                "player_id":   reg.player_id(pom_name, people_uuids.get(pom_name)),
                 "match_id":    match.id,
                 "match_date":  match_date,
                 "tournament":  tournament,
@@ -214,12 +250,12 @@ class MatchParser:
             })
 
         self._parse_innings(raw.get("innings", []), match, teams_raw,
-                            match_date, tournament, vid)
+                            match_date, tournament, vid, people_uuids)
         return True
 
     # ------------------------------------------------------------------
     def _parse_innings(self, innings_data, match, teams_raw,
-                       match_date, tournament, vid):
+                       match_date, tournament, vid, people_uuids: dict):
         reg = self.reg
 
         for inn_idx, inn_data in enumerate(innings_data):
@@ -309,11 +345,11 @@ class MatchParser:
                     else:
                         req_r = crr = None
 
-                    # Resolve IDs from cache (zero DB hits)
-                    batter_id   = reg.player_id(batter_name)
-                    non_s_id    = reg.player_id(non_s_name)
-                    bowler_id   = reg.player_id(bowler_name)
-                    out_pid     = reg.player_id(player_out) if player_out else None
+                    # Resolve IDs from cache (zero DB hits), UUID-first
+                    batter_id   = reg.player_id(batter_name,  people_uuids.get(batter_name))
+                    non_s_id    = reg.player_id(non_s_name,   people_uuids.get(non_s_name))
+                    bowler_id   = reg.player_id(bowler_name,  people_uuids.get(bowler_name))
+                    out_pid     = reg.player_id(player_out,   people_uuids.get(player_out)) if player_out else None
 
                     self._buf_deliveries.append({
                         "innings_id":       innings.id,

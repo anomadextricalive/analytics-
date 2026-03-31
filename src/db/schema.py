@@ -40,7 +40,8 @@ class Player(Base):
     __tablename__ = "players"
 
     id              = Column(Integer, primary_key=True, autoincrement=True)
-    cricsheet_key   = Column(String, unique=True, nullable=False)  # e.g. "V Kohli"
+    cricsheet_uuid  = Column(String, unique=True, nullable=True)   # hex ID from registry e.g. "a30a9f72"
+    cricsheet_key   = Column(String, unique=True, nullable=False)  # display name e.g. "V Kohli"
     full_name       = Column(String)
     country         = Column(String)
     batting_style   = Column(String)   # right/left
