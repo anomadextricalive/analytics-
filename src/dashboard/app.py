@@ -2125,10 +2125,13 @@ if page == "06  Match Predictor":
                 continue
             r = row.iloc[0]
             players_with_data += 1
-            br_  = float(r.get("bat_rating")  or 50)
-            bow_ = float(r.get("bowl_rating") or 50)
-            pp_  = float(r.get("pp_bat_score")   or 50)
-            dt_  = float(r.get("death_bat_score")or 50)
+            def _safe(v, default=50.0):
+                try: return float(v) if v is not None and not (isinstance(v, float) and np.isnan(v)) else default
+                except: return default
+            br_  = _safe(r.get("bat_rating"),       50)
+            bow_ = _safe(r.get("bowl_rating"),       50)
+            pp_  = _safe(r.get("pp_bat_score"),      50)
+            dt_  = _safe(r.get("death_bat_score"),   50)
             # Top 6 = batters (weight 2), bottom 5 = bowlers (weight 2 for bowling)
             bat_weight  = 2 if i < 6 else 1
             bowl_weight = 1 if i < 6 else 2
@@ -2181,6 +2184,10 @@ if page == "06  Match Predictor":
         }
 
     def _grade(score):
+        try:
+            score = float(score)
+        except (TypeError, ValueError):
+            return ("—", "#ccc")
         if score >= 80: return ("A+", "#06D6A0")
         if score >= 72: return ("A",  "#06D6A0")
         if score >= 65: return ("B+", "#FFE500")
@@ -2189,7 +2196,10 @@ if page == "06  Match Predictor":
         return ("C", "#FF6B9D")
 
     def _bar(val, colour):
-        w = int(min(max(val, 0), 100))
+        try:
+            w = int(min(max(float(val), 0), 100))
+        except (TypeError, ValueError):
+            w = 0
         return (f'<div style="background:#eee;border:1.5px solid #0D0D0D;border-radius:3px;height:10px;margin:.15rem 0">'
                 f'<div style="width:{w}%;background:{colour};height:100%;border-radius:2px"></div></div>')
 
