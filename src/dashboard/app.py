@@ -2104,6 +2104,154 @@ if page == "06  Match Predictor":
 
     st.markdown("---")
 
+    # ── XI Strength Ratings ─────────────────────────────────────────────
+    st.markdown("### XI Strength Ratings")
+
+    def _xi_rating(xi_names, vrow):
+        """
+        Score an XI 0–100 across four dimensions:
+          Batting  — weighted avg bat_rating (top 6 weighted 2x)
+          Bowling  — weighted avg bowl_rating (last 5 weighted 2x)
+          Depth    — how many players have bat_rating > 50
+          Venue fit— how well team's phase scores match venue conditions
+        Returns dict of dimension scores + overall.
+        """
+        bat_ratings, bowl_ratings = [], []
+        pp_scores, death_scores   = [], []
+        players_with_data = 0
+
+        for i, name in enumerate(xi_names):
+            row = all_df[all_df["name"] == name]
+            if row.empty:
+                continue
+            r = row.iloc[0]
+            players_with_data += 1
+            br_  = float(r.get("bat_rating")  or 50)
+            bow_ = float(r.get("bowl_rating") or 50)
+            pp_  = float(r.get("pp_bat_score")   or 50)
+            dt_  = float(r.get("death_bat_score")or 50)
+            # Top 6 = batters (weight 2), bottom 5 = bowlers (weight 2 for bowling)
+            bat_weight  = 2 if i < 6 else 1
+            bowl_weight = 1 if i < 6 else 2
+            bat_ratings.append(br_ * bat_weight)
+            bowl_ratings.append(bow_ * bowl_weight)
+            pp_scores.append(pp_)
+            death_scores.append(dt_)
+
+        if players_with_data == 0:
+            return None
+
+        bat_w_sum   = sum(2 if i < 6 else 1 for i in range(min(len(xi_names), 11)))
+        bowl_w_sum  = sum(1 if i < 6 else 2 for i in range(min(len(xi_names), 11)))
+        batting_sc  = round(sum(bat_ratings)  / bat_w_sum,  1) if bat_w_sum  else 50
+        bowling_sc  = round(sum(bowl_ratings) / bowl_w_sum, 1) if bowl_w_sum else 50
+        depth_sc    = round(sum(1 for r in [all_df[all_df["name"]==n] for n in xi_names]
+                             if not r.empty and float(r.iloc[0].get("bat_rating") or 0) > 45)
+                            / max(len(xi_names), 1) * 100, 1)
+
+        # Venue fit: pace pitch → value high bowl_rating lower-order players
+        #            spin pitch → value mid_sr / anchor scores
+        #            big bat factor → value finisher/death scores
+        venue_fit = 50.0
+        if vrow is not None:
+            pi_v = float(vrow.get("pace_index") or 0.5) if pd.notna(vrow.get("pace_index")) else 0.5
+            bf_v = float(vrow.get("bat_factor") or 1.0) if pd.notna(vrow.get("bat_factor")) else 1.0
+            br_v = float(vrow.get("boundary_rate") or 0.12) if pd.notna(vrow.get("boundary_rate")) else 0.12
+
+            # Pace fit: bowl_rating of lower order vs pace index
+            lower_bowl = [float(all_df[all_df["name"]==n].iloc[0].get("bowl_rating") or 50)
+                          for n in xi_names[6:] if not all_df[all_df["name"]==n].empty]
+            bowl_avg   = sum(lower_bowl) / len(lower_bowl) if lower_bowl else 50
+            pace_fit   = bowl_avg * pi_v + (100 - bowl_avg) * (1 - pi_v)
+
+            # Bat factor fit: high bat_factor → finisher/death scores matter more
+            death_avg  = sum(death_scores) / len(death_scores) if death_scores else 50
+            bat_fit    = death_avg * (bf_v - 0.7) / 0.6  # scale 0.7–1.3 → 0–1
+            bat_fit    = max(0, min(100, bat_fit))
+
+            venue_fit  = round((pace_fit * 0.5 + bat_fit * 0.3 + 50 * 0.2), 1)
+
+        overall = round(batting_sc * 0.35 + bowling_sc * 0.35 + depth_sc * 0.15 + venue_fit * 0.15, 1)
+
+        return {
+            "batting":   batting_sc,
+            "bowling":   bowling_sc,
+            "depth":     depth_sc,
+            "venue_fit": venue_fit,
+            "overall":   overall,
+        }
+
+    def _grade(score):
+        if score >= 80: return ("A+", "#06D6A0")
+        if score >= 72: return ("A",  "#06D6A0")
+        if score >= 65: return ("B+", "#FFE500")
+        if score >= 58: return ("B",  "#FFE500")
+        if score >= 50: return ("C+", "#FF8C42")
+        return ("C", "#FF6B9D")
+
+    def _bar(val, colour):
+        w = int(min(max(val, 0), 100))
+        return (f'<div style="background:#eee;border:1.5px solid #0D0D0D;border-radius:3px;height:10px;margin:.15rem 0">'
+                f'<div style="width:{w}%;background:{colour};height:100%;border-radius:2px"></div></div>')
+
+    def _render_xi_card(label, xi_names, scores, colour):
+        if not scores:
+            st.warning(f"No rating data for {label}.")
+            return
+        g_bat,  c_bat  = _grade(scores["batting"])
+        g_bowl, c_bowl = _grade(scores["bowling"])
+        g_dep,  c_dep  = _grade(scores["depth"])
+        g_vf,   c_vf   = _grade(scores["venue_fit"])
+        g_ov,   c_ov   = _grade(scores["overall"])
+        st.markdown(f"""
+        <div class="nb-card" style="background:{colour};padding:1rem">
+          <div style="font-family:Space Mono;font-size:.75rem;font-weight:700;margin-bottom:.5rem">{label}</div>
+          <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem">
+            <span style="font-family:Space Grotesk;font-size:3rem;font-weight:900;line-height:1">{scores['overall']}</span>
+            <span style="font-family:Space Mono;font-size:1.2rem;font-weight:700">/100</span>
+            <span style="font-family:Space Mono;font-size:1.4rem;font-weight:900;background:#0D0D0D;color:{c_ov};
+                  padding:.1rem .5rem;border-radius:4px;margin-left:.3rem">{g_ov}</span>
+          </div>
+          <table style="width:100%;font-size:.8rem;border-collapse:collapse">
+            <tr><td style="padding:.15rem 0;width:30%"><b>Batting</b></td>
+                <td style="width:50%">{_bar(scores["batting"], "#0D0D0D")}</td>
+                <td style="text-align:right;font-family:Space Mono">{scores["batting"]} <span style="color:{c_bat};font-weight:700">{g_bat}</span></td></tr>
+            <tr><td style="padding:.15rem 0"><b>Bowling</b></td>
+                <td>{_bar(scores["bowling"], "#0D0D0D")}</td>
+                <td style="text-align:right;font-family:Space Mono">{scores["bowling"]} <span style="color:{c_bowl};font-weight:700">{g_bowl}</span></td></tr>
+            <tr><td style="padding:.15rem 0"><b>Depth</b></td>
+                <td>{_bar(scores["depth"], "#0D0D0D")}</td>
+                <td style="text-align:right;font-family:Space Mono">{scores["depth"]} <span style="color:{c_dep};font-weight:700">{g_dep}</span></td></tr>
+            <tr><td style="padding:.15rem 0"><b>Venue fit</b></td>
+                <td>{_bar(scores["venue_fit"], "#0D0D0D")}</td>
+                <td style="text-align:right;font-family:Space Mono">{scores["venue_fit"]} <span style="color:{c_vf};font-weight:700">{g_vf}</span></td></tr>
+          </table>
+        </div>""", unsafe_allow_html=True)
+
+    r1, r2 = st.columns(2)
+    your_scores = _xi_rating(your_xi, vrow)
+    opp_scores  = _xi_rating(opp_xi,  vrow)
+
+    with r1:
+        _render_xi_card("YOUR XI", your_xi, your_scores, "#FFE500")
+    with r2:
+        _render_xi_card("OPP XI",  opp_xi,  opp_scores,  "#FF6B9D")
+
+    # Edge summary
+    if your_scores and opp_scores:
+        edges = []
+        for dim, label in [("batting","Batting"),("bowling","Bowling"),
+                           ("depth","Depth"),("venue_fit","Venue fit")]:
+            diff = your_scores[dim] - opp_scores[dim]
+            if   diff >  5: edges.append(f"✅ Your XI has the edge in **{label}** (+{diff:.0f})")
+            elif diff < -5: edges.append(f"⚠️ Opp XI has the edge in **{label}** (+{-diff:.0f})")
+        if edges:
+            st.markdown("**Match edges:**")
+            for e in edges:
+                st.markdown(e)
+
+    st.markdown("---")
+
     # ── Matchup matrix ─────────────────────────────────────────────────
     st.markdown("### Matchup Matrix — Batters vs Bowlers")
     st.caption("SR = strike rate in real ball-by-ball history. ⚠ = fewer than 6 balls faced. 🔴 = dismissed.")
