@@ -518,6 +518,7 @@ with st.sidebar:
         "03  Pitch Intelligence",
         "04  Prediction Engine",
         "05  Matchup Lab",
+        "06  Match Predictor",
     ], label_visibility="collapsed")
 
     st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
@@ -1154,6 +1155,108 @@ elif "02" in page:
             st.dataframe(cmp, height=320)
 
 
+# ─────────────────────────────────────────────────────────
+# GROUND INFO — manually curated for major T20 venues
+# Keys match venue names in the DB (cricsheet naming)
+# ─────────────────────────────────────────────────────────
+GROUND_INFO = {
+    "Wankhede Stadium":                    {"dims": "65–75m", "surface": "Red soil, flat", "notes": "High bounce, true carry. Small straight boundaries. Dew after sunset."},
+    "Eden Gardens":                        {"dims": "70–80m", "surface": "Red soil, slow", "notes": "Spin-assisting surface later in tournament. Outfield quick. Dew a major factor."},
+    "M Chinnaswamy Stadium":               {"dims": "58–68m", "surface": "Black soil, flat", "notes": "Smallest boundaries in IPL. Very high-scoring. Pacers get hit; spinners safer."},
+    "Narendra Modi Stadium":               {"dims": "75–85m", "surface": "Red soil, flat", "notes": "Largest cricket stadium. Large boundaries. Pacers get movement early. Good for bowlers."},
+    "MA Chidambaram Stadium":              {"dims": "65–70m", "surface": "Black soil, spin", "notes": "Classic spin deck. Slow and low. Off-spinners and leg-spinners dominate. Very low-scoring."},
+    "Sawai Mansingh Stadium":              {"dims": "68–75m", "surface": "Red soil, balanced", "notes": "Balanced pitch. Slight help for pacers early. Dew factor significant at night."},
+    "Sawai Mansingh Stadium, Jaipur":      {"dims": "68–75m", "surface": "Red soil, balanced", "notes": "Balanced pitch. Slight help for pacers early. Dew factor significant at night."},
+    "Punjab Cricket Association IS Bindra Stadium, Mohali": {"dims": "68–78m", "surface": "Red soil, true", "notes": "True bounce. Pacers get carry and swing early. Good batting track overall."},
+    "Rajiv Gandhi International Stadium, Uppal": {"dims": "65–75m", "surface": "Black soil, flat", "notes": "Good batting surface. Dew heavy in evening games. Spin effective after powerplay."},
+    "Arun Jaitley Stadium":                {"dims": "65–75m", "surface": "Red soil, balanced", "notes": "Balanced. Dew is significant. Chasing is an advantage due to dew in second innings."},
+    "DY Patil Sports Academy":             {"dims": "65–75m", "surface": "Red soil, flat", "notes": "Hard, true surface. High scoring. Small square boundaries. Spinners can be expensive."},
+    "Brabourne Stadium":                   {"dims": "68–75m", "surface": "Red soil, flat", "notes": "Similar to Wankhede. True bounce. Good for strokeplay. High scores common."},
+    "Melbourne Cricket Ground":            {"dims": "80–90m", "surface": "Drop-in, bounce", "notes": "Largest boundaries in T20 cricket. Drop-in pitches — good carry, steep bounce. Favours pacers."},
+    "Sydney Cricket Ground":               {"dims": "68–75m", "surface": "Drop-in, true", "notes": "Historically spin-friendly. Drop-in pitches now make it more pace-friendly."},
+    "Perth Stadium":                       {"dims": "70–82m", "surface": "Drop-in, fast", "notes": "Fastest outfield in Australia. Good carry and bounce for pacers. High-scoring."},
+    "Brisbane Cricket Ground, Woolloongabba": {"dims": "68–75m", "surface": "Drop-in, bounce", "notes": "Good carry for pace. Spinner-unfriendly. Evening dew minimal."},
+    "Adelaide Oval":                       {"dims": "60–75m", "surface": "Drop-in, true", "notes": "Uneven boundary — short square. Historically spin-friendly drop-in pitch."},
+    "Gaddafi Stadium":                     {"dims": "65–75m", "surface": "Spin, crumbling", "notes": "Classic spin deck. Surfaces deteriorate. Low-scoring. Slow outfield."},
+    "National Stadium, Karachi":           {"dims": "68–75m", "surface": "Flat, hard", "notes": "Hard, flat surface. High-scoring ground. Relatively quick outfield."},
+    "Pindi Cricket Stadium":               {"dims": "65–72m", "surface": "Flat, batting", "notes": "Very flat surface. High-scoring. First innings advantage. Boundary easier to hit."},
+    "Lord's":                              {"dims": "70–80m", "surface": "Seam, bounce", "notes": "Uneven slope. Swing and seam movement. Not a typical T20 venue. Bowler-friendly."},
+    "The Oval":                            {"dims": "68–78m", "surface": "Flat, fast", "notes": "Flat batting surface. Fast outfield. High-scoring T20 venue."},
+    "Edgbaston":                           {"dims": "65–72m", "surface": "Seam, swing", "notes": "Seam and swing conditions. Small boundaries square. Pacers get early movement."},
+    "Headingley":                          {"dims": "65–70m", "surface": "Seam, variable", "notes": "Variable bounce. Seamers and swing bowlers thrive. Low-scoring for T20."},
+    "Old Trafford":                        {"dims": "65–75m", "surface": "Flat, balanced", "notes": "Flat but variable bounce. Overcast conditions aid swing. Mid-range scores."},
+    "SuperSport Park":                     {"dims": "68–78m", "surface": "Pace, bounce", "notes": "Excellent carry and bounce. Pacers dominate. High altitude boosts bat."},
+    "Newlands":                            {"dims": "65–72m", "surface": "Seam, swing", "notes": "Cape Town wind aids swing and seam. Pacers get extra movement. Scenic ground."},
+    "The Wanderers Stadium":               {"dims": "62–70m", "surface": "Pace, flat", "notes": "Very high altitude (1750m). Ball travels far. Small square boundaries. High-scoring."},
+    "Kingsmead":                           {"dims": "65–72m", "surface": "Seam, humid", "notes": "Coastal humidity aids swing. Good carry for pace. Historically spinner-unfriendly."},
+    "Providence Stadium":                  {"dims": "65–75m", "surface": "Flat, balanced", "notes": "Good batting surface. Boundary not too short. Pacers get early movement."},
+    "Queen's Park Oval":                   {"dims": "65–72m", "surface": "Balanced", "notes": "Classic Caribbean ground. Balanced surface. Good batting conditions."},
+    "Sabina Park":                         {"dims": "62–70m", "surface": "Pace, bounce", "notes": "Traditionally fast and bouncy. Pacers with extra height extract steep bounce."},
+    "National Cricket Stadium, St George's": {"dims": "62–70m", "surface": "Flat, fast", "notes": "Fast outfield. Good batting conditions. Boundary on the shorter side."},
+    "R Premadasa Stadium":                 {"dims": "65–72m", "surface": "Spin, slow", "notes": "Classic Sri Lankan spin deck. Slow and low. Spinners effective throughout."},
+    "Dubai International Cricket Stadium": {"dims": "68–78m", "surface": "Slow, spin", "notes": "Desert surface. Very slow and low. Spin dominant. High scores despite sluggish outfield."},
+    "Sharjah Cricket Stadium":             {"dims": "58–68m", "surface": "Slow, spin", "notes": "Very short ground. Highest boundary rate in UAE. Spinners get turn but expensive."},
+    "Sheikh Zayed Stadium":                {"dims": "65–75m", "surface": "Flat, slow", "notes": "Flat, slow surface. Pacers with good yorkers effective. Spin gets purchase."},
+    "VRA Ground":                          {"dims": "60–68m", "surface": "Outfield, flat", "notes": "Club-level ground in Amstelveen. Flat surface. Small boundaries. Limited international data."},
+    "Hagley Oval":                         {"dims": "65–72m", "surface": "Seam, swing", "notes": "Swing and seam in Christchurch conditions. Bowler-friendly in early overs."},
+    "Eden Park":                           {"dims": "55–65m", "surface": "Flat, small", "notes": "Smallest international ground in NZ. Very short square boundaries. Huge scoring ground."},
+    "Basin Reserve":                       {"dims": "65–75m", "surface": "Seam, windy", "notes": "Famous Wellington wind. Swing and seam. Unpredictable conditions."},
+}
+
+def _pitch_label(bat_factor, pace_index, boundary_rate):
+    """Generate human-readable pitch description from stats."""
+    # Scoring
+    if pd.isna(bat_factor):
+        scoring = "Unknown scoring"
+    elif bat_factor > 1.10:
+        scoring = "High-scoring"
+    elif bat_factor < 0.90:
+        scoring = "Low-scoring"
+    else:
+        scoring = "Balanced scoring"
+
+    # Surface type
+    if pd.isna(pace_index):
+        surface = "unknown surface"
+    elif pace_index > 0.65:
+        surface = "pace-friendly surface"
+    elif pace_index < 0.35:
+        surface = "spin-friendly surface"
+    else:
+        surface = "balanced surface"
+
+    # Ground size
+    if pd.isna(boundary_rate):
+        size = ""
+    elif boundary_rate > 0.16:
+        size = "Short boundaries."
+    elif boundary_rate < 0.10:
+        size = "Large ground."
+    else:
+        size = "Standard dimensions."
+
+    return f"{scoring} · {surface}. {size}".strip()
+
+
+def _pitch_tags(bat_factor, pace_index, boundary_rate):
+    """Return list of (label, colour) tags."""
+    tags = []
+    if not pd.isna(bat_factor):
+        if bat_factor > 1.10:   tags.append(("🏏 Batter Paradise", "#FFE500"))
+        elif bat_factor > 1.03: tags.append(("🏏 Batter Friendly", "#FFE500"))
+        elif bat_factor < 0.90: tags.append(("⚡ Bowler Friendly", "#FF6B9D"))
+        elif bat_factor < 0.97: tags.append(("⚡ Slight Bowler Edge", "#FF6B9D"))
+        else:                   tags.append(("⚖ Balanced", "#A8DADC"))
+    if not pd.isna(pace_index):
+        if pace_index > 0.65:   tags.append(("🎳 Pace Dominant", "#FF8C42"))
+        elif pace_index < 0.35: tags.append(("🌀 Spin Dominant", "#9B5DE5"))
+        else:                   tags.append(("🔄 Mixed Attack", "#A8DADC"))
+    if not pd.isna(boundary_rate):
+        if boundary_rate > 0.16: tags.append(("📐 Tiny Ground", "#3A86FF"))
+        elif boundary_rate < 0.10: tags.append(("📐 Big Ground", "#3A86FF"))
+    return tags
+
+
 # ═══════════════════════════════════════════════════════════
 # PAGE 3 — PITCH INTELLIGENCE
 # ═══════════════════════════════════════════════════════════
@@ -1205,12 +1308,42 @@ elif "03" in page:
     vrow        = venues_df[venues_df["name"] == sel_venue].iloc[0]
     vid         = int(vrow["id"])
 
+    # ── Pitch type tags ──
+    bf  = vrow.get("bat_factor")
+    pi  = vrow.get("pace_index")
+    br  = vrow.get("boundary_rate")
+    tags = _pitch_tags(bf, pi, br)
+    tag_html = " ".join([
+        f'<span style="background:{c};color:#0D0D0D;padding:.2rem .6rem;'
+        f'border-radius:4px;font-family:Space Mono;font-size:.72rem;'
+        f'font-weight:700;border:2px solid #0D0D0D">{t}</span>'
+        for t, c in tags
+    ])
+    st.markdown(f'<div style="margin:.5rem 0 1rem">{tag_html}</div>',
+                unsafe_allow_html=True)
+
+    # ── Human readable summary ──
+    summary = _pitch_label(bf, pi, br)
+    ground  = GROUND_INFO.get(sel_venue, {})
+    if ground:
+        summary_extra = f" {ground.get('notes','')}"
+        dims_text     = f"Boundary: {ground.get('dims','—')} | Surface: {ground.get('surface','—')}"
+    else:
+        summary_extra = ""
+        dims_text     = ""
+
+    st.markdown(f"""
+    <div class="nb-card" style="padding:1rem 1.2rem;margin-bottom:1rem">
+      <div style="font-size:1rem;font-weight:700">{summary}{summary_extra}</div>
+      {"<div style='font-size:.75rem;opacity:.6;margin-top:.3rem;font-family:Space Mono'>" + dims_text + "</div>" if dims_text else ""}
+    </div>""", unsafe_allow_html=True)
+
     vc1, vc2, vc3, vc4, vc5 = st.columns(5)
-    vc1.metric("Bat Factor",       f"{vrow.get('bat_factor', 1):.3f}")
-    vc2.metric("Avg 1st Inn",      f"{vrow.get('avg_first_inn_runs', 0):.0f}")
-    vc3.metric("Boundary Rate",    f"{(vrow.get('boundary_rate',0)*100):.1f}%")
-    vc4.metric("Pace Index",       f"{vrow.get('pace_index', 0.5):.2f}")
-    vc5.metric("Total Matches",    int(vrow.get("total_matches", 0)))
+    vc1.metric("Bat Factor",       f"{bf:.3f}" if pd.notna(bf) else "—")
+    vc2.metric("Avg 1st Inn",      f"{vrow.get('avg_first_inn_runs', 0):.0f}" if pd.notna(vrow.get('avg_first_inn_runs')) else "—")
+    vc3.metric("Boundary Rate",    f"{(br*100):.1f}%" if pd.notna(br) else "—")
+    vc4.metric("Pace Index",       f"{pi:.2f}" if pd.notna(pi) else "—")
+    vc5.metric("Total Matches",    int(vrow.get("total_matches", 0)) if pd.notna(vrow.get("total_matches")) else "—")
 
     tc1, tc2 = st.columns(2)
     with tc1:
@@ -1662,3 +1795,199 @@ if page == "05  Matchup Lab":
                     hard = df3[df3["balls"] >= 12].nlargest(10, "SR")[
                         ["batter","balls","runs","dismissals","SR","dot_%"]]
                     st.dataframe(hard, hide_index=True, use_container_width=True)
+
+
+# ─────────────────────────────────────────────────────────
+# PAGE 6 — MATCH PREDICTOR (XI vs XI)
+# ─────────────────────────────────────────────────────────
+if page == "06  Match Predictor":
+    st.markdown('<h1 class="nb-title">Match Predictor</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="nb-subtitle">Your XI vs Their XI at a venue — matchup matrix, key threats, predicted score</p>',
+                unsafe_allow_html=True)
+
+    all_df     = all_players()
+    names      = all_df["name"].tolist()
+    venues_df  = all_venues()
+    venue_names = venues_df["name"].tolist() if not venues_df.empty else []
+
+    # ── Team selection ─────────────────────────────────────────────────
+    st.markdown("### Select Teams")
+    col_a, col_b = st.columns(2)
+
+    with col_a:
+        st.markdown("**Your XI**")
+        your_xi = []
+        for i in range(11):
+            label = f"{'Opener' if i<2 else 'Batter' if i<6 else 'All-rounder' if i<9 else 'Bowler'} #{i+1}"
+            p = st.selectbox(label, ["— select —"] + names,
+                             key=f"your_{i}", label_visibility="collapsed")
+            if p != "— select —":
+                your_xi.append(p)
+
+    with col_b:
+        st.markdown("**Opposition XI**")
+        opp_xi = []
+        for i in range(11):
+            label = f"Opp #{i+1}"
+            p = st.selectbox(label, ["— select —"] + names,
+                             key=f"opp_{i}", label_visibility="collapsed")
+            if p != "— select —":
+                opp_xi.append(p)
+
+    col_v, col_bat = st.columns([3, 1])
+    with col_v:
+        sel_venue = st.selectbox("Venue", venue_names, key="mp_venue") if venue_names else None
+    with col_bat:
+        bats_first = st.radio("Bats first", ["Your XI", "Opp XI"], key="mp_bat")
+
+    if len(your_xi) < 5 or len(opp_xi) < 5:
+        st.info("Select at least 5 players per side to run prediction.")
+        st.stop()
+
+    # ── Resolve IDs ────────────────────────────────────────────────────
+    id_map = dict(zip(all_df["name"], all_df["id"]))
+
+    your_batters  = your_xi if bats_first == "Your XI" else opp_xi
+    opp_batters   = opp_xi  if bats_first == "Your XI" else your_xi
+    your_bowlers  = [p for p in (opp_xi if bats_first == "Your XI" else your_xi)]
+    opp_bowlers   = [p for p in (your_xi if bats_first == "Your XI" else opp_xi)]
+
+    # Venue row
+    vrow = venues_df[venues_df["name"] == sel_venue].iloc[0] if sel_venue and not venues_df.empty else None
+
+    # ── Pitch summary ──────────────────────────────────────────────────
+    if vrow is not None:
+        bf  = vrow.get("bat_factor")
+        pi  = vrow.get("pace_index")
+        br  = vrow.get("boundary_rate")
+        tags = _pitch_tags(bf, pi, br)
+        tag_html = " ".join([
+            f'<span style="background:{c};color:#0D0D0D;padding:.15rem .5rem;'
+            f'border-radius:4px;font-family:Space Mono;font-size:.68rem;font-weight:700;'
+            f'border:1.5px solid #0D0D0D">{t}</span>' for t, c in tags
+        ])
+        ground = GROUND_INFO.get(sel_venue, {})
+        desc   = _pitch_label(bf, pi, br)
+        notes  = ground.get("notes", "")
+        st.markdown(f"""
+        <div class="nb-card" style="padding:.8rem 1rem;margin:1rem 0">
+          <b>{sel_venue}</b> — {tag_html}<br>
+          <span style="font-size:.85rem">{desc} {notes}</span>
+        </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── Matchup matrix ─────────────────────────────────────────────────
+    st.markdown("### Matchup Matrix — Batters vs Bowlers")
+    st.caption("SR = strike rate in real ball-by-ball history. ⚠ = fewer than 6 balls faced. 🔴 = dismissed.")
+
+    def _matchup_cell(bat_name, bowl_name):
+        bid = id_map.get(bat_name)
+        oid = id_map.get(bowl_name)
+        if not bid or not oid:
+            return "—"
+        df = matchup_stats(int(bid), int(oid))
+        if df.empty:
+            return "No data"
+        balls = len(df)
+        runs  = int(df["bat_runs"].sum())
+        wkts  = int(df["is_wicket"].sum())
+        sr    = round(runs / balls * 100) if balls else 0
+        flag  = "⚠ " if balls < 6 else ""
+        out   = " 🔴" if wkts > 0 else ""
+        return f"{flag}{runs}/{balls}b SR{sr}{out}"
+
+    batting_team  = your_batters[:6]   # top 6 batters
+    bowling_team  = your_bowlers[:5]   # top 5 bowlers from opp
+
+    matrix_data = {}
+    for bowler in bowling_team:
+        matrix_data[bowler] = [_matchup_cell(b, bowler) for b in batting_team]
+
+    matrix_df = pd.DataFrame(matrix_data, index=batting_team)
+    matrix_df.index.name = "Batter ↓ / Bowler →"
+    st.dataframe(matrix_df, use_container_width=True)
+
+    st.markdown("---")
+
+    # ── Key threats ────────────────────────────────────────────────────
+    st.markdown("### Key Threats")
+    col_t1, col_t2 = st.columns(2)
+
+    def _threats(batting_team, bowling_team, label):
+        rows = []
+        for bowl in bowling_team:
+            oid = id_map.get(bowl)
+            if not oid: continue
+            for bat in batting_team:
+                bid = id_map.get(bat)
+                if not bid: continue
+                df = matchup_stats(int(bid), int(oid))
+                if df.empty or len(df) < 6: continue
+                balls = len(df)
+                runs  = int(df["bat_runs"].sum())
+                wkts  = int(df["is_wicket"].sum())
+                sr    = round(runs / balls * 100)
+                rows.append({"Bowler": bowl, "vs Batter": bat,
+                             "Balls": balls, "SR": sr, "Wkts": wkts})
+        if not rows:
+            return pd.DataFrame()
+        return pd.DataFrame(rows).sort_values("SR", ascending=False)
+
+    with col_t1:
+        st.markdown(f"**Their bowlers dangerous vs your batters**")
+        threat1 = _threats(your_batters, opp_xi, "opp")
+        if not threat1.empty:
+            # Highlight dismissals
+            danger = threat1[threat1["Wkts"] > 0].head(5)
+            if not danger.empty:
+                st.dataframe(danger, hide_index=True, use_container_width=True)
+            else:
+                st.dataframe(threat1.head(5), hide_index=True, use_container_width=True)
+        else:
+            st.info("Not enough head-to-head history.")
+
+    with col_t2:
+        st.markdown(f"**Your bowlers dangerous vs their batters**")
+        threat2 = _threats(opp_batters, your_xi, "your")
+        if not threat2.empty:
+            danger2 = threat2[threat2["Wkts"] > 0].head(5)
+            if not danger2.empty:
+                st.dataframe(danger2, hide_index=True, use_container_width=True)
+            else:
+                st.dataframe(threat2.head(5), hide_index=True, use_container_width=True)
+        else:
+            st.info("Not enough head-to-head history.")
+
+    st.markdown("---")
+
+    # ── Venue advantage ────────────────────────────────────────────────
+    if vrow is not None and not pd.isna(vrow.get("pace_index")):
+        st.markdown("### Venue Advantage")
+        pi = float(vrow["pace_index"])
+
+        # Count pace vs spin bowlers per team (rough: we don't have bowling style in DB yet)
+        # Use career bowling stats as proxy — high economy spinners vs pacers
+        your_bowl_str  = ", ".join(your_xi[-4:]) if len(your_xi) >= 4 else "—"
+        opp_bowl_str   = ", ".join(opp_xi[-4:])  if len(opp_xi)  >= 4 else "—"
+
+        if pi > 0.65:
+            advantage = "Pace-friendly pitch. Bowlers with pace and carry will be effective."
+        elif pi < 0.35:
+            advantage = "Spin-friendly pitch. Spin bowlers will get turn and slow it up."
+        else:
+            advantage = "Balanced pitch. Both pace and spin will be effective."
+
+        bf_val = float(vrow.get("bat_factor", 1.0)) if pd.notna(vrow.get("bat_factor")) else 1.0
+        if bf_val > 1.08:
+            bat_adv = "Batting pitch — chasing team has a significant advantage (dew factor likely)."
+        elif bf_val < 0.93:
+            bat_adv = "Bowling pitch — setting a target and defending is the better strategy."
+        else:
+            bat_adv = "Neutral pitch — toss and conditions on the day will decide."
+
+        st.markdown(f"""
+        <div class="nb-card" style="padding:1rem">
+          <div>🎯 <b>Pitch type:</b> {advantage}</div>
+          <div style="margin-top:.5rem">🏏 <b>Toss strategy:</b> {bat_adv}</div>
+        </div>""", unsafe_allow_html=True)
