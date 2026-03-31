@@ -1988,3 +1988,101 @@ if page == "06  Match Predictor":
           <div>🎯 <b>Pitch type:</b> {advantage}</div>
           <div style="margin-top:.5rem">🏏 <b>Toss strategy:</b> {bat_adv}</div>
         </div>""", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # ── GBM Score Prediction ────────────────────────────────────────────
+    st.markdown("### Predicted Scores")
+    st.caption("GBM model — venue-adjusted per-player run prediction, summed to team total.")
+
+    vrow_dict = vrow.to_dict() if vrow is not None else {}
+    venue_feat = {
+        "bat_factor":    float(vrow_dict.get("bat_factor")    or 1.0),
+        "boundary_rate": float(vrow_dict.get("boundary_rate") or 0.12),
+        "pace_index":    float(vrow_dict.get("pace_index")    or 0.5),
+    }
+
+    def _predict_xi(player_names, is_chase):
+        rows = []
+        total = 0.0
+        for pos, name in enumerate(player_names, 1):
+            pp = _get_player(name)
+            if not pp:
+                rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI": "—"})
+                continue
+            feat = {
+                "career_adj_avg":   float(pp.get("adj_average")     or 20),
+                "career_adj_sr":    float(pp.get("adj_strike_rate")  or 120),
+                "career_innings":   int(pp.get("innings")            or 20),
+                "chase_avg":        20.0,
+                "first_avg":        float(pp.get("adj_average")      or 20),
+                "chase_sr":         120.0,
+                "batting_position": pos,
+                "pp_sr":            float(pp.get("pp_sr")   or 130),
+                "mid_sr":           float(pp.get("mid_sr")  or 125),
+                "death_sr":         float(pp.get("death_sr")or 135),
+            }
+            try:
+                p = predict_bat(feat, venue_feat, n_boot=100)
+                pred = p["chasing"] if is_chase else p["first_innings"]
+                ci   = f"{p['ci_lo']}–{p['ci_hi']}"
+                total += pred
+                rows.append({"#": pos, "Player": name,
+                             "Predicted Runs": round(pred, 1), "CI (80%)": ci})
+            except Exception:
+                rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI": "—"})
+        return pd.DataFrame(rows), round(total, 1)
+
+    batting_first_xi  = your_xi if bats_first == "Your XI" else opp_xi
+    batting_second_xi = opp_xi  if bats_first == "Your XI" else your_xi
+    first_label       = "Your XI" if bats_first == "Your XI" else "Opp XI"
+    second_label      = "Opp XI"  if bats_first == "Your XI" else "Your XI"
+
+    with st.spinner("Running predictions…"):
+        df_first,  total_first  = _predict_xi(batting_first_xi,  is_chase=False)
+        df_second, total_second = _predict_xi(batting_second_xi, is_chase=True)
+
+    # Score cards
+    sc1, sc2 = st.columns(2)
+    winner = first_label if total_first > total_second else second_label
+    margin = abs(round(total_first - total_second, 1))
+
+    with sc1:
+        colour = "#FFE500" if first_label == "Your XI" else "#FF6B9D"
+        st.markdown(f"""
+        <div class="nb-card" style="background:{colour};padding:1rem;text-align:center">
+          <div style="font-family:Space Mono;font-size:.75rem;font-weight:700">{first_label} — BATTING FIRST</div>
+          <div style="font-family:Space Grotesk;font-size:2.8rem;font-weight:900;line-height:1">{total_first}</div>
+          <div style="font-size:.75rem">predicted runs</div>
+        </div>""", unsafe_allow_html=True)
+        st.dataframe(df_first, hide_index=True, use_container_width=True)
+
+    with sc2:
+        colour = "#FFE500" if second_label == "Your XI" else "#FF6B9D"
+        st.markdown(f"""
+        <div class="nb-card" style="background:{colour};padding:1rem;text-align:center">
+          <div style="font-family:Space Mono;font-size:.75rem;font-weight:700">{second_label} — CHASING</div>
+          <div style="font-family:Space Grotesk;font-size:2.8rem;font-weight:900;line-height:1">{total_second}</div>
+          <div style="font-size:.75rem">predicted runs</div>
+        </div>""", unsafe_allow_html=True)
+        st.dataframe(df_second, hide_index=True, use_container_width=True)
+
+    # Verdict
+    if total_first > 0 and total_second > 0:
+        diff = total_first - total_second
+        win_prob = round(50 + min(diff * 0.6, 45), 1)
+        if diff < 0:
+            win_prob = round(100 - win_prob, 1)
+        st.markdown(f"""
+        <div class="nb-card" style="background:#0D0D0D;color:#FFE500;padding:1rem;
+             text-align:center;margin-top:1rem">
+          <span style="font-family:Space Mono;font-size:.8rem">MODEL VERDICT</span><br>
+          <span style="font-family:Space Grotesk;font-size:1.6rem;font-weight:900">
+            {winner} wins by ~{margin} runs
+          </span><br>
+          <span style="font-size:.8rem;color:#ccc">
+            {first_label} win probability: {win_prob}%
+            &nbsp;|&nbsp; {second_label}: {100-win_prob}%
+          </span>
+        </div>""", unsafe_allow_html=True)
+        st.caption("⚠ Predictions are based on career stats + venue factors. T20 cricket is highly variable — treat as a guide, not a guarantee.")
