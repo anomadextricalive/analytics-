@@ -18,6 +18,10 @@ ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(ROOT))
 from config import DB_PATH
 from src.db.schema import get_engine
+from src.analytics.model import (
+    train, predict_bat, predict_bowl,
+    models_exist, model_metrics, feature_importance_df,
+)
 
 st.set_page_config(
     page_title="Cricket Analytics",
@@ -1622,11 +1626,6 @@ elif "04" in page:
       <p>Train GradientBoosting models · predict player performance at any venue</p>
     </div>""", unsafe_allow_html=True)
 
-    from src.analytics.model import (
-        train, predict_bat, predict_bowl,
-        models_exist, model_metrics, feature_importance_df,
-    )
-
     # ── Train ──
     st.markdown('<div class="nb-label">Model Training</div>', unsafe_allow_html=True)
     tc1, tc2 = st.columns([1, 3])
@@ -2362,6 +2361,10 @@ if page == "06  Match Predictor":
     # ── GBM Score Prediction ────────────────────────────────────────────
     st.markdown("### Predicted Scores")
     st.caption("GBM model — venue-adjusted per-player run prediction, summed to team total + ~12 extras.")
+
+    if not models_exist():
+        st.warning("Models not trained yet. Go to **Prediction Engine** page and click 'Train / Retrain Models' first.")
+        st.stop()
 
     if not st.button("Run Score Prediction", type="primary", key="mp_predict"):
         st.info("Select your squads above then click **Run Score Prediction**.")
