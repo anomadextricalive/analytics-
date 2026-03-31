@@ -646,8 +646,8 @@ def all_venues() -> pd.DataFrame:
                vd.bat_factor, vd.boundary_rate, vd.pace_index, vd.spin_index,
                vd.avg_first_inn_runs, vd.total_matches
         FROM venues v
-        JOIN venue_difficulty vd ON vd.venue_id = v.id
-        ORDER BY vd.total_matches DESC
+        LEFT JOIN venue_difficulty vd ON vd.venue_id = v.id
+        ORDER BY vd.total_matches DESC NULLS LAST
     """)
 
 
