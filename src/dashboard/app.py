@@ -748,10 +748,17 @@ def _get_player(name: str) -> dict:
                pr.bat_rating, pr.bowl_rating, pr.overall_rating,
                pr.opener_score, pr.finisher_score, pr.anchor_score,
                pr.chase_score, pr.pp_bat_score, pr.death_bat_score,
-               pr.pp_bowl_score, pr.death_bowl_score
+               pr.pp_bowl_score, pr.death_bowl_score,
+               chase.average  AS chase_avg,
+               chase.strike_rate AS chase_sr,
+               first_inn.average AS first_avg
         FROM players p
         JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
         LEFT JOIN player_ratings pr ON pr.player_id = p.id AND pr.tournament = 'ALL'
+        LEFT JOIN player_chase_bat chase
+               ON chase.player_id = p.id AND chase.innings_type = 'chase'
+        LEFT JOIN player_chase_bat first_inn
+               ON first_inn.player_id = p.id AND first_inn.innings_type = 'first'
         WHERE p.cricsheet_key = :n
     """, n=name)
     return df.iloc[0].to_dict() if not df.empty else {}
@@ -2117,14 +2124,15 @@ if page == "06  Match Predictor":
         out   = " 🔴" if wkts > 0 else ""
         return f"{flag}{runs}/{balls}b SR{sr}{out}"
 
-    batting_team  = your_batters[:6]   # top 6 batters
-    bowling_team  = your_bowlers[:5]   # top 5 bowlers from opp
+    # Top 6 batters from batting side; last 5 of fielding side (likely bowlers)
+    batting_side  = your_batters[:6]
+    bowling_side  = your_bowlers[-5:] if len(your_bowlers) >= 5 else your_bowlers
 
     matrix_data = {}
-    for bowler in bowling_team:
-        matrix_data[bowler] = [_matchup_cell(b, bowler) for b in batting_team]
+    for bowler in bowling_side:
+        matrix_data[bowler] = [_matchup_cell(b, bowler) for b in batting_side]
 
-    matrix_df = pd.DataFrame(matrix_data, index=batting_team)
+    matrix_df = pd.DataFrame(matrix_data, index=batting_side)
     matrix_df.index.name = "Batter ↓ / Bowler →"
     st.dataframe(matrix_df, use_container_width=True)
 
@@ -2132,14 +2140,17 @@ if page == "06  Match Predictor":
 
     # ── Key threats ────────────────────────────────────────────────────
     st.markdown("### Key Threats")
+    # Bowlers are typically the lower order — use last 5 of each XI
+    opp_bowlers_likely  = opp_xi[-5:]  if len(opp_xi)  >= 5 else opp_xi
+    your_bowlers_likely = your_xi[-5:] if len(your_xi) >= 5 else your_xi
     col_t1, col_t2 = st.columns(2)
 
-    def _threats(batting_team, bowling_team, label):
+    def _threats(bat_side, bowl_side):
         rows = []
-        for bowl in bowling_team:
+        for bowl in bowl_side:
             oid = id_map.get(bowl)
             if not oid: continue
-            for bat in batting_team:
+            for bat in bat_side:
                 bid = id_map.get(bat)
                 if not bid: continue
                 df = matchup_stats(int(bid), int(oid))
@@ -2152,53 +2163,39 @@ if page == "06  Match Predictor":
                              "Balls": balls, "SR": sr, "Wkts": wkts})
         if not rows:
             return pd.DataFrame()
-        return pd.DataFrame(rows).sort_values("SR", ascending=False)
+        return pd.DataFrame(rows).sort_values("Wkts", ascending=False)
 
     with col_t1:
-        st.markdown(f"**Their bowlers dangerous vs your batters**")
-        threat1 = _threats(your_batters, opp_xi, "opp")
+        st.markdown("**Their bowlers dangerous vs your batters**")
+        threat1 = _threats(your_batters, opp_bowlers_likely)
         if not threat1.empty:
-            # Highlight dismissals
-            danger = threat1[threat1["Wkts"] > 0].head(5)
-            if not danger.empty:
-                st.dataframe(danger, hide_index=True, use_container_width=True)
-            else:
-                st.dataframe(threat1.head(5), hide_index=True, use_container_width=True)
+            st.dataframe(threat1.head(6), hide_index=True, use_container_width=True)
         else:
             st.info("Not enough head-to-head history.")
 
     with col_t2:
-        st.markdown(f"**Your bowlers dangerous vs their batters**")
-        threat2 = _threats(opp_batters, your_xi, "your")
+        st.markdown("**Your bowlers dangerous vs their batters**")
+        threat2 = _threats(opp_batters, your_bowlers_likely)
         if not threat2.empty:
-            danger2 = threat2[threat2["Wkts"] > 0].head(5)
-            if not danger2.empty:
-                st.dataframe(danger2, hide_index=True, use_container_width=True)
-            else:
-                st.dataframe(threat2.head(5), hide_index=True, use_container_width=True)
+            st.dataframe(threat2.head(6), hide_index=True, use_container_width=True)
         else:
             st.info("Not enough head-to-head history.")
 
     st.markdown("---")
 
     # ── Venue advantage ────────────────────────────────────────────────
-    if vrow is not None and not pd.isna(vrow.get("pace_index")):
+    if vrow is not None and pd.notna(vrow.get("pace_index")):
         st.markdown("### Venue Advantage")
-        pi = float(vrow["pace_index"])
+        pi_v   = float(vrow["pace_index"])
+        bf_val = float(vrow.get("bat_factor", 1.0)) if pd.notna(vrow.get("bat_factor")) else 1.0
 
-        # Count pace vs spin bowlers per team (rough: we don't have bowling style in DB yet)
-        # Use career bowling stats as proxy — high economy spinners vs pacers
-        your_bowl_str  = ", ".join(your_xi[-4:]) if len(your_xi) >= 4 else "—"
-        opp_bowl_str   = ", ".join(opp_xi[-4:])  if len(opp_xi)  >= 4 else "—"
-
-        if pi > 0.65:
+        if pi_v > 0.65:
             advantage = "Pace-friendly pitch. Bowlers with pace and carry will be effective."
-        elif pi < 0.35:
+        elif pi_v < 0.35:
             advantage = "Spin-friendly pitch. Spin bowlers will get turn and slow it up."
         else:
             advantage = "Balanced pitch. Both pace and spin will be effective."
 
-        bf_val = float(vrow.get("bat_factor", 1.0)) if pd.notna(vrow.get("bat_factor")) else 1.0
         if bf_val > 1.08:
             bat_adv = "Batting pitch — chasing team has a significant advantage (dew factor likely)."
         elif bf_val < 0.93:
@@ -2216,7 +2213,11 @@ if page == "06  Match Predictor":
 
     # ── GBM Score Prediction ────────────────────────────────────────────
     st.markdown("### Predicted Scores")
-    st.caption("GBM model — venue-adjusted per-player run prediction, summed to team total.")
+    st.caption("GBM model — venue-adjusted per-player run prediction, summed to team total + ~12 extras.")
+
+    if not st.button("Run Score Prediction", type="primary", key="mp_predict"):
+        st.info("Select your squads above then click **Run Score Prediction**.")
+        st.stop()
 
     vrow_dict = vrow.to_dict() if vrow is not None else {}
     venue_feat = {
@@ -2231,19 +2232,19 @@ if page == "06  Match Predictor":
         for pos, name in enumerate(player_names, 1):
             pp = _get_player(name)
             if not pp:
-                rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI": "—"})
+                rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI (80%)": "—"})
                 continue
             feat = {
-                "career_adj_avg":   float(pp.get("adj_average")     or 20),
-                "career_adj_sr":    float(pp.get("adj_strike_rate")  or 120),
-                "career_innings":   int(pp.get("innings")            or 20),
-                "chase_avg":        20.0,
-                "first_avg":        float(pp.get("adj_average")      or 20),
-                "chase_sr":         120.0,
+                "career_adj_avg":   float(pp.get("adj_average")    or 20),
+                "career_adj_sr":    float(pp.get("adj_strike_rate") or 120),
+                "career_innings":   int(pp.get("innings")           or 20),
+                "chase_avg":        float(pp.get("chase_avg")  or pp.get("adj_average") or 20),
+                "first_avg":        float(pp.get("first_avg")  or pp.get("adj_average") or 20),
+                "chase_sr":         float(pp.get("chase_sr")   or pp.get("adj_strike_rate") or 120),
                 "batting_position": pos,
-                "pp_sr":            float(pp.get("pp_sr")   or 130),
-                "mid_sr":           float(pp.get("mid_sr")  or 125),
-                "death_sr":         float(pp.get("death_sr")or 135),
+                "pp_sr":            float(pp.get("pp_sr")    or 130),
+                "mid_sr":           float(pp.get("mid_sr")   or 125),
+                "death_sr":         float(pp.get("death_sr") or 135),
             }
             try:
                 p = predict_bat(feat, venue_feat, n_boot=100)
@@ -2253,8 +2254,9 @@ if page == "06  Match Predictor":
                 rows.append({"#": pos, "Player": name,
                              "Predicted Runs": round(pred, 1), "CI (80%)": ci})
             except Exception:
-                rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI": "—"})
-        return pd.DataFrame(rows), round(total, 1)
+                rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI (80%)": "—"})
+        extras = 12  # average T20 extras
+        return pd.DataFrame(rows), round(total + extras, 1)
 
     batting_first_xi  = your_xi if bats_first == "Your XI" else opp_xi
     batting_second_xi = opp_xi  if bats_first == "Your XI" else your_xi
@@ -2267,7 +2269,7 @@ if page == "06  Match Predictor":
 
     # Score cards
     sc1, sc2 = st.columns(2)
-    winner = first_label if total_first > total_second else second_label
+    winner = first_label if total_first >= total_second else second_label
     margin = abs(round(total_first - total_second, 1))
 
     with sc1:
@@ -2276,7 +2278,7 @@ if page == "06  Match Predictor":
         <div class="nb-card" style="background:{colour};padding:1rem;text-align:center">
           <div style="font-family:Space Mono;font-size:.75rem;font-weight:700">{first_label} — BATTING FIRST</div>
           <div style="font-family:Space Grotesk;font-size:2.8rem;font-weight:900;line-height:1">{total_first}</div>
-          <div style="font-size:.75rem">predicted runs</div>
+          <div style="font-size:.75rem">predicted runs (incl. extras)</div>
         </div>""", unsafe_allow_html=True)
         st.dataframe(df_first, hide_index=True, use_container_width=True)
 
@@ -2286,16 +2288,17 @@ if page == "06  Match Predictor":
         <div class="nb-card" style="background:{colour};padding:1rem;text-align:center">
           <div style="font-family:Space Mono;font-size:.75rem;font-weight:700">{second_label} — CHASING</div>
           <div style="font-family:Space Grotesk;font-size:2.8rem;font-weight:900;line-height:1">{total_second}</div>
-          <div style="font-size:.75rem">predicted runs</div>
+          <div style="font-size:.75rem">predicted runs (incl. extras)</div>
         </div>""", unsafe_allow_html=True)
         st.dataframe(df_second, hide_index=True, use_container_width=True)
 
-    # Verdict
+    # Verdict — win probability via logistic curve on run difference
     if total_first > 0 and total_second > 0:
+        import math
         diff = total_first - total_second
-        win_prob = round(50 + min(diff * 0.6, 45), 1)
-        if diff < 0:
-            win_prob = round(100 - win_prob, 1)
+        # Logistic: each 20-run gap ≈ 15% shift from 50%
+        first_win_prob = round(100 / (1 + math.exp(-diff / 20)), 1)
+        second_win_prob = round(100 - first_win_prob, 1)
         st.markdown(f"""
         <div class="nb-card" style="background:#0D0D0D;color:#FFE500;padding:1rem;
              text-align:center;margin-top:1rem">
@@ -2304,8 +2307,9 @@ if page == "06  Match Predictor":
             {winner} wins by ~{margin} runs
           </span><br>
           <span style="font-size:.8rem;color:#ccc">
-            {first_label} win probability: {win_prob}%
-            &nbsp;|&nbsp; {second_label}: {100-win_prob}%
+            {first_label} win prob: {first_win_prob}%
+            &nbsp;|&nbsp;
+            {second_label}: {second_win_prob}%
           </span>
         </div>""", unsafe_allow_html=True)
         st.caption("⚠ Predictions are based on career stats + venue factors. T20 cricket is highly variable — treat as a guide, not a guarantee.")
