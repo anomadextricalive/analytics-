@@ -2455,22 +2455,20 @@ if page == "06  Match Predictor":
             except Exception:
                 shares.append((name, pos, 5.0 * bat_prob, None))
 
-        # Batting quality of this XI (0–100 scale, 50 = average)
-        bat_q  = _xi_batting_weight(bat_names)
-        # Bowling quality of the OPPOSITION (higher = harder to score against)
-        bowl_q = _xi_bowling_weight(bowl_names)
+        # Batting quality of this XI vs opposition bowling quality
+        bat_q  = _xi_batting_weight(bat_names)   # typically 55–75 for IPL sides
+        bowl_q = _xi_bowling_weight(bowl_names)  # typically 50–70 for IPL sides
 
-        # Chase advantage: bat_factor > 1 → venue favours batting, dew helps chasing
+        # Net edge = batting advantage over opposition bowling.
+        # Each 10-point advantage ≈ +3 runs over venue average.
+        net_edge = (bat_q - bowl_q) * 0.3
+
+        # Chase factor: dew on bat-factor venues tilts toward chasing team
         bf_v = float(vrow_dict.get("bat_factor") or 1.0)
-        chase_factor = (1.03 if is_chase and bf_v > 1.05 else
-                        0.97 if not is_chase and bf_v > 1.05 else 1.0)
+        chase_bonus = (5 if is_chase and bf_v > 1.05 else
+                      -5 if not is_chase and bf_v > 1.05 else 0)
 
-        # Team total formula — each ±10 rating points shifts score by ~3-5%
-        team_runs = (venue_avg_score
-                     * ((bat_q  / 50) ** 0.4)
-                     * ((50 / max(bowl_q, 10)) ** 0.3)
-                     * chase_factor)
-        team_runs = max(100, min(230, team_runs))
+        team_runs = max(110, min(210, venue_avg_score + net_edge + chase_bonus))
         team_total = round(team_runs + 12, 1)  # +12 extras
 
         # Split total proportionally by weighted share
