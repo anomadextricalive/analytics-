@@ -2377,10 +2377,16 @@ if page == "06  Match Predictor":
         "pace_index":    float(vrow_dict.get("pace_index")    or 0.5),
     }
 
+    # Probability a batter at each position actually gets to bat in a T20 innings.
+    # Derived from empirical T20 data: lower order often don't bat or face 2-3 balls.
+    BAT_PROB = {1: 1.00, 2: 0.99, 3: 0.95, 4: 0.87, 5: 0.76,
+                6: 0.63, 7: 0.48, 8: 0.34, 9: 0.22, 10: 0.13, 11: 0.07}
+
     def _predict_xi(player_names, is_chase):
         rows = []
         total = 0.0
         for pos, name in enumerate(player_names, 1):
+            bat_prob = BAT_PROB.get(pos, 0.10)
             pp = _get_player(name)
             if not pp:
                 rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI (80%)": "—"})
@@ -2398,15 +2404,16 @@ if page == "06  Match Predictor":
                 "death_sr":         float(pp.get("death_sr") or 135),
             }
             try:
-                p = predict_bat(feat, venue_feat, n_boot=100)
-                pred = p["chasing"] if is_chase else p["first_innings"]
-                ci   = f"{p['ci_lo']}–{p['ci_hi']}"
+                p    = predict_bat(feat, venue_feat, n_boot=100)
+                raw  = p["chasing"] if is_chase else p["first_innings"]
+                pred = round(raw * bat_prob, 1)   # scale by batting probability
+                ci   = f"{round(p['ci_lo']*bat_prob,1)}–{round(p['ci_hi']*bat_prob,1)}"
                 total += pred
                 rows.append({"#": pos, "Player": name,
-                             "Predicted Runs": round(pred, 1), "CI (80%)": ci})
+                             "Predicted Runs": pred, "CI (80%)": ci})
             except Exception:
                 rows.append({"#": pos, "Player": name, "Predicted Runs": "—", "CI (80%)": "—"})
-        extras = 12  # average T20 extras
+        extras = 12
         return pd.DataFrame(rows), round(total + extras, 1)
 
     batting_first_xi  = your_xi if bats_first == "Your XI" else opp_xi
