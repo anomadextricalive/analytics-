@@ -806,47 +806,262 @@ def _radar(cats, vals_a, vals_b, name_a, name_b):
 # Keys match venue names in the DB (cricsheet naming)
 # ─────────────────────────────────────────────────────────
 GROUND_INFO = {
-    "Wankhede Stadium":                    {"dims": "65–75m", "surface": "Red soil, flat", "notes": "High bounce, true carry. Small straight boundaries. Dew after sunset."},
-    "Eden Gardens":                        {"dims": "70–80m", "surface": "Red soil, slow", "notes": "Spin-assisting surface later in tournament. Outfield quick. Dew a major factor."},
-    "M Chinnaswamy Stadium":               {"dims": "58–68m", "surface": "Black soil, flat", "notes": "Smallest boundaries in IPL. Very high-scoring. Pacers get hit; spinners safer."},
-    "Narendra Modi Stadium":               {"dims": "75–85m", "surface": "Red soil, flat", "notes": "Largest cricket stadium. Large boundaries. Pacers get movement early. Good for bowlers."},
-    "MA Chidambaram Stadium":              {"dims": "65–70m", "surface": "Black soil, spin", "notes": "Classic spin deck. Slow and low. Off-spinners and leg-spinners dominate. Very low-scoring."},
-    "Sawai Mansingh Stadium":              {"dims": "68–75m", "surface": "Red soil, balanced", "notes": "Balanced pitch. Slight help for pacers early. Dew factor significant at night."},
-    "Sawai Mansingh Stadium, Jaipur":      {"dims": "68–75m", "surface": "Red soil, balanced", "notes": "Balanced pitch. Slight help for pacers early. Dew factor significant at night."},
-    "Punjab Cricket Association IS Bindra Stadium, Mohali": {"dims": "68–78m", "surface": "Red soil, true", "notes": "True bounce. Pacers get carry and swing early. Good batting track overall."},
-    "Rajiv Gandhi International Stadium, Uppal": {"dims": "65–75m", "surface": "Black soil, flat", "notes": "Good batting surface. Dew heavy in evening games. Spin effective after powerplay."},
-    "Arun Jaitley Stadium":                {"dims": "65–75m", "surface": "Red soil, balanced", "notes": "Balanced. Dew is significant. Chasing is an advantage due to dew in second innings."},
-    "DY Patil Sports Academy":             {"dims": "65–75m", "surface": "Red soil, flat", "notes": "Hard, true surface. High scoring. Small square boundaries. Spinners can be expensive."},
-    "Brabourne Stadium":                   {"dims": "68–75m", "surface": "Red soil, flat", "notes": "Similar to Wankhede. True bounce. Good for strokeplay. High scores common."},
-    "Melbourne Cricket Ground":            {"dims": "80–90m", "surface": "Drop-in, bounce", "notes": "Largest boundaries in T20 cricket. Drop-in pitches — good carry, steep bounce. Favours pacers."},
-    "Sydney Cricket Ground":               {"dims": "68–75m", "surface": "Drop-in, true", "notes": "Historically spin-friendly. Drop-in pitches now make it more pace-friendly."},
-    "Perth Stadium":                       {"dims": "70–82m", "surface": "Drop-in, fast", "notes": "Fastest outfield in Australia. Good carry and bounce for pacers. High-scoring."},
-    "Brisbane Cricket Ground, Woolloongabba": {"dims": "68–75m", "surface": "Drop-in, bounce", "notes": "Good carry for pace. Spinner-unfriendly. Evening dew minimal."},
-    "Adelaide Oval":                       {"dims": "60–75m", "surface": "Drop-in, true", "notes": "Uneven boundary — short square. Historically spin-friendly drop-in pitch."},
-    "Gaddafi Stadium":                     {"dims": "65–75m", "surface": "Spin, crumbling", "notes": "Classic spin deck. Surfaces deteriorate. Low-scoring. Slow outfield."},
-    "National Stadium, Karachi":           {"dims": "68–75m", "surface": "Flat, hard", "notes": "Hard, flat surface. High-scoring ground. Relatively quick outfield."},
-    "Pindi Cricket Stadium":               {"dims": "65–72m", "surface": "Flat, batting", "notes": "Very flat surface. High-scoring. First innings advantage. Boundary easier to hit."},
-    "Lord's":                              {"dims": "70–80m", "surface": "Seam, bounce", "notes": "Uneven slope. Swing and seam movement. Not a typical T20 venue. Bowler-friendly."},
-    "The Oval":                            {"dims": "68–78m", "surface": "Flat, fast", "notes": "Flat batting surface. Fast outfield. High-scoring T20 venue."},
-    "Edgbaston":                           {"dims": "65–72m", "surface": "Seam, swing", "notes": "Seam and swing conditions. Small boundaries square. Pacers get early movement."},
-    "Headingley":                          {"dims": "65–70m", "surface": "Seam, variable", "notes": "Variable bounce. Seamers and swing bowlers thrive. Low-scoring for T20."},
-    "Old Trafford":                        {"dims": "65–75m", "surface": "Flat, balanced", "notes": "Flat but variable bounce. Overcast conditions aid swing. Mid-range scores."},
-    "SuperSport Park":                     {"dims": "68–78m", "surface": "Pace, bounce", "notes": "Excellent carry and bounce. Pacers dominate. High altitude boosts bat."},
-    "Newlands":                            {"dims": "65–72m", "surface": "Seam, swing", "notes": "Cape Town wind aids swing and seam. Pacers get extra movement. Scenic ground."},
-    "The Wanderers Stadium":               {"dims": "62–70m", "surface": "Pace, flat", "notes": "Very high altitude (1750m). Ball travels far. Small square boundaries. High-scoring."},
-    "Kingsmead":                           {"dims": "65–72m", "surface": "Seam, humid", "notes": "Coastal humidity aids swing. Good carry for pace. Historically spinner-unfriendly."},
-    "Providence Stadium":                  {"dims": "65–75m", "surface": "Flat, balanced", "notes": "Good batting surface. Boundary not too short. Pacers get early movement."},
-    "Queen's Park Oval":                   {"dims": "65–72m", "surface": "Balanced", "notes": "Classic Caribbean ground. Balanced surface. Good batting conditions."},
-    "Sabina Park":                         {"dims": "62–70m", "surface": "Pace, bounce", "notes": "Traditionally fast and bouncy. Pacers with extra height extract steep bounce."},
-    "National Cricket Stadium, St George's": {"dims": "62–70m", "surface": "Flat, fast", "notes": "Fast outfield. Good batting conditions. Boundary on the shorter side."},
-    "R Premadasa Stadium":                 {"dims": "65–72m", "surface": "Spin, slow", "notes": "Classic Sri Lankan spin deck. Slow and low. Spinners effective throughout."},
-    "Dubai International Cricket Stadium": {"dims": "68–78m", "surface": "Slow, spin", "notes": "Desert surface. Very slow and low. Spin dominant. High scores despite sluggish outfield."},
-    "Sharjah Cricket Stadium":             {"dims": "58–68m", "surface": "Slow, spin", "notes": "Very short ground. Highest boundary rate in UAE. Spinners get turn but expensive."},
-    "Sheikh Zayed Stadium":                {"dims": "65–75m", "surface": "Flat, slow", "notes": "Flat, slow surface. Pacers with good yorkers effective. Spin gets purchase."},
-    "VRA Ground":                          {"dims": "60–68m", "surface": "Outfield, flat", "notes": "Club-level ground in Amstelveen. Flat surface. Small boundaries. Limited international data."},
-    "Hagley Oval":                         {"dims": "65–72m", "surface": "Seam, swing", "notes": "Swing and seam in Christchurch conditions. Bowler-friendly in early overs."},
-    "Eden Park":                           {"dims": "55–65m", "surface": "Flat, small", "notes": "Smallest international ground in NZ. Very short square boundaries. Huge scoring ground."},
-    "Basin Reserve":                       {"dims": "65–75m", "surface": "Seam, windy", "notes": "Famous Wellington wind. Swing and seam. Unpredictable conditions."},
+    # ── India ──────────────────────────────────────────────────────────────────
+    "Wankhede Stadium": {
+        "dims": "Straight ~70m · Square ~65m",
+        "pitch_type": "Red soil · flat",
+        "surface": "Red soil",
+        "notes": "True bounce and fast carry. Seaside location historically produced swing but less so after 2011 rebuild. Dew after sunset heavily favours chasing team.",
+    },
+    "Eden Gardens": {
+        "dims": "Straight ~77m · Square ~67m",
+        "pitch_type": "Clay/red soil · flat",
+        "surface": "Clay/red laterite",
+        "notes": "Even bounce early; spinners gain grip as match progresses. Fast outfield. Dew a major factor in evening T20s.",
+    },
+    "M Chinnaswamy Stadium": {
+        "dims": "Straight ~62m · Square ~52m",
+        "pitch_type": "Red soil · flat, high-altitude",
+        "surface": "Red soil",
+        "notes": "One of the smallest grounds in the IPL. Ground sits at 920m — ball travels further in thinner air. Cracks appear for spinners in longer formats.",
+    },
+    "Narendra Modi Stadium": {
+        "dims": "Straight ~75m · Square ~65m",
+        "pitch_type": "Mixed red/black soil · true",
+        "surface": "Red or black soil (11 pitches, mixed)",
+        "notes": "World's largest stadium (132,000). True, consistent bounce. Spin comes into play in the second innings. Large outfield.",
+    },
+    "MA Chidambaram Stadium": {
+        "dims": "Straight ~70m · Square ~65m",
+        "pitch_type": "Dry/dusty red soil · spin",
+        "surface": "Dry, cracked red soil",
+        "notes": "Classic spin deck. Hot Chennai climate dries the surface rapidly; off-spin and left-arm spin dominate. Moderate pace early; deteriorates quickly.",
+    },
+    "Sawai Mansingh Stadium": {
+        "dims": "Straight ~75m · Square ~65m",
+        "pitch_type": "Dry clay/red soil · balanced",
+        "surface": "Dry clay",
+        "notes": "Flat batting surface early with some seam movement. Spinners come into play in middle overs. Dew in evening T20s — chase success rate ~60%.",
+    },
+    "Sawai Mansingh Stadium, Jaipur": {
+        "dims": "Straight ~75m · Square ~65m",
+        "pitch_type": "Dry clay/red soil · balanced",
+        "surface": "Dry clay",
+        "notes": "Flat batting surface early with some seam movement. Spinners come into play in middle overs. Dew in evening T20s — chase success rate ~60%.",
+    },
+    "Punjab Cricket Association IS Bindra Stadium, Mohali": {
+        "dims": "Straight ~76m · Square ~66m",
+        "pitch_type": "Clay/loam · pace early",
+        "surface": "Clay/loam",
+        "notes": "Historically pace-friendly early (seam and bounce). Becomes a batting paradise as match progresses. Fast outfield.",
+    },
+    "Rajiv Gandhi International Stadium, Uppal": {
+        "dims": "Straight ~70m · Square ~67m",
+        "pitch_type": "Red clay · flat",
+        "surface": "Red clay",
+        "notes": "Flat, hard surface with good pace and bounce. Pacers get early assistance; spinners come in as pitch dries. Heavy dew in evening games.",
+    },
+    "Arun Jaitley Stadium": {
+        "dims": "Straight ~68m · Square ~60–65m",
+        "pitch_type": "Black soil · dry/dusty",
+        "surface": "Black soil",
+        "notes": "Surface crumbles and turns dusty — one of India's best spin venues. Dew significant at night; chasing teams have a structural advantage.",
+    },
+    "DY Patil Sports Academy": {
+        "dims": "Straight ~75m · Square ~67m",
+        "pitch_type": "Imported red soil · true",
+        "surface": "Imported South African red soil on sand-based drainage",
+        "notes": "200 tonnes of South African soil imported for consistent bounce and carry. Sand-based outfield prevents waterlogging. High-scoring and true.",
+    },
+    "Brabourne Stadium": {
+        "dims": "Straight ~70m · Square ~68m",
+        "pitch_type": "Red soil · flat",
+        "surface": "Red soil",
+        "notes": "Similar profile to Wankhede — true bounce, good for strokeplay. High scores common. Mumbai's club-ground character retained.",
+    },
+    # ── Australia ──────────────────────────────────────────────────────────────
+    "Melbourne Cricket Ground": {
+        "dims": "Straight ~84m · Square ~88m",
+        "pitch_type": "Drop-in · consistent bounce",
+        "surface": "Drop-in pitch (used since 1996)",
+        "notes": "Drop-in pitches produce reliable pace and carry. Square boundaries are notably wider than straight — unusual geometry. Very large ground.",
+    },
+    "Sydney Cricket Ground": {
+        "dims": "Straight ~79m · Square ~68m",
+        "pitch_type": "Bulli soil (clay-loam) · traditional",
+        "surface": "Bulli soil — traditional in-situ",
+        "notes": "One of only two major Australian grounds not using drop-in pitches. Bulli soil (from Bulli, NSW) promotes spin on days 4–5. Batting-friendly for T20.",
+    },
+    "Perth Stadium": {
+        "dims": "Straight ~78m · Square ~67m",
+        "pitch_type": "Drop-in · fast/bouncy",
+        "surface": "Drop-in (replicates WACA character)",
+        "notes": "5 drop-in pitches designed to replicate the famous WACA — high pace and bounce. Fast outfield. Some lateral movement early with new ball.",
+    },
+    "Brisbane Cricket Ground, Woolloongabba": {
+        "dims": "Straight ~78m · Square ~67m",
+        "pitch_type": "Grassy/hard · traditional",
+        "surface": "Hard, grassy traditional (in-situ)",
+        "notes": "One of the fastest traditional pitches in the world. Reliable pace and bounce throughout. Minimal spinner assistance. No drop-ins unlike most Australian grounds.",
+    },
+    "Adelaide Oval": {
+        "dims": "Straight ~86m · Square ~63m",
+        "pitch_type": "Drop-in · true",
+        "surface": "Drop-in (since 2013 redevelopment)",
+        "notes": "Notably asymmetric — very long straight (~86m) but short square (~63m). Drop-ins rate among the best batting wickets in Australia. Flat and consistent.",
+    },
+    # ── Pakistan ───────────────────────────────────────────────────────────────
+    "Gaddafi Stadium": {
+        "dims": "Straight ~91m · Square ~70m",
+        "pitch_type": "Clay · flat",
+        "surface": "Clay/loam",
+        "notes": "Very long straight boundary (~91m). Even bounce and good carry; spinners gain grip with wear. Fast outfield. Pakistan's largest ground (34,000).",
+    },
+    "National Stadium, Karachi": {
+        "dims": "Straight ~70m · Square ~64m",
+        "pitch_type": "Dry clay · hard",
+        "surface": "Dry, hard clay",
+        "notes": "Flat surface with good pace and bounce early. Dry Karachi climate hardens the pitch rapidly; cracks appear and spinners become effective.",
+    },
+    "Pindi Cricket Stadium": {
+        "dims": "Straight ~72m · Square ~62m",
+        "pitch_type": "Hybrid-grass · flat/hard",
+        "surface": "Hybrid-grass (synthetic fibres integrated, from 2025)",
+        "notes": "Notorious for some of the flattest pitches in Test history. Hybrid-grass system maintains pace and bounce while preventing deterioration. Spinners rarely effective.",
+    },
+    # ── England ────────────────────────────────────────────────────────────────
+    "Lord's": {
+        "dims": "Straight ~84m · Square ~68m",
+        "pitch_type": "Loam/clay · seam/swing",
+        "surface": "Loam/clay (sand-based outfield drainage since 2002)",
+        "notes": "Famous 2.46m slope (NW to SE) creates differential bounce and angle — unique worldwide. Seam and swing assist pace. Balanced but tilts toward pace early.",
+    },
+    "The Oval": {
+        "dims": "Straight ~68m · Square ~67m",
+        "pitch_type": "Clay/loam · flat",
+        "surface": "Clay/loam",
+        "notes": "Flat surface favours high first-innings scores. Spinners come into play late. Pace bowlers get early assistance under cloud cover.",
+    },
+    "Edgbaston": {
+        "dims": "Straight ~60m · Square ~50m",
+        "pitch_type": "Loam/clay · seam/swing",
+        "surface": "English county loam/clay",
+        "notes": "One of the smallest international grounds — compact dimensions heavily favour batters in T20. Significant seam and swing early under overcast skies.",
+    },
+    "Headingley": {
+        "dims": "Straight ~71m · Square ~66m",
+        "pitch_type": "Loam/clay · variable",
+        "surface": "Loam/clay",
+        "notes": "Variable conditions — morning dampness, overcast skies, and wind make this one of England's most seam-friendly venues. Can deteriorate for spin later.",
+    },
+    "Old Trafford": {
+        "dims": "Straight ~70m · Square ~70m",
+        "pitch_type": "Loam/clay · balanced",
+        "surface": "Loam/clay",
+        "notes": "Flat but variable bounce. Overcast Manchester conditions aid swing. Mid-range scoring ground.",
+    },
+    # ── South Africa ───────────────────────────────────────────────────────────
+    "SuperSport Park": {
+        "dims": "Straight ~73m · Square ~67m",
+        "pitch_type": "Hard clay · pace/bounce",
+        "surface": "Hard clay, grassed",
+        "notes": "High carry and bounce. Ball comes onto bat faster than average — rewarding aggressive batting. Significant seam movement early with new ball.",
+    },
+    "Newlands": {
+        "dims": "Straight ~77m · Square ~63m (asymmetric)",
+        "pitch_type": "Clay · seam/swing",
+        "surface": "High clay content (local Cape Town soil)",
+        "notes": "Higher clay content promotes lateral movement and variable bounce. Cape Town wind creates swing conditions. Table Mountain end can produce remarkable swing under cloud.",
+    },
+    "The Wanderers Stadium": {
+        "dims": "Straight ~74m · Square ~58m",
+        "pitch_type": "Hard clay/loam · pace/altitude",
+        "surface": "Hard clay/loam",
+        "notes": "Altitude of 1,753m — ball travels further in thin air, amplifying scores. Named 'The Bullring'. Batting-friendly after early seam movement. Short square boundaries.",
+    },
+    "Kingsmead": {
+        "dims": "Straight ~70m · Square ~65m",
+        "pitch_type": "Clay · seam/humid",
+        "surface": "Clay",
+        "notes": "Coastal humidity in Durban aids swing and seam. Good carry for pace. Historically spinner-unfriendly.",
+    },
+    # ── Caribbean ──────────────────────────────────────────────────────────────
+    "Providence Stadium": {
+        "dims": "Straight ~70m · Square ~65m",
+        "pitch_type": "Clay · balanced",
+        "surface": "Clay",
+        "notes": "Good batting surface. Moderate boundaries. Pacers get early movement. Balanced conditions.",
+    },
+    "Queen's Park Oval": {
+        "dims": "Straight ~68m · Square ~65m",
+        "pitch_type": "Clay · balanced",
+        "surface": "Clay",
+        "notes": "Classic Caribbean ground. Balanced surface. Good batting conditions. Can assist spinners in later stages.",
+    },
+    "Sabina Park": {
+        "dims": "Straight ~65m · Square ~63m",
+        "pitch_type": "Hard clay · pace/bounce",
+        "surface": "Hard clay",
+        "notes": "Traditionally fast and bouncy. Pacers of extra height extract steep bounce. High-altitude feel despite being at sea level.",
+    },
+    "National Cricket Stadium, St George's": {
+        "dims": "Straight ~63m · Square ~62m",
+        "pitch_type": "Hard · flat/fast outfield",
+        "surface": "Hard",
+        "notes": "Fast outfield. Good batting conditions. Short boundaries for a Test ground. High-scoring T20 venue.",
+    },
+    # ── UAE ────────────────────────────────────────────────────────────────────
+    "Dubai International Cricket Stadium": {
+        "dims": "Straight ~65m · Square ~75m",
+        "pitch_type": "Black soil (imported from Pakistan) · dry/spin",
+        "surface": "Pakistani black soil — dry",
+        "notes": "Unusual geometry — square wider than straight. Pakistani black soil creates dry, spin-friendly conditions. Dew under lights assists chasing team. Surface cracks significantly.",
+    },
+    "Sharjah Cricket Stadium": {
+        "dims": "Straight ~58m · Square ~63m",
+        "pitch_type": "Dry/dusty · slow/low",
+        "surface": "Dry, slow",
+        "notes": "One of the smallest international grounds. Slow and low surface neutralises pace quickly. Spinners effective as pitch deteriorates. Significant dew at night.",
+    },
+    "Sheikh Zayed Stadium": {
+        "dims": "Straight ~68m · Square ~70m",
+        "pitch_type": "Flat · slow",
+        "surface": "Flat, slow",
+        "notes": "Flat surface; pacers with good yorkers effective. Spin gains purchase. Dew factor in evening matches.",
+    },
+    # ── Sri Lanka ──────────────────────────────────────────────────────────────
+    "R Premadasa Stadium": {
+        "dims": "Straight ~70m · Square ~65m",
+        "pitch_type": "Clay/grassy · humid",
+        "surface": "Clay with grass cover",
+        "notes": "Grass cover assists swing for seamers early; spin becomes significant as the match progresses. High humidity throughout. Deteriorates to variable bounce with cracks.",
+    },
+    # ── New Zealand ────────────────────────────────────────────────────────────
+    "Hagley Oval": {
+        "dims": "Straight ~84m · Square ~77m",
+        "pitch_type": "Kakanui clay + ryegrass · pace/seam",
+        "surface": "Kakanui clay covered with ryegrass",
+        "notes": "Official dimensions: straight 83.58m, square 77.46m. Pace and bounce. Cool Christchurch climate amplifies seam movement. Fast outfield. One of the best-prepared grounds in NZ.",
+    },
+    "Eden Park": {
+        "dims": "Straight ~55m · Square ~65m",
+        "pitch_type": "Grassy/hard · short straight",
+        "surface": "Grassy, hard",
+        "notes": "Shortest straight boundaries (~55m) of any international venue — a consequence of the ground's original rugby/AFL shape. Extreme batting advantage in T20. Subtropical humidity can assist seamers.",
+    },
+    "Basin Reserve": {
+        "dims": "Straight ~68m · Square ~65m",
+        "pitch_type": "Loam · seam/windy",
+        "surface": "Loam",
+        "notes": "Famous Wellington wind creates unpredictable swing. Seam and pace movement. Exposed location makes conditions highly variable.",
+    },
+    # ── Netherlands ────────────────────────────────────────────────────────────
+    "VRA Ground": {
+        "dims": "Straight ~62m · Square ~60m",
+        "pitch_type": "Outfield/clay · flat",
+        "surface": "Club-standard clay/outfield",
+        "notes": "Club-level ground in Amstelveen. Small boundaries. Flat surface. Limited international data available.",
+    },
 }
 
 def _pitch_label(bat_factor, pace_index, boundary_rate):
@@ -1322,17 +1537,18 @@ elif "03" in page:
     # ── Human readable summary ──
     summary = _pitch_label(bf, pi, br)
     ground  = GROUND_INFO.get(sel_venue, {})
-    if ground:
-        summary_extra = f" {ground.get('notes','')}"
-        dims_text     = f"Boundary: {ground.get('dims','—')} | Surface: {ground.get('surface','—')}"
-    else:
-        summary_extra = ""
-        dims_text     = ""
+    pitch_type = ground.get("pitch_type", "")
+    surface    = ground.get("surface", "")
+    dims       = ground.get("dims", "")
+    notes      = ground.get("notes", "")
 
     st.markdown(f"""
     <div class="nb-card" style="padding:1rem 1.2rem;margin-bottom:1rem">
-      <div style="font-size:1rem;font-weight:700">{summary}{summary_extra}</div>
-      {"<div style='font-size:.75rem;opacity:.6;margin-top:.3rem;font-family:Space Mono'>" + dims_text + "</div>" if dims_text else ""}
+      <div style="font-size:1rem;font-weight:700;margin-bottom:.4rem">{summary}</div>
+      {"<div style='margin:.2rem 0'><span style='font-family:Space Mono;font-size:.7rem;background:#FFE500;color:#0D0D0D;padding:.1rem .45rem;border-radius:3px;border:1.5px solid #0D0D0D;font-weight:700'>PITCH TYPE</span>&nbsp; <span style='font-size:.85rem;font-weight:600'>" + pitch_type + "</span></div>" if pitch_type else ""}
+      {"<div style='margin:.2rem 0'><span style='font-family:Space Mono;font-size:.7rem;background:#A8DADC;color:#0D0D0D;padding:.1rem .45rem;border-radius:3px;border:1.5px solid #0D0D0D;font-weight:700'>SURFACE</span>&nbsp; <span style='font-size:.85rem'>" + surface + "</span></div>" if surface else ""}
+      {"<div style='margin:.2rem 0'><span style='font-family:Space Mono;font-size:.7rem;background:#eee;color:#0D0D0D;padding:.1rem .45rem;border-radius:3px;border:1.5px solid #0D0D0D;font-weight:700'>BOUNDARIES</span>&nbsp; <span style='font-size:.85rem;font-family:Space Mono'>" + dims + "</span></div>" if dims else ""}
+      {"<div style='margin-top:.5rem;font-size:.82rem;opacity:.8'>" + notes + "</div>" if notes else ""}
     </div>""", unsafe_allow_html=True)
 
     vc1, vc2, vc3, vc4, vc5 = st.columns(5)
@@ -1863,13 +2079,20 @@ if page == "06  Match Predictor":
             f'border-radius:4px;font-family:Space Mono;font-size:.68rem;font-weight:700;'
             f'border:1.5px solid #0D0D0D">{t}</span>' for t, c in tags
         ])
-        ground = GROUND_INFO.get(sel_venue, {})
-        desc   = _pitch_label(bf, pi, br)
-        notes  = ground.get("notes", "")
+        ground      = GROUND_INFO.get(sel_venue, {})
+        desc        = _pitch_label(bf, pi, br)
+        pitch_type  = ground.get("pitch_type", "")
+        surface     = ground.get("surface", "")
+        dims        = ground.get("dims", "")
+        notes       = ground.get("notes", "")
         st.markdown(f"""
         <div class="nb-card" style="padding:.8rem 1rem;margin:1rem 0">
-          <b>{sel_venue}</b> — {tag_html}<br>
-          <span style="font-size:.85rem">{desc} {notes}</span>
+          <b>{sel_venue}</b> — {tag_html}
+          <div style="margin-top:.4rem;font-size:.82rem">{desc}</div>
+          {"<div style='margin:.25rem 0'><b>Pitch:</b> " + pitch_type + "</div>" if pitch_type else ""}
+          {"<div style='margin:.1rem 0'><b>Surface:</b> " + surface + "</div>" if surface else ""}
+          {"<div style='margin:.1rem 0'><b>Boundaries:</b> " + dims + "</div>" if dims else ""}
+          {"<div style='margin-top:.3rem;opacity:.75'>" + notes + "</div>" if notes else ""}
         </div>""", unsafe_allow_html=True)
 
     st.markdown("---")
