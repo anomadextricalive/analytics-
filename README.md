@@ -26,7 +26,7 @@ This system is an attempt to build a more honest picture of T20 player quality.
 
 All data is sourced from cricsheet.org, which publishes free, open, ball-by-ball JSON scorecards for T20 matches dating back to 2004. Every delivery in the database contains: runs scored, extras, wicket type, fielders involved, the over and ball number, batting and bowling team, and the match situation at that point (required run rate, current run rate).
 
-The current dataset covers **3,111 matches**, **701,637 deliveries**, **4,256 players**, and **325 venues** across T20 Internationals and the ICC Men's T20 World Cup.
+The current dataset covers **5,811 matches**, **1,335,728 deliveries**, **5,128 players**, and **363 venues** across 7 tournaments: T20 Internationals, ICC Men's T20 World Cup, IPL, PSL, BBL, CPL, LPL, and MSL.
 
 #### 2. Pitch Regression (Venue Difficulty Factor)
 
@@ -100,7 +100,7 @@ Beyond the composite rating, specialisation scores are computed for: **opener**,
 
 #### 6. Prediction Model
 
-A `GradientBoostingRegressor` (scikit-learn) is trained on all individual innings in the database to predict how many runs a batter will score, or what economy a bowler will concede, in a given match context.
+Four position-stratified `GradientBoostingRegressor` models (scikit-learn) are trained independently per batting group — openers (1–2), top order (3–5), lower order (6–8), and tail (9–11). Training separate models per group eliminates the population-mean bias that causes a single global model to over-predict tail-enders and under-predict openers. Each model is trained only on innings from its group, so it learns position-appropriate baselines.
 
 **Batting model features (16):**
 
@@ -112,11 +112,22 @@ A `GradientBoostingRegressor` (scikit-learn) is trained on all individual inning
 - Phase-split SRs (powerplay, middle, death)
 - Tournament encoding
 
-**Model performance on T20I data:**
-- Batting: R² = 0.877, MAE = 4.7 runs/innings
-- Bowling: R² = 0.205, MAE = 2.17 economy (cricket bowling is inherently high-variance)
+**Per-group performance (in-sample, all data):**
 
-The prediction engine also generates 80% confidence intervals via bootstrap sampling (300 iterations), which reflect the natural randomness of T20 cricket — even the best model cannot predict a specific innings with precision, and the CI makes that uncertainty explicit.
+| Group | Positions | Innings | R² | MAE |
+|---|---|---|---|---|
+| Openers | 1–2 | 20,554 | 0.925 | 4.8 runs |
+| Top order | 3–5 | 29,005 | 0.867 | 5.3 runs |
+| Lower order | 6–8 | 18,110 | 0.760 | 4.4 runs |
+| Tail | 9–11 | 5,362 | 0.808 | 2.1 runs |
+
+**2024 leave-one-season-out backtest (honest out-of-sample):**
+- Batting: R² = 0.834, MAE = 5.36 runs (train on ≤2023, test on 2024)
+- Bowling: R² = 0.002, MAE = 2.62 economy — T20 bowling economy is too volatile to predict from career features alone; match-situation features would be needed
+
+**Hyperparameter search:** Optuna (30 trials each) compared sklearn GBM vs XGBoost on the 2024 holdout. Tuned GBM (lr=0.136, depth=6, 196 estimators) beat XGBoost marginally on this dataset.
+
+The prediction engine generates 80% confidence intervals via bootstrap sampling (300 iterations), reflecting the inherent randomness of T20 cricket — even the best model cannot predict a specific innings with precision, and the CI makes that uncertainty explicit.
 
 #### 7. Stored Player Metadata
 
@@ -165,7 +176,11 @@ cricket_analytics/
 ├── scripts/
 │   ├── pipeline.py             # CLI: download / ingest / venue / metrics / ratings / all
 │   ├── query.py                # CLI: search / profile / compare / leaderboard
-│   └── inspect_db.py           # Print all 26 tables with row counts
+│   ├── inspect_db.py           # Print all 26 tables with row counts
+│   ├── backtest_2024.py        # Leave-one-season-out backtest (train <2024, test 2024)
+│   ├── tune_models.py          # Optuna hyperparameter search — GBM vs XGBoost
+│   ├── migrate_to_mongo.py     # Raw SQLite → MongoDB (26 collections)
+│   └── build_mongo_profiles.py # Pre-joined MongoDB profiles (3 collections)
 │
 └── data/
     ├── cricket.db              # SQLite database (not in git — auto-built)
@@ -186,6 +201,19 @@ cricket_analytics/
 | Events | `player_milestones`, `player_of_match_awards` |
 | Model output | `venue_difficulty`, `player_ratings` |
 
+### Data Integrity
+
+Player identity uses **cricsheet UUIDs** (`registry.people` in each JSON file) as the canonical key, not display names. This prevents duplicate player records when the same physical player appears under slightly different name spellings across tournaments (e.g. "V Kohli" vs "Virat Kohli"). The parser rejects any file where `match_type != "T20"` before touching the database.
+
+### MongoDB Layer
+
+Pre-joined documents are stored in 3 MongoDB collections for API serving:
+- `player_profiles` — one document per player with career stats, ratings, venue splits, tournament splits, dismissal analysis, milestones, and fielding all pre-joined
+- `match_profiles` — one document per match with team and venue names resolved
+- `venue_profiles` — one document per venue with difficulty factors
+
+SQLite remains the computation layer; MongoDB is the serving layer.
+
 ### Parser Performance
 
 The ingestion pipeline is optimised for bulk loading:
@@ -203,11 +231,11 @@ The ingestion pipeline is optimised for bulk loading:
 
 Four pages, all neobrutalist-themed (Space Mono + Space Grotesk, #FFE500 yellow, hard box shadows):
 
-**Player Explorer** — Searchable, filterable table of all 4,256 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, and venue performance map.
+**Player Explorer** — Searchable, filterable table of all 5,128 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, and venue performance map.
 
 **Head-to-Head** — Select 2–8 players for a radar chart across 6 dimensions (bat rating, bowl rating, opener score, finisher score, chase score, death bat score), phase SR comparison bars, chase vs. first-innings split, and shared-venue performance comparison.
 
-**Pitch Intelligence** — Scatter plot of all 325 venues (bat_factor vs. boundary_rate, sized by match count). Venue deep-dive with top 15 batters and bowlers at that ground.
+**Pitch Intelligence** — Scatter plot of all 363 venues (bat_factor vs. boundary_rate, sized by match count). Venue deep-dive with top 15 batters and bowlers at that ground.
 
 **Prediction Engine** — Train/retrain the GBM models with a single button. Feature importance charts. Live prediction: select any player + venue → predicted runs (first innings and chasing), 80% CI, predicted economy, comparison against historical actuals at that venue. Multi-player venue comparison table.
 

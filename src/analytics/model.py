@@ -31,11 +31,32 @@ sys.path.insert(0, str(Path(__file__).parents[2]))
 MODEL_DIR = Path(__file__).parents[2] / "data" / "models"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-BAT_MODEL_PATH   = MODEL_DIR / "bat_model.joblib"
+BAT_MODEL_PATH   = MODEL_DIR / "bat_model.joblib"      # legacy / fallback
 BOWL_MODEL_PATH  = MODEL_DIR / "bowl_model.joblib"
-BAT_SCALER_PATH  = MODEL_DIR / "bat_scaler.joblib"
+BAT_SCALER_PATH  = MODEL_DIR / "bat_scaler.joblib"     # legacy / fallback
 BOWL_SCALER_PATH = MODEL_DIR / "bowl_scaler.joblib"
 META_PATH        = MODEL_DIR / "model_meta.joblib"
+
+# Position-stratified batting models
+# Group 0: openers (1-2), Group 1: top-order (3-5),
+# Group 2: lower-order (6-8), Group 3: tail (9-11)
+POS_GROUPS = {0: (1, 2), 1: (3, 5), 2: (6, 8), 3: (9, 11)}
+POS_LABELS = {0: "openers", 1: "top_order", 2: "lower_order", 3: "tail"}
+
+def _pos_group(position: int) -> int:
+    for g, (lo, hi) in POS_GROUPS.items():
+        if lo <= position <= hi:
+            return g
+    return 1  # default to top-order
+
+def _bat_model_path(group: int) -> Path:
+    return MODEL_DIR / f"bat_model_g{group}.joblib"
+
+def _bat_scaler_path(group: int) -> Path:
+    return MODEL_DIR / f"bat_scaler_g{group}.joblib"
+
+def pos_models_exist() -> bool:
+    return all(_bat_model_path(g).exists() for g in POS_GROUPS)
 
 TOURNAMENT_MAP = {
     "t20i_male": 0, "t20_wc_male": 0,
@@ -223,24 +244,62 @@ def train(session: Session, verbose: bool = True) -> dict:
     print(f"  Batting  : {len(bat_df):,} innings") if verbose else None
     print(f"  Bowling  : {len(bowl_df):,} spells") if verbose else None
 
-    # ── Batting ──
-    X_bat  = _make_bat_matrix(bat_df)
+    # ── Batting — position-stratified models ──
+    bat_df["pos_group"] = bat_df["batting_position"].clip(1, 11).apply(_pos_group)
+
+    all_bat_pred = np.zeros(len(bat_df))
+    bat_r2_list, bat_mae_list = [], []
+
+    print("Training position-stratified batting models (GBM)…") if verbose else None
+    for g, label in POS_LABELS.items():
+        mask_g = bat_df["pos_group"] == g
+        df_g   = bat_df[mask_g]
+        if len(df_g) < 100:
+            if verbose: print(f"  {label}: too few samples ({len(df_g)}), skipping")
+            continue
+
+        X_g = _make_bat_matrix(df_g)
+        y_g = df_g["runs"].values.astype(float)
+        sc_g = StandardScaler().fit(X_g)
+        X_gs = sc_g.transform(X_g)
+
+        # Tuned params for openers/top-order; lighter for tail
+        n_est = 196 if g <= 1 else 150
+        model_g = GradientBoostingRegressor(
+            n_estimators=n_est, learning_rate=0.1357 if g <= 1 else 0.1,
+            max_depth=6 if g <= 1 else 4,
+            subsample=0.7745, min_samples_leaf=41 if g <= 1 else 20,
+            max_features=0.7645, random_state=42,
+        )
+        model_g.fit(X_gs, y_g)
+        pred_g = model_g.predict(X_gs)
+        all_bat_pred[mask_g] = pred_g
+
+        r2_g  = r2_score(y_g, pred_g)
+        mae_g = mean_absolute_error(y_g, pred_g)
+        bat_r2_list.append(r2_g); bat_mae_list.append(mae_g)
+
+        joblib.dump(model_g, _bat_model_path(g))
+        joblib.dump(sc_g,    _bat_scaler_path(g))
+        if verbose:
+            print(f"  {label} (n={len(df_g):,}): R²={r2_g:.3f}  MAE={mae_g:.1f}")
+
+    # Also save a global fallback model for predict_bat compatibility
     y_bat  = bat_df["runs"].values.astype(float)
-
+    X_bat  = _make_bat_matrix(bat_df)
     bat_sc = StandardScaler().fit(X_bat)
-    X_bat_s = bat_sc.transform(X_bat)
-
-    print("Training batting model (GBM)…") if verbose else None
     bat_model = GradientBoostingRegressor(
-        n_estimators=400, learning_rate=0.05, max_depth=5,
-        subsample=0.8, min_samples_leaf=30, random_state=42,
+        n_estimators=196, learning_rate=0.1357, max_depth=6,
+        subsample=0.7745, min_samples_leaf=41, max_features=0.7645, random_state=42,
     )
-    bat_model.fit(X_bat_s, y_bat)
-    bat_pred  = bat_model.predict(X_bat_s)
-    bat_r2    = r2_score(y_bat, bat_pred)
-    bat_mae   = mean_absolute_error(y_bat, bat_pred)
-    bat_cv    = -cross_val_score(bat_model, X_bat_s, y_bat,
-                                  cv=5, scoring="neg_mean_absolute_error")
+    bat_model.fit(bat_sc.transform(X_bat), y_bat)
+    joblib.dump(bat_model, BAT_MODEL_PATH)
+    joblib.dump(bat_sc,    BAT_SCALER_PATH)
+
+    bat_r2  = float(np.mean(bat_r2_list))
+    bat_mae = float(np.mean(bat_mae_list))
+    bat_cv  = -cross_val_score(bat_model, bat_sc.transform(X_bat), y_bat,
+                                cv=3, scoring="neg_mean_absolute_error")
 
     # ── Bowling ──
     econ_y  = (bowl_df["runs_conceded"] * 6 / bowl_df["balls_bowled"].clip(lower=1)).values
@@ -302,8 +361,15 @@ def predict_bat(player: dict, venue: dict, n_boot: int = 300) -> dict:
                  batting_position, pp_sr, mid_sr, death_sr
     venue keys:  bat_factor, boundary_rate, pace_index
     """
-    bat_model = joblib.load(BAT_MODEL_PATH)
-    bat_sc    = joblib.load(BAT_SCALER_PATH)
+    # Route to position-stratified model if available
+    pos   = int(player.get("batting_position", 4))
+    group = _pos_group(pos)
+    if _bat_model_path(group).exists():
+        bat_model = joblib.load(_bat_model_path(group))
+        bat_sc    = joblib.load(_bat_scaler_path(group))
+    else:
+        bat_model = joblib.load(BAT_MODEL_PATH)
+        bat_sc    = joblib.load(BAT_SCALER_PATH)
 
     def _row(is_chase, rr):
         return np.array([[
