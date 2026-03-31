@@ -2381,23 +2381,46 @@ if page == "06  Match Predictor":
     BAT_PROB = {1: 1.00, 2: 0.99, 3: 0.95, 4: 0.87, 5: 0.76,
                 6: 0.63, 7: 0.48, 8: 0.34, 9: 0.22, 10: 0.13, 11: 0.07}
 
-    # Anchor: actual average first-innings score at this venue (default global T20 avg)
+    # Anchor: actual average first-innings score at this venue
     venue_avg_score = float(vrow_dict.get("avg_first_inn_runs") or 158)
-    # Clamp to realistic T20 range
-    venue_avg_score = max(130, min(220, venue_avg_score))
+    venue_avg_score = max(130, min(185, venue_avg_score))  # realistic T20 range
 
-    def _predict_xi(player_names, is_chase):
-        """
-        Strategy: use per-player model predictions to determine each batter's
-        SHARE of the team innings, then scale the total to the venue's known
-        average score adjusted by bat_factor. This avoids summing 11 averages
-        (which ignores the 120-ball constraint) while preserving relative
-        strength differences between players.
-        """
-        shares = []   # (name, pos, weight)  weight = raw_pred × bat_prob
-        raw_preds = {}
+    def _xi_batting_weight(xi_names):
+        """Weighted sum of bat_ratings — top 6 count double."""
+        total = 0.0
+        for i, name in enumerate(xi_names):
+            row = all_df[all_df["name"] == name]
+            if row.empty: continue
+            br = float(row.iloc[0].get("bat_rating") or 50)
+            w  = 2 if i < 6 else 1
+            total += br * w
+        denom = sum(2 if i < 6 else 1 for i in range(min(len(xi_names), 11)))
+        return total / denom if denom else 50.0
 
-        for pos, name in enumerate(player_names, 1):
+    def _xi_bowling_weight(xi_names):
+        """Weighted avg bowl_rating — last 5 count double (likely bowlers)."""
+        total = 0.0
+        for i, name in enumerate(xi_names):
+            row = all_df[all_df["name"] == name]
+            if row.empty: continue
+            br = float(row.iloc[0].get("bowl_rating") or 50)
+            w  = 2 if i >= 6 else 1
+            total += br * w
+        denom = sum(2 if i >= 6 else 1 for i in range(min(len(xi_names), 11)))
+        return total / denom if denom else 50.0
+
+    def _predict_xi(bat_names, bowl_names, is_chase):
+        """
+        Team score = venue_avg
+                     × (batting_quality / 50)^0.4    — batting edge
+                     × (50 / bowling_quality)^0.3     — opposition bowling suppression
+                     × chase_factor                   — dew/target advantage if chasing
+
+        Per-player split uses model predictions × bat_prob proportionally.
+        """
+        # Build shares
+        shares = []
+        for pos, name in enumerate(bat_names, 1):
             bat_prob = BAT_PROB.get(pos, 0.07)
             pp = _get_player(name)
             if not pp:
@@ -2417,47 +2440,54 @@ if page == "06  Match Predictor":
             }
             try:
                 p   = predict_bat(feat, venue_feat, n_boot=100)
-                raw = p["chasing"] if is_chase else p["first_innings"]
-                raw = max(0, raw)
-                raw_preds[name] = p
+                raw = max(0, p["chasing"] if is_chase else p["first_innings"])
                 shares.append((name, pos, raw * bat_prob, p))
             except Exception:
                 shares.append((name, pos, 5.0 * bat_prob, None))
 
-        # Team quality multiplier: how strong is this XI vs a typical XI?
-        # Compare sum of weighted shares to a baseline typical XI
-        TYPICAL_WEIGHTED_SUM = 155.0   # calibrated from real T20 data
+        # Batting quality of this XI (0–100 scale, 50 = average)
+        bat_q  = _xi_batting_weight(bat_names)
+        # Bowling quality of the OPPOSITION (higher = harder to score against)
+        bowl_q = _xi_bowling_weight(bowl_names)
+
+        # Chase advantage: bat_factor > 1 → venue favours batting, dew helps chasing
+        bf_v = float(vrow_dict.get("bat_factor") or 1.0)
+        chase_factor = (1.03 if is_chase and bf_v > 1.05 else
+                        0.97 if not is_chase and bf_v > 1.05 else 1.0)
+
+        # Team total formula — each ±10 rating points shifts score by ~3-5%
+        team_runs = (venue_avg_score
+                     * ((bat_q  / 50) ** 0.4)
+                     * ((50 / max(bowl_q, 10)) ** 0.3)
+                     * chase_factor)
+        team_runs = max(100, min(230, team_runs))
+        team_total = round(team_runs + 12, 1)  # +12 extras
+
+        # Split total proportionally by weighted share
         weighted_sum = sum(w for _, _, w, _ in shares)
-        quality_mult = weighted_sum / TYPICAL_WEIGHTED_SUM if weighted_sum > 0 else 1.0
-        quality_mult = max(0.75, min(1.35, quality_mult))  # cap ±35% swing
-
-        # Final team total: venue average × team quality
-        team_total = round(venue_avg_score * quality_mult + 12, 1)  # +12 extras
-
-        # Split team total proportionally by weighted share
         rows = []
         for name, pos, weight, p in shares:
             if weighted_sum > 0:
-                player_runs = round(weight / weighted_sum * (team_total - 12), 1)
+                player_runs = round(weight / weighted_sum * team_runs, 1)
             else:
                 player_runs = "—"
-            if p:
-                bat_prob = BAT_PROB.get(pos, 0.07)
-                ci = f"{round(p['ci_lo']*bat_prob,1)}–{round(p['ci_hi']*bat_prob,1)}"
-            else:
-                ci = "—"
-            rows.append({"#": pos, "Player": name, "Predicted Runs": player_runs, "CI (80%)": ci})
-
+            ci = (f"{round(p['ci_lo']*BAT_PROB.get(pos,.07),1)}–"
+                  f"{round(p['ci_hi']*BAT_PROB.get(pos,.07),1)}"
+                  if p else "—")
+            rows.append({"#": pos, "Player": name,
+                         "Predicted Runs": player_runs, "CI (80%)": ci})
         return pd.DataFrame(rows), team_total
 
     batting_first_xi  = your_xi if bats_first == "Your XI" else opp_xi
     batting_second_xi = opp_xi  if bats_first == "Your XI" else your_xi
+    bowling_first_xi  = opp_xi  if bats_first == "Your XI" else your_xi  # who's bowling in innings 1
+    bowling_second_xi = your_xi if bats_first == "Your XI" else opp_xi   # who's bowling in innings 2
     first_label       = "Your XI" if bats_first == "Your XI" else "Opp XI"
     second_label      = "Opp XI"  if bats_first == "Your XI" else "Your XI"
 
     with st.spinner("Running predictions…"):
-        df_first,  total_first  = _predict_xi(batting_first_xi,  is_chase=False)
-        df_second, total_second = _predict_xi(batting_second_xi, is_chase=True)
+        df_first,  total_first  = _predict_xi(batting_first_xi,  bowling_first_xi,  is_chase=False)
+        df_second, total_second = _predict_xi(batting_second_xi, bowling_second_xi, is_chase=True)
 
     # Score cards
     sc1, sc2 = st.columns(2)
