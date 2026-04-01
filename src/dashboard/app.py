@@ -516,15 +516,6 @@ with st.sidebar:
                   margin-top:.3rem;letter-spacing:.06em'>T20 · 2001–2025</div>
     </div>""", unsafe_allow_html=True)
 
-    page = st.radio("Navigation", [
-        "01  Player Explorer",
-        "02  Head-to-Head",
-        "03  Pitch Intelligence",
-        "04  Prediction Engine",
-        "05  Matchup Lab",
-        "06  Match Predictor",
-    ], label_visibility="collapsed")
-
     st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
     tournament = st.selectbox("Tournament", [
         "ALL", "t20i_male", "t20_wc_male", "ipl", "psl",
@@ -539,6 +530,49 @@ with st.sidebar:
       cricsheet.org source
     </div>""", unsafe_allow_html=True)
 
+# ── Top navigation bar (always visible) ──────────────────
+_NAV_PAGES = [
+    "Player Explorer",
+    "Head-to-Head",
+    "Pitch Intelligence",
+    "Prediction Engine",
+    "Matchup Lab",
+    "Match Predictor",
+]
+_nav_sel = st.pills("", _NAV_PAGES, default="Player Explorer",
+                    key="top_nav", label_visibility="collapsed")
+page = f"0{_NAV_PAGES.index(_nav_sel) + 1}  {_nav_sel}"
+
+st.markdown("""
+<style>
+/* Nav pills row */
+[data-testid="stPills"] { margin: .6rem 0 1rem !important; }
+[data-testid="stPills"] button {
+    font-family: 'Space Mono', monospace !important;
+    font-size: .68rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .06em !important;
+    text-transform: uppercase !important;
+    border: 2px solid #0D0D0D !important;
+    border-radius: 0 !important;
+    background: #FFFCF2 !important;
+    color: #0D0D0D !important;
+    padding: .35rem .8rem !important;
+    box-shadow: 3px 3px 0 #0D0D0D !important;
+    transition: transform .08s, box-shadow .08s !important;
+}
+[data-testid="stPills"] button:hover {
+    transform: translate(-1px,-1px) !important;
+    box-shadow: 4px 4px 0 #0D0D0D !important;
+}
+[data-testid="stPills"] button[aria-pressed="true"] {
+    background: #FFE500 !important;
+    color: #0D0D0D !important;
+    box-shadow: 3px 3px 0 #0D0D0D !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 # ─────────────────────────────────────────────────────────
 # CACHED DATA
@@ -548,6 +582,7 @@ with st.sidebar:
 def all_players() -> pd.DataFrame:
     return sql("""
         SELECT p.id, p.cricsheet_key AS name, p.country,
+               p.bowling_style,
                pcb.innings, pcb.runs, pcb.average, pcb.strike_rate,
                pcb.adj_average, pcb.adj_strike_rate,
                pcb.fifties, pcb.hundreds, pcb.hs,
@@ -1142,7 +1177,7 @@ if "01" in page:
         st.warning("No players found. Run the ingestion pipeline first.")
         st.stop()
 
-    # ── filters ──
+    # ── filters row 1 ──
     fc1, fc2, fc3, fc4 = st.columns([2, 1, 1, 1])
     with fc1:
         search = st.text_input("Search player", placeholder="e.g. Kohli, Warner…")
@@ -1157,12 +1192,55 @@ if "01" in page:
             "adj_strike_rate", "death_sr", "chase_score",
         ])
 
+    # ── filters row 2 — bowling style + matchup strength ──
+    _BOWL_STYLES = [
+        "All styles",
+        "Right-arm fast",
+        "Right-arm fast-medium",
+        "Right-arm off-break",
+        "Right-arm leg-break googly",
+        "Left-arm fast",
+        "Left-arm fast-medium",
+        "Slow left-arm orthodox",
+        "Left-arm wrist-spin",
+    ]
+    fc5, fc6, fc7 = st.columns([2, 2, 2])
+    with fc5:
+        bowl_style_f = st.selectbox("Bowler type (filter bowlers)",
+                                    _BOWL_STYLES, key="pe_bowl_style")
+    with fc6:
+        vs_style_f = st.selectbox("Batter strength vs style",
+                                   _BOWL_STYLES, key="pe_vs_style")
+    with fc7:
+        vs_strength_f = st.radio("Strength",
+                                  ["Any", "Strong (SR ≥ 130)", "Weak (SR ≤ 100)"],
+                                  horizontal=True, key="pe_strength")
+
     filt = df.copy()
     if search:
         filt = filt[filt["name"].str.contains(search, case=False, na=False)]
     if country != "All":
         filt = filt[filt["country"] == country]
     filt = filt[filt["innings"] >= min_inn]
+
+    # Apply bowler style filter
+    if bowl_style_f != "All styles":
+        filt = filt[filt["bowling_style"] == bowl_style_f]
+
+    # Apply batter-vs-style filter
+    if vs_style_f != "All styles" and vs_strength_f != "Any":
+        _matchup_df = sql("""
+            SELECT batter_id, strike_rate
+            FROM player_vs_bowler_style
+            WHERE bowling_style = :bs
+        """, bs=vs_style_f)
+        if not _matchup_df.empty:
+            if vs_strength_f.startswith("Strong"):
+                _keep = set(_matchup_df[_matchup_df["strike_rate"] >= 130]["batter_id"])
+            else:
+                _keep = set(_matchup_df[_matchup_df["strike_rate"] <= 100]["batter_id"])
+            filt = filt[filt["id"].isin(_keep)]
+
     filt = filt.sort_values(sort_by, ascending=False).reset_index(drop=True)
 
     st.markdown(f'<div class="nb-label">Showing {len(filt):,} players</div>',
@@ -1195,23 +1273,11 @@ if "01" in page:
           <td style='text-align:right'>{_r(r.get('chase_score'))}</td>
         </tr>"""
 
-    st.markdown(f"""
-    <table class="nb-table">
-      <thead><tr>
-        <th>#</th><th>Player</th><th>Country</th>
-        <th>Inn</th><th>Runs</th><th>Avg</th><th>Adj Avg</th><th>SR</th>
-        <th>PP SR</th><th>Death SR</th>
-        <th>Bat Rating</th><th>Bowl Rating</th><th>Overall</th>
-        <th>Opener</th><th>Finisher</th><th>Chase</th>
-      </tr></thead>
-      <tbody>{rows_html}</tbody>
-    </table>""", unsafe_allow_html=True)
-
-    # ── player drill-down ──
-    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+    # ── player drill-down (above table so it's immediately visible) ──
     st.markdown('<div class="nb-label">Player Deep Dive</div>', unsafe_allow_html=True)
-
-    sel = st.selectbox("Select player to expand", filt["name"].head(200).tolist())
+    sel = st.selectbox("Select player", filt["name"].head(200).tolist(),
+                       key="pe_player_sel",
+                       help="Pick any player to see their detailed breakdown below")
     p   = _get_player(sel)
     if p:
         pid = int(p["id"])
@@ -1223,8 +1289,8 @@ if "01" in page:
         mc5.metric("SR",         _r(p.get("strike_rate")))
         mc6.metric("Bat Rating", _r(p.get("bat_rating")))
 
-        t1, t2, t3, t4, t5 = st.tabs(
-            ["Season Trend", "By Position", "By Opponent", "Milestones", "Venues"])
+        t1, t2, t3, t4, t5, t6 = st.tabs(
+            ["Season Trend", "By Position", "By Opponent", "Milestones", "Venues", "vs Bowl Style"])
 
         with t1:
             seas = player_seasons(pid)
@@ -1297,6 +1363,66 @@ if "01" in page:
                                 config={"displayModeBar": False})
                 st.dataframe(mils, hide_index=True)
 
+        with t6:
+            _mq = sql("""
+                    SELECT bowling_style, balls, runs, dismissals,
+                           strike_rate, average, dot_pct, boundaries
+                    FROM player_vs_bowler_style
+                    WHERE batter_id = :pid
+                    ORDER BY balls DESC
+                """, pid=pid).values.tolist()
+            if _mq:
+                _style_df = pd.DataFrame(_mq, columns=[
+                    "Bowling Style", "Balls", "Runs", "Dismissals",
+                    "SR", "Average", "Dot%", "Boundaries"])
+                # colour SR relative to each other
+                fig_s = go.Figure()
+                colours = {
+                    "Right-arm fast":           "#FF6B6B",
+                    "Right-arm fast-medium":    "#FF9F43",
+                    "Right-arm off-break":      "#54A0FF",
+                    "Right-arm leg-break googly":"#5F27CD",
+                    "Left-arm fast":            "#EE5A24",
+                    "Left-arm fast-medium":     "#F79F1F",
+                    "Slow left-arm orthodox":   "#1289A7",
+                    "Left-arm wrist-spin":      "#6C5CE7",
+                }
+                avg_sr = _style_df["SR"].mean()
+                for _, row in _style_df.iterrows():
+                    col = colours.get(row["Bowling Style"], "#B2BEC3")
+                    fig_s.add_trace(go.Bar(
+                        x=[row["Bowling Style"]], y=[row["SR"]],
+                        name=row["Bowling Style"],
+                        marker=dict(color=col, line=dict(color="#0D0D0D", width=2)),
+                        text=[f"{row['SR']}"],
+                        textposition="outside",
+                        customdata=[[row["Balls"], row["Dismissals"], row["Dot%"]]],
+                        hovertemplate=(
+                            "<b>%{x}</b><br>"
+                            "SR: %{y}<br>"
+                            "Balls: %{customdata[0]}<br>"
+                            "Dismissals: %{customdata[1]}<br>"
+                            "Dot%%: %{customdata[2]}<extra></extra>"
+                        ),
+                    ))
+                fig_s.add_hline(y=avg_sr, line_dash="dash", line_color="#0D0D0D",
+                                annotation_text=f"avg SR {avg_sr:.0f}")
+                fig_s.update_layout(showlegend=False,
+                                    yaxis_title="Strike Rate",
+                                    xaxis_title="",
+                                    bargap=0.3)
+                st.plotly_chart(_plotly_defaults(fig_s), width="stretch",
+                                config={"displayModeBar": False})
+                st.dataframe(
+                    _style_df.style.background_gradient(
+                        subset=["SR"], cmap="RdYlGn"),
+                    hide_index=True)
+                st.caption("Minimum 24 balls faced against that bowling type. "
+                           "Covers bowlers with known styles (~54% of T20 deliveries in DB).")
+            else:
+                st.info("No bowling-style matchup data for this player "
+                        "(fewer than 24 balls faced against any classified bowler).")
+
         with t5:
             vdf = player_venues(pid)
             if not vdf.empty:
@@ -1311,6 +1437,22 @@ if "01" in page:
                 st.plotly_chart(_plotly_defaults(fig), width="stretch",
                                 config={"displayModeBar": False})
                 st.dataframe(vdf, hide_index=True)
+
+    # ── full player table (below drill-down) ──
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="nb-label">All Players — {len(filt):,} results</div>',
+                unsafe_allow_html=True)
+    st.markdown(f"""
+    <table class="nb-table">
+      <thead><tr>
+        <th>#</th><th>Player</th><th>Country</th>
+        <th>Inn</th><th>Runs</th><th>Avg</th><th>Adj Avg</th><th>SR</th>
+        <th>PP SR</th><th>Death SR</th>
+        <th>Bat Rating</th><th>Bowl Rating</th><th>Overall</th>
+        <th>Opener</th><th>Finisher</th><th>Chase</th>
+      </tr></thead>
+      <tbody>{rows_html}</tbody>
+    </table>""", unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -2030,11 +2172,29 @@ if page == "06  Match Predictor":
     venue_names = venues_df["name"].tolist() if not venues_df.empty else []
 
     # ── Team selection ─────────────────────────────────────────────────
-    st.markdown("### Select Teams")
+    def _swap_teams():
+        for i in range(11):
+            a = st.session_state.get(f"your_{i}", "— select —")
+            b = st.session_state.get(f"opp_{i}", "— select —")
+            st.session_state[f"your_{i}"] = b
+            st.session_state[f"opp_{i}"] = a
+        cur = st.session_state.get("mp_bat", "Your XI")
+        st.session_state["mp_bat"] = "Opp XI" if cur == "Your XI" else "Your XI"
+
+    hdr_col1, hdr_mid, hdr_col2 = st.columns([5, 1, 5])
+    with hdr_col1:
+        st.markdown("### Your XI")
+    with hdr_mid:
+        st.markdown("<div style='padding-top:1.8rem'>", unsafe_allow_html=True)
+        st.button("⇄", on_click=_swap_teams, key="swap_teams",
+                  help="Swap both XIs and flip who bats first")
+        st.markdown("</div>", unsafe_allow_html=True)
+    with hdr_col2:
+        st.markdown("### Opposition XI")
+
     col_a, col_b = st.columns(2)
 
     with col_a:
-        st.markdown("**Your XI**")
         your_xi = []
         for i in range(11):
             label = f"{'Opener' if i<2 else 'Batter' if i<6 else 'All-rounder' if i<9 else 'Bowler'} #{i+1}"
@@ -2044,7 +2204,6 @@ if page == "06  Match Predictor":
                 your_xi.append(p)
 
     with col_b:
-        st.markdown("**Opposition XI**")
         opp_xi = []
         for i in range(11):
             label = f"Opp #{i+1}"
