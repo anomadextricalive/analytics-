@@ -687,7 +687,10 @@ def player_milestones_df(pid: int) -> pd.DataFrame:
 @st.cache_data(ttl=120)
 def all_venues() -> pd.DataFrame:
     return sql("""
-        SELECT v.id, v.name, v.country,
+        SELECT v.id, v.name, v.city, v.country,
+               v.boundary_straight_m, v.boundary_square_m,
+               v.pitch_type, v.surface, v.floodlights,
+               v.capacity, v.operational_status, v.soil_details,
                vd.bat_factor, vd.boundary_rate, vd.pace_index, vd.spin_index,
                vd.avg_first_inn_runs, vd.total_matches
         FROM venues v
@@ -1808,11 +1811,39 @@ elif "03" in page:
 
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
 
-    # ── Venue selector ──
+    # ── Venue search / filter ──
     st.markdown('<div class="nb-label">Venue Deep Dive</div>', unsafe_allow_html=True)
-    venue_names = venues_df["name"].tolist()
+    sf1, sf2, sf3, sf4 = st.columns([2, 2, 1.5, 1.5])
+    with sf1:
+        country_filter = st.selectbox("Country", ["All"] + sorted(venues_df["country"].dropna().unique().tolist()))
+    with sf2:
+        city_options = venues_df if country_filter == "All" else venues_df[venues_df["country"] == country_filter]
+        city_filter = st.selectbox("City", ["All"] + sorted(city_options["city"].dropna().unique().tolist()))
+    with sf3:
+        pitch_options = ["All"] + sorted(venues_df["pitch_type"].dropna().unique().tolist())
+        pitch_filter = st.selectbox("Pitch type", pitch_options)
+    with sf4:
+        status_options = ["All"] + sorted(venues_df["operational_status"].dropna().unique().tolist())
+        status_filter = st.selectbox("Status", status_options)
+
+    filtered_venues = venues_df.copy()
+    if country_filter != "All":
+        filtered_venues = filtered_venues[filtered_venues["country"] == country_filter]
+    if city_filter != "All":
+        filtered_venues = filtered_venues[filtered_venues["city"] == city_filter]
+    if pitch_filter != "All":
+        filtered_venues = filtered_venues[filtered_venues["pitch_type"] == pitch_filter]
+    if status_filter != "All":
+        filtered_venues = filtered_venues[filtered_venues["operational_status"] == status_filter]
+
+    st.markdown(f'<div class="nb-label" style="font-size:.7rem;opacity:.6">{len(filtered_venues)} venues</div>', unsafe_allow_html=True)
+
+    venue_names = filtered_venues["name"].tolist()
+    if not venue_names:
+        st.warning("No venues match the selected filters.")
+        st.stop()
     sel_venue   = st.selectbox("Select venue", venue_names)
-    vrow        = venues_df[venues_df["name"] == sel_venue].iloc[0]
+    vrow        = filtered_venues[filtered_venues["name"] == sel_venue].iloc[0]
     vid         = int(vrow["id"])
 
     # ── Pitch type tags ──
@@ -1830,20 +1861,52 @@ elif "03" in page:
                 unsafe_allow_html=True)
 
     # ── Human readable summary ──
-    summary = _pitch_label(bf, pi, br)
-    ground  = GROUND_INFO.get(sel_venue, {})
-    pitch_type = ground.get("pitch_type", "")
-    surface    = ground.get("surface", "")
-    dims       = ground.get("dims", "")
-    notes      = ground.get("notes", "")
+    summary    = _pitch_label(bf, pi, br)
+    pitch_type = vrow.get("pitch_type") or ""
+    surface    = vrow.get("surface") or ""
+    soil       = vrow.get("soil_details") or ""
+    straight   = vrow.get("boundary_straight_m")
+    square     = vrow.get("boundary_square_m")
+    capacity   = vrow.get("capacity")
+    lights     = vrow.get("floodlights")
+    op_status  = vrow.get("operational_status") or ""
+    city       = vrow.get("city") or ""
+    country    = vrow.get("country") or ""
+
+    dims = ""
+    if pd.notna(straight) and pd.notna(square):
+        dims = f"{int(straight)}m straight · {int(square)}m square"
+    elif pd.notna(straight):
+        dims = f"{int(straight)}m straight"
+
+    def _badge(label, val, bg="#eee"):
+        return (f"<span style='font-family:Space Mono;font-size:.7rem;background:{bg};"
+                f"color:#0D0D0D;padding:.1rem .45rem;border-radius:3px;"
+                f"border:1.5px solid #0D0D0D;font-weight:700'>{label}</span>"
+                f"&nbsp;<span style='font-size:.85rem;font-weight:600'>{val}</span>")
+
+    meta_rows = ""
+    if city or country:
+        meta_rows += f"<div style='margin:.2rem 0'>{_badge('LOCATION', ', '.join(filter(None,[city,country])), '#F0F0F0')}</div>"
+    if pitch_type:
+        meta_rows += f"<div style='margin:.2rem 0'>{_badge('PITCH TYPE', pitch_type, '#FFE500')}</div>"
+    if surface:
+        meta_rows += f"<div style='margin:.2rem 0'>{_badge('SURFACE', surface, '#A8DADC')}</div>"
+    if dims:
+        meta_rows += f"<div style='margin:.2rem 0'>{_badge('BOUNDARIES', dims, '#eee')}</div>"
+    if pd.notna(capacity) and capacity:
+        meta_rows += f"<div style='margin:.2rem 0'>{_badge('CAPACITY', f'{int(capacity):,}', '#eee')}</div>"
+    if lights is not None:
+        meta_rows += f"<div style='margin:.2rem 0'>{_badge('FLOODLIGHTS', 'Yes' if lights else 'No', '#eee')}</div>"
+    if op_status and op_status != "Operational":
+        meta_rows += f"<div style='margin:.2rem 0'>{_badge('STATUS', op_status, '#FFB3B3')}</div>"
+    if soil:
+        meta_rows += f"<div style='margin-top:.5rem;font-size:.8rem;opacity:.75;font-style:italic'>{soil}</div>"
 
     st.markdown(f"""
     <div class="nb-card" style="padding:1rem 1.2rem;margin-bottom:1rem">
-      <div style="font-size:1rem;font-weight:700;margin-bottom:.4rem">{summary}</div>
-      {"<div style='margin:.2rem 0'><span style='font-family:Space Mono;font-size:.7rem;background:#FFE500;color:#0D0D0D;padding:.1rem .45rem;border-radius:3px;border:1.5px solid #0D0D0D;font-weight:700'>PITCH TYPE</span>&nbsp; <span style='font-size:.85rem;font-weight:600'>" + pitch_type + "</span></div>" if pitch_type else ""}
-      {"<div style='margin:.2rem 0'><span style='font-family:Space Mono;font-size:.7rem;background:#A8DADC;color:#0D0D0D;padding:.1rem .45rem;border-radius:3px;border:1.5px solid #0D0D0D;font-weight:700'>SURFACE</span>&nbsp; <span style='font-size:.85rem'>" + surface + "</span></div>" if surface else ""}
-      {"<div style='margin:.2rem 0'><span style='font-family:Space Mono;font-size:.7rem;background:#eee;color:#0D0D0D;padding:.1rem .45rem;border-radius:3px;border:1.5px solid #0D0D0D;font-weight:700'>BOUNDARIES</span>&nbsp; <span style='font-size:.85rem;font-family:Space Mono'>" + dims + "</span></div>" if dims else ""}
-      {"<div style='margin-top:.5rem;font-size:.82rem;opacity:.8'>" + notes + "</div>" if notes else ""}
+      <div style="font-size:1rem;font-weight:700;margin-bottom:.6rem">{summary}</div>
+      {meta_rows}
     </div>""", unsafe_allow_html=True)
 
     vc1, vc2, vc3, vc4, vc5 = st.columns(5)
