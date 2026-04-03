@@ -596,8 +596,10 @@ def all_players() -> pd.DataFrame:
         FROM players p
         LEFT JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
         LEFT JOIN player_ratings pr ON pr.player_id = p.id AND pr.tournament = 'ALL'
+        LEFT JOIN player_career_bowl pcbw ON pcbw.player_id = p.id AND pcbw.tournament = 'ALL'
         WHERE COALESCE(pcb.innings, 0) >= 1
-        ORDER BY COALESCE(pcb.innings, 0) DESC
+           OR COALESCE(pcbw.innings, 0) >= 1
+        ORDER BY COALESCE(pr.overall_rating, 0) DESC
     """)
 
 
@@ -783,8 +785,9 @@ def _get_player(name: str) -> dict:
     df = sql("""
         SELECT p.id, p.cricsheet_key AS name, p.country,
                pcb.adj_average, pcb.adj_strike_rate, pcb.average,
-               pcb.strike_rate, pcb.innings, pcb.runs, pcb.hs,
-               pcb.fifties, pcb.hundreds, pcb.ducks, pcb.thirties,
+               pcb.strike_rate, pcb.innings, pcb.not_outs, pcb.runs,
+               pcb.balls, pcb.hs, pcb.fifties, pcb.hundreds, pcb.ducks,
+               pcb.thirties, pcb.fours, pcb.sixes,
                pcb.pp_sr, pcb.mid_sr, pcb.death_sr,
                pr.bat_rating, pr.bowl_rating, pr.overall_rating,
                pr.opener_score, pr.finisher_score, pr.anchor_score,
@@ -809,14 +812,14 @@ def _get_bowl(pid: int) -> dict:
     df = sql("""
         SELECT adj_economy, economy, wickets, dot_pct, average AS bowl_avg,
                strike_rate AS bowl_sr, pp_economy, mid_economy, death_economy,
-               innings AS bowl_inn
+               innings AS bowl_inn, runs
         FROM player_career_bowl WHERE player_id = :pid AND tournament = 'ALL'
     """, pid=pid)
     return df.iloc[0].to_dict() if not df.empty else {}
 
 
 def _rating_bar(val, colour="#FFE500"):
-    if val is None: val = 0
+    if val is None or (isinstance(val, float) and __import__('math').isnan(val)): val = 0
     pct = int(float(val))
     return (f'<div class="rat-bar-bg"><div class="rat-bar-fill" '
             f'style="width:{pct}%;background:{colour}"></div></div>')
@@ -1225,10 +1228,11 @@ if "01" in page:
     if country != "All":
         filt = filt[filt["country"] == country]
 
-    # Role filter — skip min_inn when filtering for bowlers so pure bowlers appear
+    # Role filter — skip min_inn for bowler-focused filters so pure bowlers appear
+    _bowler_filter = role_f in ("Bowler", "Bowling All-rounder") or bowl_style_f != "All styles"
     if role_f != "All roles":
         filt = filt[filt["player_role"] == role_f]
-    else:
+    if not _bowler_filter:
         filt = filt[filt["innings"] >= min_inn]
 
     # Bowler style filter — auto-switch sort to bowl_rating
@@ -1269,8 +1273,8 @@ if "01" in page:
           <td style='text-align:right;opacity:.4;font-size:.65rem'>{rank}</td>
           <td><strong>{r['name']}</strong></td>
           <td style='opacity:.6'>{r.get('country') or '—'}</td>
-          <td style='text-align:right'>{int(r.get('innings',0))}</td>
-          <td style='text-align:right'>{int(r.get('runs',0)):,}</td>
+          <td style='text-align:right'>{int(r.get('innings') or 0)}</td>
+          <td style='text-align:right'>{int(r.get('runs') or 0):,}</td>
           <td style='text-align:right'>{_r(r.get('average'))}</td>
           <td style='text-align:right'>{_r(r.get('adj_average'))}</td>
           <td style='text-align:right'>{_r(r.get('strike_rate'))}</td>
@@ -1501,6 +1505,133 @@ elif "02" in page:
                   font-size:1.1rem;font-weight:800;padding:0 .5rem'>VS</div>
       <div class="h2h-name b" style='flex:1'>{name_b}</div>
     </div>""", unsafe_allow_html=True)
+
+    # ── Career comparison panel (screenshot-style) ──────────────────────────
+    ba = _get_bowl(int(pa["id"]))
+    bb = _get_bowl(int(pb["id"]))
+
+    def _cv(d, k):
+        """Safe float from dict, None if missing/NaN."""
+        v = d.get(k)
+        if v is None: return None
+        try:
+            f = float(v)
+            return None if np.isnan(f) else f
+        except (TypeError, ValueError):
+            return None
+
+    def _fi(v):
+        """Format integer stat."""
+        return str(int(v)) if v is not None else "—"
+
+    def _ff(v, fmt=".1f"):
+        """Format float stat."""
+        return format(v, fmt) if v is not None else "—"
+
+    def _pill(val_str, side, winner):
+        """Render a stat value as a highlighted pill if winner, plain otherwise."""
+        if winner == side:
+            bg = "#3A86FF" if side == "a" else "#FF6B35"
+            return (f"<span style='background:{bg};color:#fff;font-weight:800;"
+                    f"padding:2px 10px;border-radius:20px;font-size:.85rem'>"
+                    f"{val_str}</span>")
+        return f"<span style='font-size:.85rem;font-weight:700'>{val_str}</span>"
+
+    def _cmp_row(label, va_str, vb_str, winner):
+        pa_cell = _pill(va_str, "a", winner)
+        pb_cell = _pill(vb_str, "b", winner)
+        return (f"<tr>"
+                f"<td style='text-align:right;padding:4px 10px'>{pa_cell}</td>"
+                f"<td style='text-align:center;color:#666;font-size:.75rem;"
+                f"padding:4px 6px;white-space:nowrap'>{label}</td>"
+                f"<td style='text-align:left;padding:4px 10px'>{pb_cell}</td>"
+                f"</tr>")
+
+    def _sec_header(title):
+        return (f"<tr><td colspan='3' style='background:#0D0D0D;color:#FFE500;"
+                f"font-family:Space Grotesk;font-weight:900;font-size:.8rem;"
+                f"letter-spacing:.12em;text-align:center;padding:6px 0'>"
+                f"{title}</td></tr>")
+
+    def _winner(va, vb, higher_better=True):
+        if va is None or vb is None: return ""
+        if higher_better:
+            if va > vb: return "a"
+            if vb > va: return "b"
+        else:
+            if va < vb: return "a"
+            if vb < va: return "b"
+        return ""
+
+    # collect values
+    bat_inn_a = _cv(pa, "innings");      bat_inn_b = _cv(pb, "innings")
+    bat_no_a  = _cv(pa, "not_outs");    bat_no_b  = _cv(pb, "not_outs")
+    bat_run_a = _cv(pa, "runs");         bat_run_b = _cv(pb, "runs")
+    bat_bal_a = _cv(pa, "balls");        bat_bal_b = _cv(pb, "balls")
+    bat_hs_a  = _cv(pa, "hs");           bat_hs_b  = _cv(pb, "hs")
+    bat_avg_a = _cv(pa, "average");      bat_avg_b = _cv(pb, "average")
+    bat_sr_a  = _cv(pa, "strike_rate");  bat_sr_b  = _cv(pb, "strike_rate")
+    bat_100_a = _cv(pa, "hundreds");     bat_100_b = _cv(pb, "hundreds")
+    bat_50_a  = _cv(pa, "fifties");      bat_50_b  = _cv(pb, "fifties")
+    bat_4_a   = _cv(pa, "fours");        bat_4_b   = _cv(pb, "fours")
+    bat_6_a   = _cv(pa, "sixes");        bat_6_b   = _cv(pb, "sixes")
+
+    bwl_inn_a = _cv(ba, "bowl_inn");     bwl_inn_b = _cv(bb, "bowl_inn")
+    bwl_run_a = _cv(ba, "runs");         bwl_run_b = _cv(bb, "runs")
+    bwl_wkt_a = _cv(ba, "wickets");      bwl_wkt_b = _cv(bb, "wickets")
+    bwl_avg_a = _cv(ba, "bowl_avg");     bwl_avg_b = _cv(bb, "bowl_avg")
+    bwl_sr_a  = _cv(ba, "bowl_sr");      bwl_sr_b  = _cv(bb, "bowl_sr")
+    bwl_eco_a = _cv(ba, "economy");      bwl_eco_b = _cv(bb, "economy")
+
+    rows_html = ""
+    rows_html += _sec_header("BATTING")
+    rows_html += _cmp_row("Innings",      _fi(bat_inn_a), _fi(bat_inn_b), _winner(bat_inn_a, bat_inn_b))
+    rows_html += _cmp_row("Runs",         _fi(bat_run_a), _fi(bat_run_b), _winner(bat_run_a, bat_run_b))
+    rows_html += _cmp_row("Balls Faced",  _fi(bat_bal_a), _fi(bat_bal_b), _winner(bat_bal_a, bat_bal_b))
+    rows_html += _cmp_row("High Score",   _fi(bat_hs_a),  _fi(bat_hs_b),  _winner(bat_hs_a, bat_hs_b))
+    rows_html += _cmp_row("Average",      _ff(bat_avg_a), _ff(bat_avg_b), _winner(bat_avg_a, bat_avg_b))
+    rows_html += _cmp_row("Strike Rate",  _ff(bat_sr_a),  _ff(bat_sr_b),  _winner(bat_sr_a, bat_sr_b))
+    rows_html += _cmp_row("Not Outs",     _fi(bat_no_a),  _fi(bat_no_b),  _winner(bat_no_a, bat_no_b))
+    rows_html += _cmp_row("100s",         _fi(bat_100_a), _fi(bat_100_b), _winner(bat_100_a, bat_100_b))
+    rows_html += _cmp_row("50s",          _fi(bat_50_a),  _fi(bat_50_b),  _winner(bat_50_a, bat_50_b))
+    rows_html += _cmp_row("4s",           _fi(bat_4_a),   _fi(bat_4_b),   _winner(bat_4_a, bat_4_b))
+    rows_html += _cmp_row("6s",           _fi(bat_6_a),   _fi(bat_6_b),   _winner(bat_6_a, bat_6_b))
+    rows_html += _sec_header("BOWLING")
+    rows_html += _cmp_row("Innings",       _fi(bwl_inn_a), _fi(bwl_inn_b), _winner(bwl_inn_a, bwl_inn_b))
+    rows_html += _cmp_row("Runs Conceded", _fi(bwl_run_a), _fi(bwl_run_b), _winner(bwl_run_a, bwl_run_b, higher_better=False))
+    rows_html += _cmp_row("Wickets",       _fi(bwl_wkt_a), _fi(bwl_wkt_b), _winner(bwl_wkt_a, bwl_wkt_b))
+    rows_html += _cmp_row("Bowl Avg",      _ff(bwl_avg_a), _ff(bwl_avg_b), _winner(bwl_avg_a, bwl_avg_b, higher_better=False))
+    rows_html += _cmp_row("Bowl SR",       _ff(bwl_sr_a),  _ff(bwl_sr_b),  _winner(bwl_sr_a, bwl_sr_b, higher_better=False))
+    rows_html += _cmp_row("Economy",       _ff(bwl_eco_a), _ff(bwl_eco_b), _winner(bwl_eco_a, bwl_eco_b, higher_better=False))
+
+    country_a = pa.get("country") or ""
+    country_b = pb.get("country") or ""
+
+    st.markdown(f"""
+    <div style='max-width:560px;margin:0 auto 1.5rem auto;border:2.5px solid #0D0D0D;border-radius:6px;overflow:hidden'>
+      <table style='width:100%;border-collapse:collapse;font-family:Space Mono,monospace'>
+        <thead>
+          <tr>
+            <th style='background:#3A86FF;color:#fff;font-family:Space Grotesk;
+                       font-weight:900;font-size:.95rem;padding:10px 14px;
+                       text-align:right;width:38%'>{name_a}<br>
+                <span style='font-size:.7rem;font-weight:400;opacity:.85'>{country_a}</span></th>
+            <th style='background:#0D0D0D;color:#FFE500;font-family:Space Grotesk;
+                       font-weight:900;font-size:.75rem;letter-spacing:.1em;
+                       text-align:center;padding:10px 6px;width:24%'>VS</th>
+            <th style='background:#FF6B35;color:#fff;font-family:Space Grotesk;
+                       font-weight:900;font-size:.95rem;padding:10px 14px;
+                       text-align:left;width:38%'>{name_b}<br>
+                <span style='font-size:.7rem;font-weight:400;opacity:.85'>{country_b}</span></th>
+          </tr>
+        </thead>
+        <tbody style='background:#FAFAFA'>
+          {rows_html}
+        </tbody>
+      </table>
+    </div>""", unsafe_allow_html=True)
+
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
 
     # ── Radar ──
     radar_keys = ["opener_score","finisher_score","anchor_score",

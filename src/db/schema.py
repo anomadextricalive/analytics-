@@ -98,6 +98,18 @@ class Venue(Base):
     city            = Column(String)
     country         = Column(String)
 
+    # Physical dimensions
+    boundary_straight_m = Column(Integer)      # straight boundary in metres
+    boundary_square_m   = Column(Integer)      # square boundary in metres
+    capacity            = Column(Integer)
+    floodlights         = Column(Boolean, default=False)
+    operational_status  = Column(String)       # "Operational" / "Permanently Closed" etc.
+
+    # Pitch / surface character (manually curated)
+    pitch_type          = Column(String)       # "Natural", "Drop-in", "Artificial"
+    surface             = Column(String)       # "Grass", "Mat"
+    soil_details        = Column(String)       # free-text soil/special notes
+
     # Pitch character (populated by pitch regression)
     avg_first_inn_score     = Column(Float)
     avg_second_inn_score    = Column(Float)
