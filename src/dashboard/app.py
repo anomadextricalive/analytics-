@@ -2213,8 +2213,8 @@ if page == "05  Matchup Lab":
     if not batter_names: batter_names = names
     if not bowler_names: bowler_names = names
 
-    tab_matchup, tab_bvall, tab_allvb = st.tabs([
-        "Batter vs Bowler", "Batter vs All Bowlers", "Bowler vs All Batters"
+    tab_matchup, tab_bvall, tab_allvb, tab_predict = st.tabs([
+        "Batter vs Bowler", "Batter vs All Bowlers", "Bowler vs All Batters", "Predicted Matchup"
     ])
 
     # ── TAB 1: specific matchup ──────────────────────────────────────────
@@ -2418,6 +2418,232 @@ if page == "05  Matchup Lab":
                     hard = df3[df3["balls"] >= 12].nlargest(10, "SR")[
                         ["batter","balls","runs","dismissals","SR","dot_%"]]
                     st.dataframe(hard, hide_index=True, use_container_width=True)
+
+    # ── TAB 4: Predicted Matchup ─────────────────────────────────────────
+    with tab_predict:
+        st.markdown(
+            '<p style="font-size:.85rem;opacity:.6;margin-bottom:1rem">'
+            'Statistical prediction for any batter vs any bowler — no prior meeting required. '
+            'Score: −1.0 = bowler dominates · +1.0 = batter dominates.</p>',
+            unsafe_allow_html=True)
+
+        pc1, pc2 = st.columns(2)
+        with pc1:
+            pred_batter = st.selectbox("Batter", batter_names, key="pred_bat")
+        with pc2:
+            pred_bowler = st.selectbox("Bowler", bowler_names, key="pred_bowl",
+                                       index=min(1, len(bowler_names)-1))
+
+        _pb  = _get_player(pred_batter)
+        _pb_id = int(all_df[all_df["name"]==pred_batter].iloc[0]["id"]) if pred_batter else None
+        _pw_id = int(all_df[all_df["name"]==pred_bowler].iloc[0]["id"]) if pred_bowler else None
+        _bwl = _get_bowl(_pw_id) if _pw_id else {}
+
+        def _sv(d, k, default=None):
+            v = d.get(k)
+            if v is None: return default
+            try:
+                f = float(v)
+                return default if np.isnan(f) else f
+            except: return default
+
+        # ── Stats display ──
+        def _stat_box(label, value, fmt=None):
+            disp = "—" if value is None else (format(value, fmt) if fmt else str(int(value)))
+            return (f"<div style='margin-bottom:.5rem'>"
+                    f"<div style='font-size:.68rem;opacity:.55;font-family:Space Mono;margin-bottom:2px'>{label}</div>"
+                    f"<div style='background:#F5F5F5;border:1.5px solid #D0D0D0;border-radius:6px;"
+                    f"padding:.45rem .8rem;font-size:1.05rem;font-weight:700'>{disp}</div></div>")
+
+        sb1, sb2 = st.columns(2)
+        with sb1:
+            bat_sr  = _sv(_pb, 'strike_rate');  bat_avg = _sv(_pb, 'average')
+            bat_pp  = _sv(_pb, 'pp_sr');        bat_mid = _sv(_pb, 'mid_sr')
+            bat_dth = _sv(_pb, 'death_sr')
+            st.markdown(
+                _stat_box("Career batting average",    bat_avg,  ".1f") +
+                _stat_box("Career strike rate",        bat_sr,   ".1f") +
+                _stat_box("Powerplay SR (1–6)",        bat_pp,   ".1f") +
+                _stat_box("Middle overs SR (7–15)",    bat_mid,  ".1f") +
+                _stat_box("Death overs SR (16–20)",    bat_dth,  ".1f"),
+                unsafe_allow_html=True)
+        with sb2:
+            bwl_eco  = _sv(_bwl, 'economy');    bwl_bpw = _sv(_bwl, 'bowl_sr')
+            bwl_dot  = _sv(_bwl, 'dot_pct');    bwl_pp  = _sv(_bwl, 'pp_economy')
+            bwl_mid  = _sv(_bwl, 'mid_economy');bwl_dth = _sv(_bwl, 'death_economy')
+            st.markdown(
+                _stat_box("Career economy rate",       bwl_eco,  ".2f") +
+                _stat_box("Balls per wicket",          bwl_bpw,  ".1f") +
+                _stat_box("Dot ball %",                (bwl_dot*100) if bwl_dot else None, ".0f") +
+                _stat_box("Powerplay economy",         bwl_pp,   ".2f") +
+                _stat_box("Middle economy (7–15)",     bwl_mid,  ".2f") +
+                _stat_box("Death economy (16–20)",     bwl_dth,  ".2f"),
+                unsafe_allow_html=True)
+
+        # ── Venue (optional) ──
+        st.markdown('<div class="nb-label" style="margin-top:.8rem">Venue (Optional)</div>',
+                    unsafe_allow_html=True)
+        venues_df_p = all_venues()
+        venue_options = ["No venue"] + venues_df_p["name"].tolist()
+        pred_venue = st.selectbox("Venue", venue_options, key="pred_venue",
+                                  label_visibility="collapsed")
+        venue_row = None
+        if pred_venue != "No venue":
+            _vr = venues_df_p[venues_df_p["name"] == pred_venue]
+            if not _vr.empty:
+                venue_row = _vr.iloc[0]
+
+        # ── Analyse button ──
+        go = st.button("Analyse Matchup ↗", use_container_width=True, key="pred_go",
+                       type="primary")
+
+        if go or st.session_state.get("pred_result_ready"):
+            if go: st.session_state["pred_result_ready"] = True
+
+            if not _pb or not _bwl:
+                st.warning("Missing career data for one or both players.")
+            else:
+                def _clamp(x, lo=-1.0, hi=1.0): return max(lo, min(hi, x))
+
+                bat_sr  = bat_sr  or 120.0
+                bat_avg = bat_avg or 25.0
+                bat_pp  = bat_pp  or bat_sr
+                bat_mid = bat_mid or bat_sr
+                bat_dth = bat_dth or bat_sr
+                bwl_eco = bwl_eco or 8.0
+                bwl_bpw = bwl_bpw or 20.0
+                bwl_dot = bwl_dot or 0.35
+                bwl_pp  = bwl_pp  or bwl_eco
+                bwl_mid = bwl_mid or bwl_eco
+                bwl_dth = bwl_dth or bwl_eco
+
+                # D1: Scoring Rate Clash (30%)
+                bowl_equiv_sr = bwl_eco * 100 / 6
+                d1 = _clamp((bat_sr - bowl_equiv_sr) / max(bowl_equiv_sr, 1) * 2)
+                d1_desc = (f"Batter SR {bat_sr:.0f} vs bowler equiv SR {bowl_equiv_sr:.0f} "
+                           f"(eco {bwl_eco:.1f} × 100/6)")
+
+                # D2: Phase Threat (25%)
+                phase_map = {
+                    'pp':  (bwl_pp,  bat_pp,  'powerplay',   'Powerplay specialist'),
+                    'mid': (bwl_mid, bat_mid, 'middle overs','Middle overs'),
+                    'dth': (bwl_dth, bat_dth, 'death overs', 'Death bowler'),
+                }
+                best_pk   = min(phase_map, key=lambda k: phase_map[k][0])
+                best_eco, best_bat_sr, best_phase_name, _ = phase_map[best_pk]
+                d2 = _clamp((best_bat_sr - bat_sr) / max(bat_sr, 1) * 3)
+                d2_desc = (f"Bowler specialises in {best_phase_name} (eco {best_eco:.1f}) "
+                           f"— {pred_batter}'s {best_phase_name} SR: {best_bat_sr:.0f}")
+                phase_ranks = sorted(phase_map.items(), key=lambda x: x[1][0])
+                specialist_pills = [(v[3], k == best_pk) for k, v in phase_ranks]
+
+                # D3: Wicket Vulnerability (25%)
+                batter_bpd = bat_avg * 100 / max(bat_sr, 1)
+                ratio      = batter_bpd / max(bwl_bpw, 1)
+                d3 = _clamp((ratio - 1.0))
+                d3_desc = (f"{pred_batter} avg {bat_avg:.0f} → ~{batter_bpd:.0f} balls/dismissal "
+                           f"vs {pred_bowler} BPW {bwl_bpw:.0f} — ratio {ratio:.1f} "
+                           f"({'favours batter' if ratio > 1.2 else 'favours bowler' if ratio < 0.8 else 'close call'})")
+
+                # D4: Pressure Building (20%)
+                burst_index = bat_sr / max(bat_avg, 1)
+                d4 = _clamp((burst_index / 5.0) - (bwl_dot * 2))
+                d4_desc = (f"{pred_bowler} dot% {bwl_dot*100:.0f}% vs {pred_batter} "
+                           f"burst index {burst_index:.2f} — "
+                           f"{'pressure scenario' if d4 < 0 else 'batter can break pressure'}")
+
+                # Venue modifier
+                venue_mod  = 0.0
+                venue_desc = "No venue modifier applied"
+                if venue_row is not None:
+                    bf = float(venue_row.get('bat_factor') or 1.0)
+                    if not np.isnan(bf):
+                        venue_mod  = _clamp((bf - 1.0) * 0.25, -0.25, 0.25)
+                        v_label    = 'batter-friendly' if bf > 1.05 else 'bowler-friendly' if bf < 0.95 else 'neutral'
+                        venue_desc = f"Venue bat factor {bf:.3f} ({v_label}) → modifier {venue_mod:+.2f}"
+
+                composite = _clamp(0.30*d1 + 0.25*d2 + 0.25*d3 + 0.20*d4 + venue_mod)
+
+                dimensions = [
+                    ("Scoring rate clash",   30, d1, d1_desc),
+                    ("Phase threat",         25, d2, d2_desc),
+                    ("Wicket vulnerability", 25, d3, d3_desc),
+                    ("Pressure building",    20, d4, d4_desc),
+                ]
+
+                # ── Overall verdict card ──
+                if   composite >  0.4: verdict = f"{pred_batter} dominates"; sub = "Strong batter advantage"
+                elif composite >  0.15: verdict = f"{pred_batter} has the edge"; sub = "Batter-favoured but not one-sided"
+                elif composite >  0.0: verdict = "Slight batter advantage"; sub = "Too close to call — marginal batter edge"
+                elif composite > -0.15: verdict = "Slight bowler advantage"; sub = "Too close to call — marginal bowler edge"
+                elif composite > -0.4: verdict = f"{pred_bowler} has the edge"; sub = "Bowler-favoured but not one-sided"
+                else:                  verdict = f"{pred_bowler} dominates"; sub = "Strong bowler advantage"
+
+                card_bg  = "#F0FDF4" if composite >= 0 else "#FFF1F0"
+                card_clr = "#166534" if composite >= 0 else "#991B1B"
+                st.markdown(f"""
+                <div style='background:{card_bg};border:2px solid {card_clr};border-radius:8px;
+                            padding:1.1rem 1.4rem;margin:1rem 0;display:flex;
+                            justify-content:space-between;align-items:center'>
+                  <div>
+                    <div style='font-size:1.2rem;font-weight:800;color:{card_clr}'>{verdict}</div>
+                    <div style='font-size:.8rem;opacity:.7;margin-top:.2rem'>{sub}</div>
+                  </div>
+                  <div style='font-size:2rem;font-weight:900;color:{card_clr};font-family:Space Mono'>
+                    {composite:+.2f}
+                  </div>
+                </div>""", unsafe_allow_html=True)
+
+                # ── Dimension breakdown ──
+                st.markdown('<div style="font-family:Space Grotesk;font-weight:900;font-size:.75rem;'
+                            'letter-spacing:.12em;margin:1rem 0 .5rem">DIMENSION BREAKDOWN</div>',
+                            unsafe_allow_html=True)
+
+                def _dim_bar(dim_name, weight, score, desc):
+                    # bar: left=bowler dominates, right=batter dominates
+                    # score in [-1,1]: positive = right of center (blue), negative = left (orange)
+                    clr      = "#3A86FF" if score >= 0 else "#FF6B35"
+                    bar_left = 50 + (score if score < 0 else 0) * 50
+                    bar_w    = abs(score) * 50
+                    edge_lbl = f"{pred_batter} edge" if score > 0.05 else (
+                               f"{pred_bowler} edge" if score < -0.05 else "Neutral")
+                    return f"""
+                    <div style='margin-bottom:1.2rem;border-bottom:1px solid #E5E7EB;padding-bottom:1rem'>
+                      <div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px'>
+                        <span style='font-weight:800;font-size:.95rem'>{dim_name}</span>
+                        <span style='font-size:.75rem;opacity:.5'>{weight}%</span>
+                        <span style='font-size:.8rem;font-weight:700;color:{clr}'>{edge_lbl}</span>
+                      </div>
+                      <div style='position:relative;background:#E5E7EB;border-radius:4px;height:8px;margin:4px 0'>
+                        <div style='position:absolute;left:50%;top:0;width:2px;height:100%;background:#9CA3AF'></div>
+                        <div style='position:absolute;left:{bar_left:.1f}%;width:{bar_w:.1f}%;height:100%;
+                                    background:{clr};border-radius:4px'></div>
+                      </div>
+                      <div style='display:flex;justify-content:space-between;font-size:.7rem;opacity:.45;margin-top:2px'>
+                        <span>{pred_bowler} dominates</span>
+                        <span>{pred_batter} dominates</span>
+                      </div>
+                      <div style='font-size:.78rem;opacity:.65;margin-top:.3rem'>{desc}</div>
+                    </div>"""
+
+                bars_html = "".join(_dim_bar(*d) for d in dimensions)
+                bars_html += f'<div style="text-align:right;font-size:.75rem;opacity:.5">{venue_desc}</div>'
+                st.markdown(f'<div style="padding:.5rem 0">{bars_html}</div>',
+                            unsafe_allow_html=True)
+
+                # ── Bowler phase specialisation pills ──
+                st.markdown('<div style="font-family:Space Grotesk;font-weight:900;font-size:.75rem;'
+                            'letter-spacing:.12em;margin:.8rem 0 .4rem">BOWLER\'S PHASE SPECIALISATION</div>',
+                            unsafe_allow_html=True)
+                pills_html = " &nbsp; ".join(
+                    f"<span style='background:{'#3A86FF' if active else 'transparent'};"
+                    f"color:{'#fff' if active else '#0D0D0D'};"
+                    f"border:2px solid {'#3A86FF' if active else '#D0D0D0'};"
+                    f"padding:4px 14px;border-radius:20px;font-size:.8rem;font-weight:700'>{lbl}</span>"
+                    for lbl, active in specialist_pills
+                )
+                st.markdown(f'<div style="margin-bottom:1rem">{pills_html}</div>',
+                            unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────────────────
