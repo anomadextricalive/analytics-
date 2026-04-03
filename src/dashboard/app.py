@@ -2203,6 +2203,11 @@ if page == "05  Matchup Lab":
 
     all_df   = all_players()
     names    = all_df["name"].tolist()
+    batter_names = all_df[all_df["player_role"].isin(["Batter","Batting All-rounder","Bowling All-rounder"])]["name"].tolist()
+    bowler_names = all_df[all_df["player_role"].isin(["Bowler","Bowling All-rounder","Batting All-rounder"])]["name"].tolist()
+    # fallback so dropdowns are never empty
+    if not batter_names: batter_names = names
+    if not bowler_names: bowler_names = names
 
     tab_matchup, tab_bvall, tab_allvb = st.tabs([
         "Batter vs Bowler", "Batter vs All Bowlers", "Bowler vs All Batters"
@@ -2212,10 +2217,10 @@ if page == "05  Matchup Lab":
     with tab_matchup:
         col1, col2 = st.columns(2)
         with col1:
-            batter_name = st.selectbox("Batter", names, key="mu_bat")
+            batter_name = st.selectbox("Batter", batter_names, key="mu_bat")
         with col2:
-            bowler_name = st.selectbox("Bowler", names, key="mu_bowl",
-                                       index=min(1, len(names)-1))
+            bowler_name = st.selectbox("Bowler", bowler_names, key="mu_bowl",
+                                       index=min(1, len(bowler_names)-1))
 
         if batter_name and bowler_name and batter_name != bowler_name:
             b_row = all_df[all_df["name"] == batter_name].iloc[0]
@@ -2303,9 +2308,57 @@ if page == "05  Matchup Lab":
                 st.markdown("**By Match Context**")
                 st.dataframe(match_summary, hide_index=True, use_container_width=True)
 
+                # ── Career comparison ────────────────────────────────────
+                st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+                st.markdown('<div class="nb-label">Career Comparison</div>',
+                            unsafe_allow_html=True)
+                _pa = _get_player(batter_name)
+                _pb = _get_player(bowler_name)
+                _ba = _get_bowl(int(b_row["id"]))
+                _bb = _get_bowl(int(o_row["id"]))
+                if _pa and _pb:
+                    _mu_rows = ""
+                    _mu_rows += _sec_header("BATTING")
+                    for _lbl, _ka, _kb, _hi in [
+                        ("Innings",     "innings",      "innings",      True),
+                        ("Runs",        "runs",         "runs",         True),
+                        ("Average",     "average",      "average",      True),
+                        ("Strike Rate", "strike_rate",  "strike_rate",  True),
+                        ("100s",        "hundreds",     "hundreds",     True),
+                        ("50s",         "fifties",      "fifties",      True),
+                    ]:
+                        _va = _cv(_pa, _ka); _vb = _cv(_pb, _kb)
+                        _fmt = _fi if _lbl in ("Innings","Runs","100s","50s") else _ff
+                        _mu_rows += _cmp_row(_lbl, _fmt(_va), _fmt(_vb), _winner(_va, _vb, _hi))
+                    _mu_rows += _sec_header("BOWLING")
+                    for _lbl, _ka, _kb, _hi in [
+                        ("Bowl Innings", "bowl_inn",  "bowl_inn",  True),
+                        ("Wickets",      "wickets",   "wickets",   True),
+                        ("Economy",      "economy",   "economy",   False),
+                        ("Bowl Avg",     "bowl_avg",  "bowl_avg",  False),
+                        ("Bowl SR",      "bowl_sr",   "bowl_sr",   False),
+                    ]:
+                        _va = _cv(_ba, _ka); _vb = _cv(_bb, _kb)
+                        _fmt = _fi if _lbl in ("Bowl Innings","Wickets") else _ff
+                        _mu_rows += _cmp_row(_lbl, _fmt(_va), _fmt(_vb), _winner(_va, _vb, _hi))
+                    st.markdown(f"""
+                    <div style='max-width:520px;margin:0 auto;border:2.5px solid #0D0D0D;border-radius:6px;overflow:hidden'>
+                      <table style='width:100%;border-collapse:collapse;font-family:Space Mono,monospace'>
+                        <thead><tr>
+                          <th style='background:#3A86FF;color:#fff;font-family:Space Grotesk;font-weight:900;
+                                     font-size:.9rem;padding:8px 12px;text-align:right;width:38%'>{batter_name}</th>
+                          <th style='background:#0D0D0D;color:#FFE500;font-family:Space Grotesk;font-weight:900;
+                                     font-size:.7rem;letter-spacing:.1em;text-align:center;padding:8px 4px;width:24%'>VS</th>
+                          <th style='background:#FF6B35;color:#fff;font-family:Space Grotesk;font-weight:900;
+                                     font-size:.9rem;padding:8px 12px;text-align:left;width:38%'>{bowler_name}</th>
+                        </tr></thead>
+                        <tbody style='background:#FAFAFA'>{_mu_rows}</tbody>
+                      </table>
+                    </div>""", unsafe_allow_html=True)
+
     # ── TAB 2: batter vs all bowlers ─────────────────────────────────────
     with tab_bvall:
-        batter_name2 = st.selectbox("Batter", names, key="bvall_bat")
+        batter_name2 = st.selectbox("Batter", batter_names, key="bvall_bat")
         if batter_name2:
             b_row2 = all_df[all_df["name"] == batter_name2].iloc[0]
             df2 = batter_vs_all(int(b_row2["id"]))
@@ -2338,7 +2391,7 @@ if page == "05  Matchup Lab":
 
     # ── TAB 3: bowler vs all batters ─────────────────────────────────────
     with tab_allvb:
-        bowler_name3 = st.selectbox("Bowler", names, key="allvb_bowl")
+        bowler_name3 = st.selectbox("Bowler", bowler_names, key="allvb_bowl")
         if bowler_name3:
             o_row3 = all_df[all_df["name"] == bowler_name3].iloc[0]
             df3 = bowler_vs_all(int(o_row3["id"]))
