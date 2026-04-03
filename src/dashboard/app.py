@@ -1169,6 +1169,63 @@ def _pitch_tags(bat_factor, pace_index, boundary_rate):
     return tags
 
 
+# ─────────────────────────────────────────────────────────
+# COMPARISON PANEL HELPERS (used by H2H and Matchup Lab)
+# ─────────────────────────────────────────────────────────
+
+def _cv(d, k):
+    """Safe float from dict, None if missing/NaN."""
+    v = d.get(k)
+    if v is None: return None
+    try:
+        f = float(v)
+        return None if np.isnan(f) else f
+    except (TypeError, ValueError):
+        return None
+
+def _fi(v):
+    """Format integer stat."""
+    return str(int(v)) if v is not None else "—"
+
+def _ff(v, fmt=".1f"):
+    """Format float stat."""
+    return format(v, fmt) if v is not None else "—"
+
+def _pill(val_str, side, winner):
+    if winner == side:
+        bg = "#3A86FF" if side == "a" else "#FF6B35"
+        return (f"<span style='background:{bg};color:#fff;font-weight:800;"
+                f"padding:2px 10px;border-radius:20px;font-size:.85rem'>"
+                f"{val_str}</span>")
+    return f"<span style='font-size:.85rem;font-weight:700'>{val_str}</span>"
+
+def _cmp_row(label, va_str, vb_str, winner):
+    pa_cell = _pill(va_str, "a", winner)
+    pb_cell = _pill(vb_str, "b", winner)
+    return (f"<tr>"
+            f"<td style='text-align:right;padding:4px 10px'>{pa_cell}</td>"
+            f"<td style='text-align:center;color:#666;font-size:.75rem;"
+            f"padding:4px 6px;white-space:nowrap'>{label}</td>"
+            f"<td style='text-align:left;padding:4px 10px'>{pb_cell}</td>"
+            f"</tr>")
+
+def _sec_header(title):
+    return (f"<tr><td colspan='3' style='background:#0D0D0D;color:#FFE500;"
+            f"font-family:Space Grotesk;font-weight:900;font-size:.8rem;"
+            f"letter-spacing:.12em;text-align:center;padding:6px 0'>"
+            f"{title}</td></tr>")
+
+def _winner(va, vb, higher_better=True):
+    if va is None or vb is None: return ""
+    if higher_better:
+        if va > vb: return "a"
+        if vb > va: return "b"
+    else:
+        if va < vb: return "a"
+        if vb < va: return "b"
+    return ""
+
+
 # ═══════════════════════════════════════════════════════════
 # PAGE 1 — PLAYER EXPLORER
 # ═══════════════════════════════════════════════════════════
@@ -1512,59 +1569,6 @@ elif "02" in page:
     # ── Career comparison panel (screenshot-style) ──────────────────────────
     ba = _get_bowl(int(pa["id"]))
     bb = _get_bowl(int(pb["id"]))
-
-    def _cv(d, k):
-        """Safe float from dict, None if missing/NaN."""
-        v = d.get(k)
-        if v is None: return None
-        try:
-            f = float(v)
-            return None if np.isnan(f) else f
-        except (TypeError, ValueError):
-            return None
-
-    def _fi(v):
-        """Format integer stat."""
-        return str(int(v)) if v is not None else "—"
-
-    def _ff(v, fmt=".1f"):
-        """Format float stat."""
-        return format(v, fmt) if v is not None else "—"
-
-    def _pill(val_str, side, winner):
-        """Render a stat value as a highlighted pill if winner, plain otherwise."""
-        if winner == side:
-            bg = "#3A86FF" if side == "a" else "#FF6B35"
-            return (f"<span style='background:{bg};color:#fff;font-weight:800;"
-                    f"padding:2px 10px;border-radius:20px;font-size:.85rem'>"
-                    f"{val_str}</span>")
-        return f"<span style='font-size:.85rem;font-weight:700'>{val_str}</span>"
-
-    def _cmp_row(label, va_str, vb_str, winner):
-        pa_cell = _pill(va_str, "a", winner)
-        pb_cell = _pill(vb_str, "b", winner)
-        return (f"<tr>"
-                f"<td style='text-align:right;padding:4px 10px'>{pa_cell}</td>"
-                f"<td style='text-align:center;color:#666;font-size:.75rem;"
-                f"padding:4px 6px;white-space:nowrap'>{label}</td>"
-                f"<td style='text-align:left;padding:4px 10px'>{pb_cell}</td>"
-                f"</tr>")
-
-    def _sec_header(title):
-        return (f"<tr><td colspan='3' style='background:#0D0D0D;color:#FFE500;"
-                f"font-family:Space Grotesk;font-weight:900;font-size:.8rem;"
-                f"letter-spacing:.12em;text-align:center;padding:6px 0'>"
-                f"{title}</td></tr>")
-
-    def _winner(va, vb, higher_better=True):
-        if va is None or vb is None: return ""
-        if higher_better:
-            if va > vb: return "a"
-            if vb > va: return "b"
-        else:
-            if va < vb: return "a"
-            if vb < va: return "b"
-        return ""
 
     # collect values
     bat_inn_a = _cv(pa, "innings");      bat_inn_b = _cv(pb, "innings")
