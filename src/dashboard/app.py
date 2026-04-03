@@ -484,20 +484,25 @@ code, pre {
 # SESSION / HELPERS
 # ─────────────────────────────────────────────────────────
 
-_MONGO_URI = st.secrets.get("MONGO_URI") if hasattr(st, "secrets") else None
-_MONGO_DB  = st.secrets.get("MONGO_DB", "cricket_analytics") if hasattr(st, "secrets") else "cricket_analytics"
+def _get_secret(key, default=None):
+    try:
+        return st.secrets[key]
+    except Exception:
+        return default
 
 @st.cache_resource
 def get_mongo():
-    if not _MONGO_URI:
+    uri = _get_secret("MONGO_URI")
+    db  = _get_secret("MONGO_DB", "cricket_analytics")
+    if not uri:
         return None
     try:
         from pymongo import MongoClient
         import certifi
-        client = MongoClient(_MONGO_URI, serverSelectionTimeoutMS=8000,
+        client = MongoClient(uri, serverSelectionTimeoutMS=10000,
                              tlsCAFile=certifi.where())
         client.admin.command("ping")
-        return client[_MONGO_DB]
+        return client[db]
     except Exception:
         return None
 
@@ -505,17 +510,42 @@ def get_mongo():
 def get_session():
     return Session(get_engine(DB_PATH))
 
-_mongo = get_mongo()
-session = get_session()
+_mongo   = get_mongo()
+session  = get_session()
+_use_mongo = _mongo is not None
 
 
 def sql(q: str, **kw) -> pd.DataFrame:
-    """Run a SQL query — uses SQLite locally, MongoDB on hosted deployments."""
-    if _mongo is not None:
+    """Run a SQL query — uses MongoDB on hosted deployments, SQLite locally."""
+    if _use_mongo:
         return _mongo_sql(q, **kw)
     try:
         return pd.read_sql(text(q), session.bind, params=kw or None)
     except:
+        return pd.DataFrame()
+
+
+def _sqlite_fallback(q: str, **kw) -> pd.DataFrame:
+    """Ensure SQLite DB is available and run the query."""
+    global session
+    _tmp_db = Path("/tmp/cricket.db")
+    _gz     = ROOT / "data" / "cricket.db.gz"
+    # Decompress if not present
+    if not _tmp_db.exists() and _gz.exists():
+        import gzip, shutil
+        with gzip.open(_gz, "rb") as _fi, open(_tmp_db, "wb") as _fo:
+            shutil.copyfileobj(_fi, _fo)
+    # Rebuild session pointing at /tmp db if needed
+    if _tmp_db.exists():
+        try:
+            from sqlalchemy import create_engine
+            _eng = create_engine(f"sqlite:///{_tmp_db}", echo=False)
+            return pd.read_sql(text(q), _eng, params=kw or None)
+        except Exception:
+            pass
+    try:
+        return pd.read_sql(text(q), session.bind, params=kw or None)
+    except Exception:
         return pd.DataFrame()
 
 
@@ -548,10 +578,7 @@ def _mongo_sql(q: str, **kw) -> pd.DataFrame:
         has_join = bool(re.search(r'\bJOIN\b', q_filled, re.IGNORECASE))
         has_sub  = bool(re.search(r'\bSELECT\b.*\bSELECT\b', q_filled, re.IGNORECASE))
         if has_join or has_sub:
-            try:
-                return pd.read_sql(text(q), session.bind, params=kw or None)
-            except:
-                return pd.DataFrame()
+            return _sqlite_fallback(q, **kw)
 
         # Simple SELECT * / SELECT cols FROM table [WHERE ...] [ORDER BY ...] [LIMIT ...]
         col_match = re.search(
