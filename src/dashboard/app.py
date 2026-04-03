@@ -507,11 +507,11 @@ def get_mongo():
         return None
 
 @st.cache_resource
-def get_session():
-    return Session(get_engine(DB_PATH))
+def get_db_engine():
+    return get_engine(DB_PATH)
 
-_mongo   = get_mongo()
-session  = get_session()
+_mongo     = get_mongo()
+_db_engine = get_db_engine()
 _use_mongo = _mongo is not None
 
 
@@ -520,14 +520,14 @@ def sql(q: str, **kw) -> pd.DataFrame:
     if _use_mongo:
         return _mongo_sql(q, **kw)
     try:
-        return pd.read_sql(text(q), session.bind, params=kw or None)
-    except:
+        with _db_engine.connect() as conn:
+            return pd.read_sql(text(q), conn, params=kw or None)
+    except Exception:
         return pd.DataFrame()
 
 
 def _sqlite_fallback(q: str, **kw) -> pd.DataFrame:
     """Ensure SQLite DB is available and run the query."""
-    global session
     _tmp_db = Path("/tmp/cricket.db")
     _gz     = ROOT / "data" / "cricket.db.gz"
     # Decompress if not present
@@ -538,13 +538,15 @@ def _sqlite_fallback(q: str, **kw) -> pd.DataFrame:
     # Rebuild session pointing at /tmp db if needed
     if _tmp_db.exists():
         try:
-            from sqlalchemy import create_engine
-            _eng = create_engine(f"sqlite:///{_tmp_db}", echo=False)
-            return pd.read_sql(text(q), _eng, params=kw or None)
+            from sqlalchemy import create_engine as _ce
+            _eng = _ce(f"sqlite:///{_tmp_db}", echo=False)
+            with _eng.connect() as conn:
+                return pd.read_sql(text(q), conn, params=kw or None)
         except Exception:
             pass
     try:
-        return pd.read_sql(text(q), session.bind, params=kw or None)
+        with _db_engine.connect() as conn:
+            return pd.read_sql(text(q), conn, params=kw or None)
     except Exception:
         return pd.DataFrame()
 
@@ -634,11 +636,7 @@ def _mongo_sql(q: str, **kw) -> pd.DataFrame:
         return pd.DataFrame(docs) if docs else pd.DataFrame()
 
     except Exception:
-        # Last resort: SQLite fallback
-        try:
-            return pd.read_sql(text(q), session.bind, params=kw or None)
-        except:
-            return pd.DataFrame()
+        return _sqlite_fallback(q, **kw)
 
 
 def _plotly_defaults(fig, height=360):
@@ -2142,7 +2140,7 @@ elif "04" in page:
     with tc1:
         if st.button("Train / Retrain Models"):
             with st.spinner("Training…"):
-                meta = train(session, verbose=False)
+                meta = train(Session(_db_engine), verbose=False)
             st.success("Models trained and saved.")
             st.cache_data.clear()
 
