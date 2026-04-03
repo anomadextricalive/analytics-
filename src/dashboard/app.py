@@ -18,6 +18,13 @@ ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(ROOT))
 from config import DB_PATH
 from src.db.schema import get_engine
+
+# Auto-decompress DB if missing (for hosted deployments)
+_gz = ROOT / "data" / "cricket.db.gz"
+if not DB_PATH.exists() and _gz.exists():
+    import gzip, shutil
+    with gzip.open(_gz, "rb") as _f_in, open(DB_PATH, "wb") as _f_out:
+        shutil.copyfileobj(_f_in, _f_out)
 from src.analytics.model import (
     train, predict_bat, predict_bowl,
     models_exist, model_metrics, feature_importance_df,
