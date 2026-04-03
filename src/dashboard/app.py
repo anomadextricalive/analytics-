@@ -484,16 +484,134 @@ code, pre {
 # SESSION / HELPERS
 # ─────────────────────────────────────────────────────────
 
+_MONGO_URI = st.secrets.get("MONGO_URI") if hasattr(st, "secrets") else None
+_MONGO_DB  = st.secrets.get("MONGO_DB", "cricket_analytics") if hasattr(st, "secrets") else "cricket_analytics"
+
+@st.cache_resource
+def get_mongo():
+    if not _MONGO_URI:
+        return None
+    try:
+        from pymongo import MongoClient
+        import certifi
+        client = MongoClient(_MONGO_URI, serverSelectionTimeoutMS=8000,
+                             tlsCAFile=certifi.where())
+        client.admin.command("ping")
+        return client[_MONGO_DB]
+    except Exception:
+        return None
+
 @st.cache_resource
 def get_session():
     return Session(get_engine(DB_PATH))
 
+_mongo = get_mongo()
 session = get_session()
 
 
 def sql(q: str, **kw) -> pd.DataFrame:
-    try:    return pd.read_sql(text(q), session.bind, params=kw or None)
-    except: return pd.DataFrame()
+    """Run a SQL query — uses SQLite locally, MongoDB on hosted deployments."""
+    if _mongo is not None:
+        return _mongo_sql(q, **kw)
+    try:
+        return pd.read_sql(text(q), session.bind, params=kw or None)
+    except:
+        return pd.DataFrame()
+
+
+def _mongo_sql(q: str, **kw) -> pd.DataFrame:
+    """
+    Translate simple SELECT queries to MongoDB find()/aggregate() calls.
+    Handles the patterns used across the dashboard.
+    """
+    import re
+    try:
+        q_clean = " ".join(q.split())
+
+        # Substitute named params (:name → value)
+        def _sub(m):
+            key = m.group(1)
+            val = kw.get(key)
+            if isinstance(val, str):
+                return f"'{val}'"
+            return str(val) if val is not None else "null"
+        q_filled = re.sub(r":(\w+)", _sub, q_clean)
+
+        # Extract table name(s) — use primary (first FROM target)
+        from_match = re.search(
+            r'FROM\s+(\w+)(?:\s+(?:AS\s+)?\w+)?', q_filled, re.IGNORECASE)
+        if not from_match:
+            return pd.DataFrame()
+        primary_table = from_match.group(1).lower()
+
+        # For queries with JOINs or subqueries, fall back to SQLite
+        has_join = bool(re.search(r'\bJOIN\b', q_filled, re.IGNORECASE))
+        has_sub  = bool(re.search(r'\bSELECT\b.*\bSELECT\b', q_filled, re.IGNORECASE))
+        if has_join or has_sub:
+            try:
+                return pd.read_sql(text(q), session.bind, params=kw or None)
+            except:
+                return pd.DataFrame()
+
+        # Simple SELECT * / SELECT cols FROM table [WHERE ...] [ORDER BY ...] [LIMIT ...]
+        col_match = re.search(
+            r'SELECT\s+(.*?)\s+FROM', q_filled, re.IGNORECASE | re.DOTALL)
+        cols_str = col_match.group(1).strip() if col_match else "*"
+
+        # Parse WHERE clause for simple equality / IN conditions
+        mongo_filter = {}
+        where_match = re.search(
+            r'WHERE\s+(.*?)(?:\s+ORDER\s+BY|\s+LIMIT|$)', q_filled, re.IGNORECASE)
+        if where_match:
+            where_str = where_match.group(1).strip()
+            # Simple equality: col = 'val' or col = 123
+            for m in re.finditer(r"(\w+)\s*=\s*'([^']*)'", where_str):
+                mongo_filter[m.group(1)] = m.group(2)
+            for m in re.finditer(r"(\w+)\s*=\s*(\d+(?:\.\d+)?)", where_str):
+                v = m.group(2)
+                mongo_filter[m.group(1)] = float(v) if "." in v else int(v)
+
+        # ORDER BY
+        sort = None
+        order_match = re.search(
+            r'ORDER\s+BY\s+(\w+(?:\.\w+)?)\s*(ASC|DESC)?', q_filled, re.IGNORECASE)
+        if order_match:
+            sort_col = order_match.group(1).split(".")[-1]
+            sort_dir = 1 if (order_match.group(2) or "ASC").upper() == "ASC" else -1
+            sort = [(sort_col, sort_dir)]
+
+        # LIMIT
+        limit = 0
+        limit_match = re.search(r'LIMIT\s+(\d+)', q_filled, re.IGNORECASE)
+        if limit_match:
+            limit = int(limit_match.group(1))
+
+        # Projection
+        projection = None
+        if cols_str != "*":
+            raw_cols = [c.strip().split()[-1].split(".")[-1]
+                        for c in cols_str.split(",")]
+            projection = {c: 1 for c in raw_cols if c}
+            projection["_id"] = 0
+        else:
+            projection = {"_id": 0}
+
+        collection = _mongo[primary_table]
+        cursor = collection.find(mongo_filter, projection)
+        if sort:
+            cursor = cursor.sort(sort)
+        if limit:
+            cursor = cursor.limit(limit)
+
+        docs = list(cursor)
+        return pd.DataFrame(docs) if docs else pd.DataFrame()
+
+    except Exception:
+        # Last resort: SQLite fallback
+        try:
+            return pd.read_sql(text(q), session.bind, params=kw or None)
+        except:
+            return pd.DataFrame()
 
 
 def _plotly_defaults(fig, height=360):
