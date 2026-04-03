@@ -582,8 +582,10 @@ st.markdown("""
 def all_players() -> pd.DataFrame:
     return sql("""
         SELECT p.id, p.cricsheet_key AS name, p.country,
-               p.bowling_style,
-               pcb.innings, pcb.runs, pcb.average, pcb.strike_rate,
+               p.bowling_style, p.player_role,
+               COALESCE(pcb.innings, 0) AS innings,
+               COALESCE(pcb.runs, 0) AS runs,
+               pcb.average, pcb.strike_rate,
                pcb.adj_average, pcb.adj_strike_rate,
                pcb.fifties, pcb.hundreds, pcb.hs,
                pcb.pp_sr, pcb.mid_sr, pcb.death_sr,
@@ -592,10 +594,10 @@ def all_players() -> pd.DataFrame:
                pr.chase_score, pr.pp_bat_score, pr.death_bat_score,
                pr.pp_bowl_score, pr.death_bowl_score
         FROM players p
-        JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
+        LEFT JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
         LEFT JOIN player_ratings pr ON pr.player_id = p.id AND pr.tournament = 'ALL'
-        WHERE pcb.innings >= 5
-        ORDER BY pcb.innings DESC
+        WHERE COALESCE(pcb.innings, 0) >= 1
+        ORDER BY COALESCE(pcb.innings, 0) DESC
     """)
 
 
@@ -1185,14 +1187,14 @@ if "01" in page:
         countries = ["All"] + sorted(df["country"].dropna().unique().tolist())
         country   = st.selectbox("Country", countries)
     with fc3:
-        min_inn = st.slider("Min innings", 1, 100, 10)
+        min_inn = st.slider("Min innings", 0, 100, 5)
     with fc4:
         sort_by = st.selectbox("Sort by", [
-            "innings", "bat_rating", "overall_rating", "adj_average",
-            "adj_strike_rate", "death_sr", "chase_score",
+            "innings", "bat_rating", "bowl_rating", "overall_rating",
+            "adj_average", "adj_strike_rate", "death_sr", "chase_score",
         ])
 
-    # ── filters row 2 — bowling style + matchup strength ──
+    # ── filters row 2 ──
     _BOWL_STYLES = [
         "All styles",
         "Right-arm fast",
@@ -1204,16 +1206,17 @@ if "01" in page:
         "Slow left-arm orthodox",
         "Left-arm wrist-spin",
     ]
-    fc5, fc6, fc7 = st.columns([2, 2, 2])
+    _ROLES = ["All roles", "Batter", "Bowler", "Batting All-rounder", "Bowling All-rounder"]
+    fc5, fc6, fc7, fc8 = st.columns([1.5, 2, 2, 1.5])
     with fc5:
-        bowl_style_f = st.selectbox("Bowler type (filter bowlers)",
-                                    _BOWL_STYLES, key="pe_bowl_style")
+        role_f = st.selectbox("Role", _ROLES, key="pe_role")
     with fc6:
-        vs_style_f = st.selectbox("Batter strength vs style",
-                                   _BOWL_STYLES, key="pe_vs_style")
+        bowl_style_f = st.selectbox("Bowler type", _BOWL_STYLES, key="pe_bowl_style")
     with fc7:
-        vs_strength_f = st.radio("Strength",
-                                  ["Any", "Strong (SR ≥ 130)", "Weak (SR ≤ 100)"],
+        vs_style_f = st.selectbox("Batter SR vs style", _BOWL_STYLES, key="pe_vs_style")
+    with fc8:
+        vs_strength_f = st.radio("SR filter",
+                                  ["All", "≥ 130", "≤ 100"],
                                   horizontal=True, key="pe_strength")
 
     filt = df.copy()
@@ -1221,27 +1224,35 @@ if "01" in page:
         filt = filt[filt["name"].str.contains(search, case=False, na=False)]
     if country != "All":
         filt = filt[filt["country"] == country]
-    filt = filt[filt["innings"] >= min_inn]
 
-    # Apply bowler style filter
+    # Role filter — skip min_inn when filtering for bowlers so pure bowlers appear
+    if role_f != "All roles":
+        filt = filt[filt["player_role"] == role_f]
+    else:
+        filt = filt[filt["innings"] >= min_inn]
+
+    # Bowler style filter — auto-switch sort to bowl_rating
     if bowl_style_f != "All styles":
         filt = filt[filt["bowling_style"] == bowl_style_f]
+        if sort_by not in ("bowl_rating", "overall_rating"):
+            sort_by = "bowl_rating"
 
-    # Apply batter-vs-style filter
-    if vs_style_f != "All styles" and vs_strength_f != "Any":
+    # Batter-vs-style filter — works with just a style selected (shows all), or with SR threshold
+    if vs_style_f != "All styles":
         _matchup_df = sql("""
             SELECT batter_id, strike_rate
-            FROM player_vs_bowler_style
-            WHERE bowling_style = :bs
+            FROM player_vs_bowler_style WHERE bowling_style = :bs
         """, bs=vs_style_f)
         if not _matchup_df.empty:
-            if vs_strength_f.startswith("Strong"):
+            if vs_strength_f == "≥ 130":
                 _keep = set(_matchup_df[_matchup_df["strike_rate"] >= 130]["batter_id"])
-            else:
+            elif vs_strength_f == "≤ 100":
                 _keep = set(_matchup_df[_matchup_df["strike_rate"] <= 100]["batter_id"])
+            else:
+                _keep = set(_matchup_df["batter_id"])
             filt = filt[filt["id"].isin(_keep)]
 
-    filt = filt.sort_values(sort_by, ascending=False).reset_index(drop=True)
+    filt = filt.sort_values(sort_by, ascending=False, na_position="last").reset_index(drop=True)
 
     st.markdown(f'<div class="nb-label">Showing {len(filt):,} players</div>',
                 unsafe_allow_html=True)
