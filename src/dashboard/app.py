@@ -2213,12 +2213,12 @@ if page == "05  Matchup Lab":
     if not batter_names: batter_names = names
     if not bowler_names: bowler_names = names
 
-    tab_matchup, tab_bvall, tab_allvb, tab_predict = st.tabs([
+    mu_mode = st.selectbox("Analysis type", [
         "Batter vs Bowler", "Batter vs All Bowlers", "Bowler vs All Batters", "Predicted Matchup"
-    ])
+    ], key="mu_mode", label_visibility="collapsed")
 
-    # ── TAB 1: specific matchup ──────────────────────────────────────────
-    with tab_matchup:
+    # ── Batter vs Bowler ─────────────────────────────────────────────────
+    if mu_mode == "Batter vs Bowler":
         col1, col2 = st.columns(2)
         with col1:
             batter_name = st.selectbox("Batter", batter_names, key="mu_bat")
@@ -2360,8 +2360,8 @@ if page == "05  Matchup Lab":
                       </table>
                     </div>""", unsafe_allow_html=True)
 
-    # ── TAB 2: batter vs all bowlers ─────────────────────────────────────
-    with tab_bvall:
+    # ── Batter vs All Bowlers ─────────────────────────────────────────────
+    elif mu_mode == "Batter vs All Bowlers":
         batter_name2 = st.selectbox("Batter", batter_names, key="bvall_bat")
         if batter_name2:
             b_row2 = all_df[all_df["name"] == batter_name2].iloc[0]
@@ -2393,8 +2393,8 @@ if page == "05  Matchup Lab":
                         ["bowler","balls","runs","dismissals","SR"]]
                     st.dataframe(dism, hide_index=True, use_container_width=True)
 
-    # ── TAB 3: bowler vs all batters ─────────────────────────────────────
-    with tab_allvb:
+    # ── Bowler vs All Batters ─────────────────────────────────────────────
+    elif mu_mode == "Bowler vs All Batters":
         bowler_name3 = st.selectbox("Bowler", bowler_names, key="allvb_bowl")
         if bowler_name3:
             o_row3 = all_df[all_df["name"] == bowler_name3].iloc[0]
@@ -2419,8 +2419,8 @@ if page == "05  Matchup Lab":
                         ["batter","balls","runs","dismissals","SR","dot_%"]]
                     st.dataframe(hard, hide_index=True, use_container_width=True)
 
-    # ── TAB 4: Predicted Matchup ─────────────────────────────────────────
-    with tab_predict:
+    # ── Predicted Matchup ────────────────────────────────────────────────
+    elif mu_mode == "Predicted Matchup":
         st.markdown(
             '<p style="font-size:.85rem;opacity:.6;margin-bottom:1rem">'
             'Statistical prediction for any batter vs any bowler — no prior meeting required. '
