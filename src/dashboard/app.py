@@ -2497,8 +2497,7 @@ if page == "05  Matchup Lab":
         go = st.button("Analyse Matchup ↗", use_container_width=True, key="pred_go",
                        type="primary")
 
-        if go or st.session_state.get("pred_result_ready"):
-            if go: st.session_state["pred_result_ready"] = True
+        if go:
 
             if not _pb or not _bwl:
                 st.warning("Missing career data for one or both players.")
