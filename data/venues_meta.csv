@@ -1,249 +1,219 @@
 ID,Stadium Name,City,Country,Straight (m),Square (m),Pitch Type,Surface,Floodlights,Capacity,Operational Status,Special Soil Details & Origin
-298,AMI Stadium,Christchurch,New Zealand,70-75,65-70,Natural,Grass,Yes,"38,628",Permanently Closed,Decommissioned after the 2011 earthquake. Replaced by Hagley Oval.
-232,Achimota School A Field,Accra,Ghana,65,60,Natural,Grass,No,500,Operational,Local Red Laterite: High iron content; produces lower bounce.
-233,Achimota School B Field,Accra,Ghana,65,60,Natural,Grass,No,500,Operational,Local Red Laterite: Primarily used for school and local league play.
-3,Adelaide Oval,Adelaide,Australia,82,62,Drop-in,Grass,Yes,"53,500",Operational,Athelstone Clay: Locally sourced; the most consistent drop-in soil in Australia.
-68,Al Amerat (Turf 1),Al Amarat,Oman,70,65,Natural,Grass,Yes,"4,000",Operational,Nandipur Clay: Imported from Pakistan to ensure subcontinental conditions.
-97,Al Amerat (Turf 2),Al Amarat,Oman,68,64,Natural,Grass,Yes,"3,000",Operational,Nandipur Clay: Used for associate qualifiers and domestic T20s.
-211,Amini Park,Port Moresby,PNG,65,62,Natural,Grass,No,"2,000",Operational,Local PNG Clay: Sourced from Central Province; historically spin-friendly.
-229,Arnos Vale Ground,Kingstown,St Vincent,72,68,Natural,Grass,Yes,"18,000",Operational,Volcanic Clay: Upgraded with floodlights for the 2024 T20 World Cup.
-321,Arun Jaitley Stadium,Delhi,India,68,65,Natural,Grass,Yes,"35,200",Operational,Yamuna Silt: Sourced from the local riverbed; traditionally low and slow.
-341,Aurora Stadium,Launceston,Australia,85,70,Drop-in,Grass,Yes,"15,500",Operational,Northern Tas Loam: AFL-sized oval used for Hobart Hurricanes home games.
-274,Ballpark Ground,Graz,Austria,60,55,Synthetic,Grass,No,200,Operational,Synthetic Matting: Durable mat over concrete to withstand alpine winters.
-42,Barabati Stadium,Cuttack,India,70,65,Natural,Grass,Yes,"45,000",Operational,Maharashtra Red Soil: Recently imported to improve pace and bounce.
-189,Barsapara Stadium,Guwahati,India,72,68,Natural,Grass,Yes,"46,000",Operational,Odisha Black Soil: Imported clay used to create high-scoring T20 tracks.
-7,Bay Oval,Mt Maunganui,New Zealand,75,70,Natural,Grass,Yes,"10,000",Operational,"Patumahoe Clay: Sourced from South Auckland; noted for true, fair bounce."
-127,Bayer Uerdingen Ground,Krefeld,Germany,65,60,Natural,Grass,No,"1,000",Operational,Ongar Loam: Imported from the UK to maintain ICC European standards.
-212,Bayuemas Oval,Kuala Lumpur,Malaysia,68,64,Natural,Grass,No,"1,000",Operational,Local Alluvial Clay: Sourced from the Klang Valley; requires high maintenance.
-202,Belgrano Athletic Club,Buenos Aires,Argentina,65,60,Natural,Grass,No,500,Operational,Pampas Black Soil: Rich local soil; traditionally low and slow bounce.
-20,Bellerive Oval,Hobart,Australia,80,66,Natural,Grass,Yes,"20,000",Operational,Tasmanian Black Soil: Local soil; tends to favor seamers under the lights.
-89,Bermuda National Stadium,Hamilton,Bermuda,70,65,Natural,Grass,Yes,"8,500",Operational,Bermuda Red Clay: Volcanic soil with excellent drainage properties.
-145,Ekana Cricket Stadium,Lucknow,India,72,68,Natural,Grass,Yes,"50,000",Operational,Hybrid Square: Features both Red Soil (Mumbai) and Black Soil (Local) pitches.
-286,Matiur Rahman Stadium,Chattogram,Bangladesh,68,65,Natural,Grass,No,"15,000",Operational,Local Hill Tracts Clay: Traditional silt soil that aids finger spinners.
-362,Boland Park,Paarl,South Africa,70,65,Natural,Grass,Yes,"10,000",Operational,"Boland Clay: Sourced locally; noted for being a ""true"" batting surface."
-282,Botkyrka Cricket Center,Stockholm,Sweden,65,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Necessary for consistency in Northern Europe.
-330,Brabourne Stadium,Mumbai,India,70,65,Natural,Grass,Yes,"50,000",Operational,Kalyan Red Soil: High iron content; provides excellent pace and bounce.
-129,Bready Cricket Club,Bready,Ireland,68,64,Natural,Grass,No,"3,000",Operational,Banbury Loam: Imported from the UK for ICC qualifier matches.
-356,Brian Lara Stadium,Tarouba,Trinidad,72,68,Natural,Grass,Yes,"15,000",Operational,Central Trinidad Clay: Modern square designed for consistent bounce.
-56,The Gabba,Brisbane,Australia,75,70,Natural,Grass,Yes,"42,000",Operational,Bulli Clay: Imported from NSW. The hardest/bounciest pitch in Australia.
-54,Buffalo Park,East London,South Africa,72,65,Natural,Grass,Yes,"16,000",Operational,"Coastal Clay: Affected by the sea air, which helps the ball swing."
-176,Bulawayo Athletic Club,Bulawayo,Zimbabwe,70,66,Natural,Grass,No,"12,000",Operational,Local Red Clay: Hard-packed soil that creates high-scoring games.
-55,Carrara Oval,Gold Coast,Australia,82,70,Drop-in,Grass,Yes,"21,000",Operational,Darling Downs Black Soil: Sourced locally for drop-in squares.
-128,Castle Avenue,Dublin,Ireland,65,62,Natural,Grass,No,"3,200",Operational,Ongar Loam: Imported from the UK; historic Irish cricket hub.
-267,Cazaly's Stadium,Cairns,Australia,80,72,Natural,Grass,Yes,"13,500",Operational,Tropical North QLD Clay: High moisture retention; can be slow.
-16,Central Broward Park,Lauderhill,USA,72,68,Natural,Grass,Yes,"20,000",Operational,Imported Clay: A mix of local and Georgia clay to mimic international tracks.
-160,Central Broward (Field 2),Lauderhill,USA,70,66,Natural,Grass,No,"5,000",Operational,Same as ID 16. Used for training and secondary matches.
-295,Stormont,Belfast,Ireland,70,65,Natural,Grass,No,"7,000",Operational,Banbury Loam: Imported from the UK; doesn't break up in damp weather.
-269,Clayton Panama,Panama City,Panama,60,55,Synthetic,Grass,No,500,Operational,AstroTurf over Concrete: Vital for playing after tropical rains.
-76,College Field,St Peter Port,Guernsey,65,60,Natural,Grass,No,"1,000",Operational,English Loam: Imported to maintain a traditional grass square.
-115,Coolidge Cricket Ground,Antigua,Antigua,68,64,Natural,Grass,Yes,"5,000",Operational,Local Antigua Clay: Known as the CWI high-performance training hub.
-10,County Ground,Taunton,UK,65,60,Natural,Grass,Yes,"8,500",Operational,"Oxfordshire Loam: Known for being a high-scoring, small-boundary venue."
-122,Daren Sammy Stadium,Gros Islet,St Lucia,72,68,Natural,Grass,Yes,"15,000",Operational,Volcanic North St Lucia Clay: Provides good carry for fast bowlers.
-304,De Beers Diamond Oval,Kimberley,South Africa,75,70,Natural,Grass,Yes,"11,000",Operational,Karoo Clay: Very dry soil; often leads to early cracking and turn.
-138,Desert Springs,Almeria,Spain,70,65,Natural,Grass,No,"1,000",Operational,Ongar Loam: Imported from the UK; first grass square in Spain.
-331,DY Patil Stadium,Mumbai,India,72,68,Natural,Grass,Yes,"55,000",Operational,Red Soil: Sourced from Kalyan; known for high bounce and outfield speed.
-64,ACA-VDCA Stadium,Vizag,India,70,65,Natural,Grass,Yes,"25,000",Operational,Coastal Black Soil: High water table makes it a traditionally slow track.
-237,Dreux Sport Club,Dreux,France,62,58,Synthetic,Grass,No,500,Operational,Synthetic Matting: Standard for ECN and domestic French cricket.
-17,Dubai Intl. Stadium,Dubai,UAE,74,68,Natural,Grass,Yes,"25,000",Operational,Nandipur Clay: Imported from Pakistan to mimic Asian conditions.
-58,Eden Gardens,Kolkata,India,68,64,Natural,Grass,Yes,"68,000",Operational,Alluvial Silt: Sourced locally; recently upgraded with foreign clay.
-8,Eden Park,Auckland,New Zealand,65,55,Drop-in,Grass,Yes,"42,000",Operational,Patumahoe Clay: Famous for extremely short straight boundaries.
-34,Edgbaston,Birmingham,UK,72,68,Natural,Grass,Yes,"25,000",Operational,Banbury Loam: Considered the fairest and loudest pitch in England.
-137,Entebbe Cricket Oval,Entebbe,Uganda,68,64,Natural,Grass,No,"2,000",Operational,Lake Victoria Silt: Locally sourced; tends to favor slow bowling.
-281,Estonian National Field,Tallinn,Estonia,65,60,Synthetic,Grass,No,"1,000",Operational,Synthetic Matting: Durable setup for Baltic weather.
-206,Europa Sports Complex,Gibraltar,Gibraltar,62,58,Synthetic,Artificial,No,"1,500",Operational,Synthetic Matting: Part of a multi-purpose sports complex.
-247,Faleata Oval No 2,Apia,Samoa,68,65,Natural,Grass,No,"1,500",Operational,Volcanic Pacific Soil: Highly mineralized; fast outfield.
-220,GB Oval,Szodliget,Hungary,65,62,Natural,Grass,No,500,Operational,UK Loam: Imported to maintain a turf square in Central Europe.
-161,GMHBA Stadium,Geelong,Australia,85,65,Drop-in,Grass,Yes,"40,000",Operational,Victorian Black Clay: Long and narrow AFL dimensions.
-159,Gaddafi Stadium,Lahore,Pakistan,72,68,Natural,Grass,Yes,"34,000",Operational,Nandipur Clay: High clay content; a historic batting paradise.
-199,Gahanga Intl. Stadium,Kigali,Rwanda,70,65,Natural,Grass,No,"10,000",Operational,Local Rwandan Soil: Developed as a dedicated high-standard cricket hub.
-344,Geelong Cricket Ground,Geelong,Australia,75,70,Natural,Grass,No,"2,000",Operational,Victorian Loam: Separate from the AFL stadium; used for club play.
-257,Gelephu Intl. Ground,Gelephu,Bhutan,65,62,Natural,Grass,No,"3,000",Operational,Himalayan Clay: Bhutan’s first natural grass international venue.
-210,Goldenacre,Edinburgh,Scotland,68,64,Natural,Grass,No,"3,000",Operational,Banbury Loam: Imported from UK; standard for elite Scottish play.
-275,Grainville,St Saviour,Jersey,70,65,Natural,Grass,No,"2,000",Operational,English Loam: Imported to survive the coastal humidity.
-227,Grand Prairie Stadium,Dallas,USA,75,70,Natural,Grass,Yes,"15,000",Operational,Imported Clay: Designed specifically for professional T20 cricket.
-134,Grange Cricket Club,Edinburgh,Scotland,70,65,Natural,Grass,No,"5,000",Operational,Ongar Loam: Imported from UK; Scotland's premier ground.
-13,Green Park,Kanpur,India,72,66,Natural,Grass,Yes,"32,000",Operational,Ganga Alluvial Silt: Sourced locally; traditionally aids spin.
-38,Greenfield Intl. Stadium,Trivandrum,India,70,65,Natural,Grass,Yes,"50,000",Operational,Local Red Soil Mix: Combines local soil with imported Maharashtra clay.
-131,Gucherre Ground,Albergaria,Portugal,62,58,Synthetic,Grass,No,300,Operational,Synthetic Matting: Home for domestic Portuguese cricket.
-243,Port Soif,Guernsey,Guernsey,65,60,Natural,Grass,No,"1,000",Operational,UK Loam: Coastal conditions lead to significant seam movement.
-294,Gymkhana Club Ground,Nairobi,Kenya,72,68,Natural,Grass,No,"7,000",Operational,Kenyan Red Clay: Hard and fast surface at altitude.
-251,Gymkhana (Dar-es-Salaam),Dar-es-Salaam,Tanzania,65,60,Natural,Grass,No,"2,000",Operational,Coastal Silt: Naturally occurring soil from the region.
-191,Gymkhana (Nairobi),Nairobi,Kenya,72,68,Natural,Grass,No,"7,000",Operational,Kenyan Red Clay: Historic hub for Kenyan cricket since the 2003 WC.
-180,Hagley Oval,Christchurch,New Zealand,78,72,Natural,Grass,Yes,"18,000",Operational,Patumahoe Clay: NZ's premier boutique test venue.
-152,Happy Valley Ground,Episkopi,Cyprus,65,60,Natural,Grass,No,500,Operational,Local Limestone Clay: Very dry and favors slow bowlers.
-287,Happy Valley Field 2,Episkopi,Cyprus,65,60,Natural,Grass,No,500,Operational,Same as ID 152. Primarily used for military and local leagues.
-5,Harare Sports Club,Harare,Zimbabwe,75,70,Natural,Grass,Yes,"10,000",Operational,Mashonaland Red Clay: High-scoring ground at altitude.
-51,Hazelaarweg,Rotterdam,Netherlands,70,66,Natural,Grass,No,"3,500",Operational,Dutch Loam: High-density clay to handle heavy rainfall.
-106,Headingley,Leeds,UK,75,70,Natural,Grass,Yes,"18,000",Operational,Oxfordshire Loam: Known for swinging conditions due to local airflow.
-320,HPCA Stadium,Dharamshala,India,70,65,Natural,Grass,Yes,"23,000",Operational,Ryegrass/Black Soil Mix: Winter-grade grass for high altitude.
-43,Holkar Stadium,Indore,India,65,62,Natural,Grass,Yes,"30,000",Operational,Maharashtra Red Soil: Sourced for pace and bounce.
-203,Hurlingham Club Ground,Buenos Aires,Argentina,65,60,Natural,Grass,No,500,Operational,Pampas Clay: Historic English-style square in South America.
-91,ICC Academy Ground No 2,Dubai,UAE,70,66,Natural,Grass,Yes,"3,000",Operational,Nandipur Clay: Imported from Pakistan for training.
-153,ICC Academy (Main),Dubai,UAE,72,68,Natural,Grass,Yes,"5,000",Operational,"Global Soils: Pitches use Bulli (AUS), Ongar (UK), and Pakistan clay."
-312,ICC Global Academy,Dubai,UAE,72,68,Natural,Grass,Yes,"5,000",Operational,Same as ID 153. Premier high-performance hub.
-193,Independence Park,Port Vila,Vanuatu,68,62,Natural,Grass,No,"1,000",Operational,Coral-based Clay: Highly porous and well-draining local soil.
-84,Indian Association Ground,Singapore,Singapore,65,60,Natural,Grass,Yes,"1,000",Operational,Local Coastal Clay: Sourced from Jurong; high moisture retention.
-175,Singapore (Field 2),Singapore,Singapore,65,60,Natural,Grass,Yes,"1,000",Operational,Same as ID 84. Key hub for domestic and T20I cricket.
-154,Integrated Polytechnic,Kigali,Rwanda,68,64,Natural,Grass,No,"10,000",Operational,Kicukiro Clay: Local soil renovated for ICC accreditation.
-346,International Sports Stdm,Coffs Harbour,Australia,82,72,Natural,Grass,Yes,"10,000",Operational,NSW Black Clay: Known for superior sub-surface drainage.
-351,Coffs Harbour (Oval 2),Coffs Harbour,Australia,82,72,Natural,Grass,Yes,"10,000",Operational,Same as ID 346. Frequently hosts BBL and state cricket.
-276,Ishoj Cricket Club,Ishoj,Denmark,62,58,Synthetic,Grass,No,500,Operational,Synthetic Matting: Durable setup for local league consistency.
-32,JSCA Stadium,Ranchi,India,75,70,Natural,Grass,Yes,"50,000",Operational,Jharkhand Black Soil: Designed to prevent stadium shadows.
-293,Jade Stadium,Christchurch,New Zealand,—,—,Natural,Grass,—,"38,000",Permanently Closed,Legacy name for AMI Stadium; dismantled.
-270,Jimmy Powell Oval,George Town,Caymans,65,60,Natural,Grass,No,"1,000",Operational,Grand Cayman Red Soil: Volcanic-based soil; consistent low bounce.
-260,Jinja Cricket Ground,Jinja,Uganda,66,62,Natural,Grass,No,"1,000",Operational,Nile River Silt: Sourced from river banks; favors spin.
-183,John Davies Oval,Queenstown,New Zealand,75,70,Natural,Grass,No,"19,000",Operational,Otago Loam: Spectacular setting; traditionally pace-friendly.
-350,Junction Oval,Melbourne,Australia,78,72,Natural,Grass,Yes,"7,000",Operational,Merri Creek Clay: Dedicated cricket-only boutique venue.
-290,The Oval,London,UK,75,70,Natural,Grass,Yes,"27,500",Operational,Oxfordshire Loam: Historically the truest bounce in England.
-25,Kensington Oval,Bridgetown,Barbados,72,68,Natural,Grass,Yes,"28,000",Operational,Coral-Lime Clay: World-famous for high bounce and carry.
-133,Kerava National Ground,Kerava,Finland,65,60,Natural,Grass,No,"1,000",Operational,Imported UK Loam: High-clay loam to survive Finnish winters.
-325,Khan Shaheb Osman Ali,Fatullah,Bangladesh,70,65,Natural,Grass,Yes,"25,000",Operational,Buriganga River Silt: High water table makes it damp and slow.
-75,King George V Ground,Castel,Guernsey,65,60,Natural,Grass,No,"1,500",Operational,English Loam: Coastal climate ensures swing and seam.
-242,KGV (Field 2),Castel,Guernsey,65,60,Natural,Grass,No,"1,500",Operational,Same as ID 75. Primary ICC hub in the Channel Islands.
-77,Kingsmead,Durban,South Africa,72,68,Natural,Grass,Yes,"25,000",Operational,"Coastal Clay: Famous for the ""tide"" effect and sea-breeze swing."
-208,Kingsmead (Durban),Durban,South Africa,72,68,Natural,Grass,Yes,"25,000",Operational,Same as ID 77. One of the world's most historic seam venues.
-79,Kinrara Academy Oval,Kuala Lumpur,Malaysia,68,65,Natural,Grass,Yes,"4,000",Permanently Closed,Closed in 2022; land transitioned to commercial development.
-277,Koge Cricket Club,Koge,Denmark,62,58,Synthetic,Grass,No,500,Operational,Synthetic Matting: Standard for domestic league consistency.
-73,Kyambogo Cricket Oval,Kampala,Uganda,68,64,Natural,Grass,No,"1,000",Operational,Local Kampala Clay: Slower bounce; spinner's paradise.
-92,La Manga (Bottom),Murcia,Spain,65,60,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Maintains professional standards in arid heat.
-235,La Manga (Top),Murcia,Spain,65,60,Natural,Grass,No,"1,000",Operational,Same as ID 92. High-usage training hub for European teams.
-353,Lavington Sports Oval,Albury,Australia,82,70,Natural,Grass,Yes,"20,000",Operational,NSW Black Clay: Regional hub frequently used for BBL matches.
-184,Lisicji Jarak Ground,Belgrade,Serbia,64,60,Synthetic,Grass,No,500,Operational,Standard Matting: Used for international associate Balkan fixtures.
-50,Lord's,London,UK,72,68,Natural,Grass,Yes,"31,100",Operational,Oxfordshire Loam: Home of the famous 2.5m pitch slope.
-236,Los Reyes Polo Club,Guacima,Costa Rica,60,55,Synthetic,Grass,No,300,Operational,Synthetic Matting: Used for domestic T20 league play.
-74,Lugogo Cricket Oval,Kampala,Uganda,68,62,Natural,Grass,No,"2,000",Operational,Lake Victoria Basin Silt: Low bounce; spin-friendly.
-15,M Chinnaswamy,Bangalore,India,65,60,Natural,Grass,Yes,"40,000",Operational,Karnataka Red Soil: Known for high-bounce and high scores.
-60,MA Chidambaram (Chepauk),Chennai,India,70,66,Natural,Grass,Yes,"38,000",Operational,Local Red Soil: High iron content; famous for late-game turn.
-332,M.Y. Singh (Mullanpur),Mohali,India,72,70,Natural,Grass,Yes,"33,000",Operational,Odisha Black Soil: Modern alternative to the old Mohali track.
-93,MCA Stadium,Pune,India,75,70,Natural,Grass,Yes,"37,000",Operational,Volcanic Black Soil: Naturally hard soil; provides great carry.
-359,Hambantota Stadium,Hambantota,Sri Lanka,75,70,Natural,Grass,Yes,"35,000",Operational,Southern Province Silt: Wind-affected; dry and often slow.
-284,Malkerns Country Club,Malkerns,Eswatini,62,58,Natural,Grass,No,500,Operational,Local Red Clay: Hard soil; traditionally low bounce.
-23,Mangaung Oval,Bloemfontein,South Africa,75,70,Natural,Grass,Yes,"20,000",Operational,Free State Clay: Known for being exceptionally batting-friendly.
-71,Manuka Oval,Canberra,Australia,82,72,Drop-in,Grass,Yes,"13,550",Operational,"Local Canberra Clay: Consistent, reliable bounce for drop-ins."
-278,Maple Leaf (NE Ground),King City,Canada,68,64,Natural,Grass,No,"7,000",Operational,Imported UK Loam: Maintains turf quality in cold weather.
-254,Maple Leaf (NW Ground),King City,Canada,70,65,Natural,Grass,No,"7,000",Operational,Same as ID 278. Canada's primary international hub.
-266,Marrara Stadium,Darwin,Australia,80,72,Natural,Grass,Yes,"15,000",Operational,"Darwin Black Clay: Used for ""winter"" cricket in the dry season."
-126,Marsa Sports Club,Marsa,Malta,68,64,Natural,Grass,No,"1,000",Operational,Imported Loam: High maintenance to handle Mediterranean heat.
-339,Marvel Stadium,Melbourne,Australia,82,70,Drop-in,Grass,Yes,"53,359",Operational,Merri Creek Clay: Only indoor cricket stadium with a roof.
-6,McLean Park,Napier,New Zealand,70,65,Natural,Grass,Yes,"19,700",Operational,Patumahoe Clay: Historically high-scoring with fast outfield.
-172,Meersen,Ghent,Belgium,62,58,Synthetic,Grass,No,300,Operational,ECN Standard Mat: Primary Belgian league venue.
-1,MCG,Melbourne,Australia,84,75,Drop-in,Grass,Yes,"100,024",Operational,Merri Creek Clay: World's biggest cricket ground by area.
-204,Mission Road Ground,Mong Kok,Hong Kong,65,60,Natural,Grass,No,"3,500",Operational,New Territories Clay: Humid conditions often assist swing.
-246,Mladost Cricket Ground,Zagreb,Croatia,62,58,Synthetic,Grass,No,300,Operational,Synthetic Matting: Durable for emerging associate cricket.
-139,Moara Vlasiei,Ilfov County,Romania,68,64,Natural,Grass,No,"1,000",Operational,Imported UK Loam: High clay content for Central European rain.
-309,Mombasa Sports Club,Mombasa,Kenya,70,65,Natural,Grass,No,"2,000",Operational,Coastal Clay Silt: Slower bounce compared to Nairobi tracks.
-305,Moses Mabhida Stadium,Durban,South Africa,72,68,Drop-in,Grass,Yes,"54,000",Operational,Local Black Soil: Occasional T20 hub; multi-purpose FIFA venue.
-224,Mulpani Ground,Kathmandu,Nepal,70,65,Natural,Grass,No,"10,000",Operational,Kathmandu Valley Clay: Sourced locally; very high altitude.
-336,Multan Cricket Stadium,Multan,Pakistan,75,70,Natural,Grass,Yes,"30,000",Operational,"Local Punjab Silt: Famous for being a very dry, flat track."
-265,Namibia Ground,Windhoek,Namibia,70,65,Natural,Grass,No,"1,000",Operational,Arid Zone Clay: Hard and fast in the African heat.
-198,Narendra Modi Stadium,Ahmedabad,India,75,70,Natural,Grass,Yes,"132,000",Operational,Hybrid Square: Features both Red and Black soil pitches.
-228,Nassau County Intl.,New York,USA,72,68,Drop-in,Grass,No,"34,000",Permanently Closed,Modular stadium for 2024 World Cup; dismantled.
-121,National Stadium,St George's,Grenada,72,68,Natural,Grass,Yes,"20,000",Operational,Grenadian Volcanic Soil: Rich soil; very green outfield.
-125,National Sports Academy,Sofia,Bulgaria,65,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Standard for Bulgarian international play.
-222,Nehru Stadium,Hamilton,Bermuda,70,65,Natural,Grass,Yes,"8,500",Operational,Bermuda Red Clay: Similar to ID 89; excellent drainage.
-158,Wanderers Stadium,Karachi,Pakistan,72,68,Natural,Grass,Yes,"34,000",Operational,"Nandipur Clay: Known as a historic ""road"" for batters."
-334,Newlands,Kochi,India,75,70,Natural,Grass,Yes,"55,000",Operational,Local Kerala Silt: High moisture often makes it slower.
-289,NCF Oval 1,Johannesburg,South Africa,75,70,Natural,Grass,Yes,"28,000",Operational,"Highveld Clay: At altitude, the ball travels fast and far."
-41,NCF Oval 2,Cape Town,South Africa,72,68,Natural,Grass,Yes,"25,000",Operational,Paarl Clay: Sourced locally; famous for seaming conditions.
-261,North Sydney Oval,Abuja,Nigeria,68,64,Natural,Grass,No,"2,000",Operational,Central Nigeria Red Clay: Hard and dry surface.
-262,OUTsurance Oval,Abuja,Nigeria,68,64,Natural,Grass,No,"2,000",Operational,Same as ID 261. Key facility for Nigerian cricket growth.
-354,Old Trafford,Sydney,Australia,68,58,Natural,Grass,Yes,"16,000",Operational,Bulli Clay: Sourced from NSW. Historically high-scoring.
-303,P Sara Oval,Bloemfontein,South Africa,75,70,Natural,Grass,Yes,"20,000",Operational,Same as ID 23. Known for high-scoring white-ball cricket.
-35,Pallekele Intl.,Manchester,UK,73,68,Natural,Grass,Yes,"26,000",Operational,"Oxfordshire Loam: The ""spinning"" capital of English cricket."
-318,Perth Stadium (Optus),Colombo,Sri Lanka,70,66,Natural,Grass,Yes,"15,000",Operational,Kelani River Silt: Historic ground; assists pace early.
-86,Pierre Werner Ground,Kandy,Sri Lanka,75,70,Natural,Grass,Yes,"35,000",Operational,Kandy Clay: High humidity leads to significant swing.
-72,Prairie View Complex,Perth,Australia,80,72,Drop-in,Grass,Yes,"60,000",Operational,Harvey WA Clay: Designed to mimic WACA's legendary pace.
-99,Providence Stadium,Walferdange,Luxembourg,65,60,Natural,Grass,No,"1,000",Operational,Ongar Loam: Imported to handle heavy rainfall.
-234,PCA IS Bindra Stdm,Houston,USA,72,68,Natural,Grass,No,"5,000",Operational,Waller County Clay: Local Texas soil; slow and consistent.
-83,Queen's Park Oval,Guyana,Guyana,72,68,Natural,Grass,Yes,"15,000",Operational,Demerara River Silt: Low bounce; spinner's paradise.
-301,Queens Sports Club,Mohali,India,75,70,Natural,Grass,Yes,"26,000",Operational,Punjab Black Soil: Known for having the best grass cover in India.
-26,R Premadasa Stadium,Port of Spain,Trinidad,72,68,Natural,Grass,Yes,"20,000",Operational,"Local Caroni Clay: Traditional slow, spinning track."
-167,Rajiv Gandhi Stadium,Bulawayo,Zimbabwe,72,68,Natural,Grass,No,"13,000",Operational,Local Red Clay: High-bounce and very flat surface.
-120,Rangiri Dambulla,Colombo,Sri Lanka,70,66,Natural,Grass,Yes,"35,000",Operational,Kelani River Clay: Sourced locally; favors spinners under D/N.
-81,Rawalpindi Stadium,Hyderabad,India,75,70,Natural,Grass,Yes,"39,000",Operational,Telangana Black Soil: Sourced locally; very hard and dry.
-255,Riverside Ground,Dambulla,Sri Lanka,75,70,Natural,Grass,Yes,"16,800",Operational,Central Province Clay: Dry zone soil; seamer-friendly early.
-100,Roma Cricket Ground,Rawalpindi,Pakistan,75,70,Natural,Grass,Yes,"28,000",Operational,Potohar Clay: Extremely hard surface; produces high pace.
-12,Royal Brussels Ground,Chester-le-S,UK,75,70,Natural,Grass,Yes,"19,000",Operational,Oxfordshire Loam: Historically favors swing bowlers.
-238,Ruaraka Sports Club,Spinaceto,Italy,64,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Home hub for Italian national team.
-173,Sabina Park,Waterloo,Belgium,65,60,Natural,Grass,No,500,Operational,UK Loam: Imported to maintain professional standards.
-258,Sano International,Nairobi,Kenya,68,64,Natural,Grass,No,"1,000",Operational,Kenyan Red Clay: Standard Nairobi high-altitude pitch.
-28,Santarem Ground,Kingston,Jamaica,72,68,Natural,Grass,Yes,"20,000",Operational,Liguanea Plain Soil: Historically fast and bouncy.
-194,Sao Fernando Polo,Sano,Japan,68,64,Natural,Grass,No,"2,500",Operational,Imported NSW Clay: Australia soil brought in for professional play.
-205,Sao Fernando (Campo 2),Albergaria,Portugal,62,58,Synthetic,Grass,No,300,Operational,ECN Standard Mat: Used for European Cricket Network.
-256,Saurashtra CA Stadium,Seropedica,Brazil,65,60,Natural,Grass,No,500,Operational,"Local Rio Clay: Sourced locally; very low, slow bounce."
-288,Sawai Mansingh,Seropedica,Brazil,65,60,Natural,Grass,No,500,Operational,Same as ID 256. Primary hub for Brazilian cricket.
-37,Saxton Oval,Rajkot,India,70,65,Natural,Grass,Yes,"28,000",Operational,Saurashtra Black Soil: Known as India's flattest track.
-329,Scott Page Field,Jaipur,India,72,68,Natural,Grass,Yes,"30,000",Operational,Rajasthan Sand/Clay: Traditionally stay low and aids spin.
-245,Seddon Park,Nelson,New Zealand,75,70,Natural,Grass,No,"6,000",Operational,Patumahoe Clay: Noted for exceptional boutique drainage.
-124,Selangor Turf Club,Prague,Czech Rep,65,62,Synthetic,Grass,No,500,Operational,Synthetic Matting: Primary Czech international venue.
-22,Senwes Park,Hamilton,New Zealand,72,68,Natural,Grass,Yes,"10,000",Operational,Patumahoe Clay: A world-famous batting paradise.
-249,Shaheed Veer Narayan,Kuala Lumpur,Malaysia,68,64,Natural,Grass,No,"1,000",Operational,Klang River Silt: Often damp and assists slow bowlers.
-24,Sharjah Stadium,Potchefstroom,South Africa,75,70,Natural,Grass,Yes,"18,000",Operational,North West Clay: Local high-clay soil; true bounce.
-335,Sheikh Abu Naser,Raipur,India,78,72,Natural,Grass,Yes,"65,000",Operational,Chhattisgarh Soil: Large dimensions; plays similar to MCG.
-136,Sheikh Zayed Stadium,Sharjah,UAE,65,62,Natural,Grass,Yes,"16,000",Operational,Imported Pakistan Clay: Record-breaking six-hitting hub.
-324,Shere Bangla Stadium,Khulna,Bangladesh,70,65,Natural,Grass,Yes,"20,000",Operational,Coastal Alluvial Silt: Slower than the Chattogram track.
-18,S.M. Scindia Stadium,Abu Dhabi,UAE,74,70,Natural,Grass,Yes,"20,000",Operational,Nandipur Clay: Imported; iconic for its large grass banks.
-307,Sikh Union Ground,Mirpur,Bangladesh,70,66,Natural,Grass,Yes,"25,000",Operational,Mirpur Clay: Historically the best spinning track in Asia.
-240,Simar Cricket Ground,Gwalior,India,72,70,Natural,Grass,Yes,"30,000",Operational,Red Soil: Sourced from Maharashtra; new T20-focused venue.
-244,Singapore National Stdm,Nairobi,Kenya,68,64,Natural,Grass,No,"2,000",Operational,Kenyan Red Clay: Hard-baked soil; produces fast outfield.
-239,Sir Vivian Richards,Rome,Italy,64,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Secondary hub for Italian league cricket.
-264,Sky Stadium,Singapore,Singapore,70,66,Natural,Grass,Yes,"5,000",Operational,Australian Loam Mix: Specialized mix to counter humidity.
-157,Solvangs Park,Antigua,Antigua,72,68,Natural,Grass,Yes,"10,000",Operational,North Sound Clay: Provides life for fast bowlers.
-21,Sophia Gardens,Wellington,New Zealand,75,70,Drop-in,Grass,Yes,"34,500",Operational,"Patumahoe Clay: ""Cake Tin"" layout; heavily wind-affected."
-207,Sportpark Het,Glostrup,Denmark,62,58,Synthetic,Grass,No,500,Operational,Synthetic Matting: Standard Danish mat over concrete.
-11,Sportpark Utrecht,Cardiff,UK,75,70,Natural,Grass,Yes,"15,643",Operational,"Oxfordshire Loam: Known for being a ""big"" ground."
-209,Sportpark Westvliet,Deventer,Netherlands,70,66,Natural,Grass,No,"1,000",Operational,Dutch Loam: Imported to survive the local climate.
-248,St Albans Club,Utrecht,Netherlands,70,66,Natural,Grass,No,"2,000",Operational,Dutch Loam: Primary hub for Central Dutch cricket.
-166,St George's College,The Hague,Netherlands,70,66,Natural,Grass,No,"3,000",Operational,Imported UK Loam: High clay content for turf quality.
-201,St George's Park,Buenos Aires,Argentina,65,60,Natural,Grass,No,500,Operational,Pampas Clay: Historic club ground in Argentina.
-263,St Georges Quilmes,Buenos Aires,Argentina,65,60,Natural,Grass,No,500,Operational,Pampas Clay: Sourced locally; soft soil with low bounce.
-78,Stadium Australia,Gqeberha,South Africa,75,70,Natural,Grass,Yes,"19,000",Operational,Eastern Cape Clay: Slower; aids reverse swing.
-225,Stars Arena Zemst,Quilmes,Argentina,60,55,Natural,Grass,No,500,Operational,"Local Clay: Historic ground; low, slow bounce."
-306,Stubberudmyra Ground,Sydney,Australia,85,75,Drop-in,Grass,Yes,"82,500",Operational,Bulli Clay: Sourced from NSW; multi-sport FIFA venue.
-272,SuperSport Park,Zemst,Belgium,62,58,Synthetic,Grass,No,300,Operational,Synthetic Matting: Home for domestic Belgian T10s.
-283,Svanholm Park,Oslo,Norway,65,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Durable for Nordic international play.
-40,Sydney Cricket Ground,Centurion,South Africa,75,70,Natural,Grass,Yes,"22,000",Operational,Highveld Clay: Sourced locally; famously fast pitch.
-130,Sydney Showground,Brondby,Denmark,68,64,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Highest-standard grass square in Denmark.
-19,Sylhet Intl. Stadium,Sydney,Australia,80,75,Natural,Grass,Yes,"48,000",Operational,Bulli Clay: Traditionally favors spinners.
-338,"TCA Oval, Blantyre",Sydney,Australia,72,68,Drop-in,Grass,Yes,"21,500",Operational,NSW Black Clay: Boutique T20 stadium.
-47,Tafawa Balewa Square,Sylhet,Bangladesh,72,68,Natural,Grass,Yes,"18,500",Operational,Tea Garden Soil: Hilly local soil; offers more bounce.
-259,Takashinga Sports Club,Blantyre,Malawi,68,64,Natural,Grass,No,"1,500",Operational,Local Red Clay: African highland soil; dry and fast.
-223,Ted Summerton Reserve,Lagos,Nigeria,68,64,Natural,Grass,No,"2,000",Operational,Local Red Clay: Nigeria's premier international hub.
-285,Terdthai Cricket Ground,Harare,Zimbabwe,68,64,Natural,Grass,No,"1,000",Operational,Local Red Clay: Key hub for community cricket in Harare.
-345,Terdthai Ground (B),Moe,Australia,75,70,Natural,Grass,Yes,"10,000",Operational,Victorian Loam: Regional BBL venue for Melbourne Stars.
-98,The Rose Bowl,Bangkok,Thailand,68,64,Natural,Grass,No,"3,000",Operational,Central Thai Silt: High moisture retention; slow track.
-230,The Village,Bangkok,Thailand,68,64,Natural,Grass,No,"1,000",Operational,Same as ID 98. Secondary venue for Asian qualifiers.
-9,Tikkurila Ground,Southampton,UK,75,70,Natural,Grass,Yes,"25,000",Operational,Oxfordshire Loam: Circular ground with equal boundaries.
-49,"Titwood, Glasgow",Malahide,Ireland,72,68,Natural,Grass,No,"11,500",Operational,Ongar Loam: Imported; most picturesque ground in Europe.
-174,Tolerance Oval,Vantaa,Finland,65,60,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Necessary for turf in Nordic climates.
-273,Tony Ireland Stadium,Glasgow,Scotland,70,65,Natural,Grass,No,"2,000",Operational,Banbury Loam: Imported from UK; historic Scottish venue.
-63,Traeger Park,Abu Dhabi,UAE,70,66,Natural,Grass,Yes,"3,000",Operational,Nandipur Clay: Imported from Pakistan; training hub.
-323,Trent Bridge,Townsville,Australia,82,70,Natural,Grass,Yes,"10,000",Operational,Queensland Clay: Rebranded as Riverway Stadium.
-343,TU Intl. Ground,Alice Springs,Australia,80,72,Natural,Grass,Yes,"10,000",Operational,"Arid Zone Clay: Hard, dry soil; high bounce."
-296,UKM-YSD Oval,Nottingham,UK,70,65,Natural,Grass,Yes,"17,500",Operational,Oxfordshire Loam: Known for world-record scores.
-119,Udayana Ground,Kirtipur,Nepal,70,66,Natural,Grass,No,"20,000",Operational,Kathmandu Valley Clay: High altitude mountain soil.
-177,United Cricket Club,Bangi,Malaysia,68,64,Natural,Grass,Yes,"1,000",Operational,Selangor Alluvial Clay: Humid and slow conditions.
-226,University Oval,Bali,Indonesia,65,60,Natural,Grass,No,500,Operational,Local Bali Silt: High organic content; slow and low.
-164,Uni of Dar-es-Salaam,Windhoek,Namibia,72,68,Natural,Grass,No,"1,000",Operational,Khomas Clay: Sourced locally; very dry surface.
-182,Uni of Doha (UDST),Dunedin,New Zealand,75,70,Natural,Grass,No,"6,000",Operational,Otago Loam: Traditionally seam-friendly.
-252,Uni of Lagos Oval,Dar-es-Salaam,Tanzania,65,60,Natural,Grass,No,500,Operational,Coastal Clay: Locally sourced; sandy and slow.
-231,Uni of Tasmania Stdm,Doha,Qatar,68,64,Natural,Grass,Yes,"1,500",Operational,Imported Nandipur Clay: Pakistani soil for desert play.
-155,VRA Ground,Lagos,Nigeria,62,58,Natural,Grass,No,"1,000",Operational,Ogun River Clay: Sourced locally; favors spin.
-352,Vassil Levski Academy,Launceston,Australia,85,70,Drop-in,Grass,Yes,"19,000",Operational,Northern Tas Loam: AFL-sized boutique venue.
-53,Velden Ground,Amstelveen,Netherlands,72,68,Natural,Grass,No,"4,500",Operational,Ongar Loam: Imported from UK; helps with drainage.
-280,"VCA Stadium, Jamtha",Sofia,Bulgaria,65,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Durable for Balkan climates.
-271,Wanderers Ground,Latschach,Austria,65,62,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Sourced for European tournament play.
-14,Wankhede Stadium,Nagpur,India,80,75,Natural,Grass,Yes,"45,000",Operational,"Vidarbha Black Soil: Known for being a ""true"" pitch."
-118,Warner Park,Windhoek,Namibia,72,68,Natural,Grass,No,"2,000",Operational,Khomas Clay: Very hard and dry surface.
-44,West End Park Intl.,Mumbai,India,68,65,Natural,Grass,Yes,"33,108",Operational,Thane Red Soil: High bounce and coastal swing.
-170,WACA Ground,Basseterre,St Kitts,65,60,Natural,Grass,Yes,"8,000",Operational,Volcanic Soil: Road-like pitches; high-scoring.
-156,White Hill Field,Doha,Qatar,72,68,Natural,Grass,Yes,"13,000",Operational,Imported Pakistan Clay: Mimics subcontinent conditions.
-291,Willowmoore Park,Perth,Australia,75,70,Natural,Grass,Yes,"20,000",Operational,Harvey WA Clay: Historically the fastest in the world.
-88,Windsor Park,Sandys Parish,Bermuda,68,64,Natural,Grass,No,"1,000",Operational,Bermuda Red Clay: Porous soil; quick drying.
-192,YSD-UKM Oval,Benoni,South Africa,72,68,Natural,Grass,Yes,"20,000",Operational,East Rand Clay: Seam-friendly green-top venue.
-168,Yeonhui Cricket Ground,Roseau,Dominica,72,68,Natural,Grass,Yes,"12,000",Operational,Volcanic Silt: Black soil; favors spin late game.
-250,Zahur Ahmed Chowdhury,Bangi,Malaysia,68,64,Natural,Grass,Yes,"1,000",Operational,Selangor Clay: Humid and slow conditions.
-253,Zayed Cricket Stadium,Incheon,South Korea,68,64,Natural,Grass,No,"2,500",Operational,Imported NSW Clay: Australia soil for high standards.
-87,Zhejiang University,Chattogram,Bangladesh,70,66,Natural,Grass,Yes,"22,000",Operational,Local Silt: Flat batting track.
-135,,Abu Dhabi,UAE,74,70,Natural,Grass,Yes,"20,000",Operational,Nandipur Clay: Imported from Pakistan.
-221,,Hangzhou,China,68,64,Natural,Grass,No,"3,000",Operational,Imported NSW Clay: Australia soil for Asian Games legacy.
+298,AMI Stadium,Christchurch,New Zealand,70-75,65-70,Natural,Grass,Yes,"38,628",Permanently Closed,Grey/Heavy Silt: Used local Canterbury clay. Decommissioned after the 2011 earthquake; site now a public park.
+232,Achimota School A Field,Accra,Ghana,~65,~60,Natural,Grass,No,500,Operational,Local Red Laterite: Locally sourced African clay. High iron content; produces lower bounce.
+233,Achimota School B Field,Accra,Ghana,~65,~60,Natural,Grass,No,500,Operational,Local Red Laterite: Same as Field A. Primarily used for school and local league cricket.
+3,Adelaide Oval,Adelaide,Australia,72,80,Drop-in,Grass,Yes,"53,500",Operational,"Athelstone Clay: Locally sourced from South Australia. Known for being the most batting-friendly ""drop-in"" soil."
+68,Al Amerat (Turf 1),Al Amarat,Oman,70,65,Natural,Grass,Yes,"4,000",Operational,Imported Clay (Pakistan): Specifically imported from the Nandipur region to ensure ICC-standard pace and bounce.
+97,Al Amerat (Turf 2),Al Amarat,Oman,68,64,Natural,Grass,Yes,"3,000",Operational,Imported Clay (Pakistan): Similar to Turf 1. A slightly smaller venue primarily used for qualifiers and associate matches.
+211,Amini Park,Port Moresby,PNG,65,62,Natural,Grass,No,"2,000",Operational,Local PNG Clay: Locally sourced. The ground is the headquarters for Cricket PNG and tends to favor spin.
+229,Arnos Vale Ground,Kingstown,St Vincent,72,68,Natural,Grass,Yes,"18,000",Operational,Local Volcanic Soil: High organic content. Recently upgraded with new floodlights for the 2024 T20 World Cup.
+321,Arun Jaitley Stadium,Delhi,India,68,65,Natural,Grass,Yes,"35,200",Operational,"Black Soil/Yamuna Silt: Sourced from the Yamuna riverbed. Tends to be slow and low, traditionally a spinner's track."
+341,Aurora Stadium (UTAS),Launceston,Australia,85,70,Drop-in,Grass,Yes,"15,500",Operational,Local Tasmania Loam: Large AFL-sized oval. Uses drop-in pitches with soil sourced from Northern Tasmania.
+274,Ballpark Ground,Graz,Austria,~60,~55,Synthetic,Grass,No,200,Operational,Synthetic Mat: Uses a standard AstroTurf mat over a concrete/crushed stone base for durability in the Alpine climate.
+42,Barabati Stadium,Cuttack,India,70,65,Natural,Grass,Yes,"45,000",Operational,"Imported Red Soil: Recently imported from Maharashtra (Kalyan) to replace older, slower local black soil."
+189,Barsapara Stadium,Guwahati,India,72,68,Natural,Grass,Yes,"46,000",Operational,"Black Soil (Odisha): Imported high-quality black clay for better ""carry"" and high-scoring white-ball cricket."
+7,Bay Oval,Mt Maunganui,New Zealand,75,70,Natural,Grass,Yes,"10,000",Operational,"Patumahoe Clay: Sourced from South Auckland. Highly prized in NZ for creating true, consistent bounce."
+127,Bayer Uerdingen Ground,Krefeld,Germany,65,60,Natural,Grass,No,"1,000",Operational,Ongar Loam (UK): Professional loam imported from the UK (Essex) to maintain elite European performance standards.
+212,Bayuemas Oval,Kuala Lumpur,Malaysia,68,64,Natural,Grass,No,"1,000",Operational,Local Klang Valley Clay: High moisture retention. Requires heavy maintenance to prevent it from becoming too soft.
+202,Belgrano Athletic Club,Buenos Aires,Argentina,65,60,Natural,Grass,No,500,Operational,"Pampas Black Soil: Sourced from the Humid Pampa. Known for being fertile and soft; produces ""traditional"" low bounce."
+20,Bellerive Oval,Hobart,Australia,80,66,Natural,Grass,Yes,"20,000",Operational,"Tasmanian Black Soil: Local soil from Middleton. Often leaves a bit of ""juice"" in the pitch for seamers."
+89,Bermuda National Stadium,Hamilton,Bermuda,70,65,Natural,Grass,Yes,"8,500",Operational,Bermuda Red Clay: Locally sourced. Excellent drainage properties; holds up well against tropical rainfall.
+145,Ekana Cricket Stadium,Lucknow,India,72,68,Natural,Grass,Yes,"50,000",Operational,Multi-Soil Square: Features both Red Soil (imported from Mumbai/Maharashtra) and Black Soil (local/Odisha mix).
+286,Matiur Rahman Stadium,Chattogram,Bangladesh,68,65,Natural,Grass,No,"15,000",Operational,Local Alluvial Clay: Sourced from the Chittagong Hill Tracts. Known for being slow and helping finger spinners.
+362,Boland Park,Paarl,South Africa,70,65,Natural,Grass,Yes,"10,000",Operational,"Boland Clay: Locally sourced South African soil. Noted for being one of the more ""picturesque"" and true-bounce tracks in SA."
+282,Botkyrka Cricket Center,Stockholm,Sweden,~65,~60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Standard for Scandinavian cricket to survive the harsh winters and maintain consistent bounce.
+330,Brabourne Stadium,Mumbai,India,70,65,Natural,Grass,Yes,"50,000",Operational,"Kalyan Red Soil: Sourced from the Thane district. Historic ""Lord's of India"" known for excellent carry and pace."
+129,Bready Cricket Club,Bready,Ireland,68,64,Natural,Grass,No,"3,000",Operational,Banbury Loam: Imported from the UK. High-quality loam used to ensure the square meets ICC international standards.
+356,Brian Lara Stadium,Tarouba,Trinidad,72,68,Natural,Grass,Yes,"15,000",Operational,Local Trinidadian Clay: Sourced from central Trinidad. Designed to mimic the pace of the WACA but often plays lower.
+56,The Gabba,Brisbane,Australia,75,70,Natural,Grass,Yes,"42,000",Operational,"Bulli Clay: Imported from New South Wales. Famous for being the ""bounciest"" and hardest pitch in Australia."
+54,Buffalo Park,East London,South Africa,72,65,Natural,Grass,Yes,"16,000",Operational,"Local Coastal Clay: Sourced from the Eastern Cape. Can be affected by the sea breeze, making it ""nippy"" for seamers."
+176,Bulawayo Athletic Club,Bulawayo,Zimbabwe,70,66,Natural,Grass,No,"12,000",Operational,Red Clay Soil: Locally sourced. Traditionally a very high-scoring ground with a very fast outfield.
+55,Carrara Oval,Gold Coast,Australia,82,70,Drop-in,Grass,Yes,"21,000",Operational,Local Black Soil: Similar to the Gabba’s newer drop-in profile. Soil is sourced from the Darling Downs region.
+128,Castle Avenue,Dublin,Ireland,65,62,Natural,Grass,No,"3,200",Operational,"Ongar Loam: Traditionally imported from Essex, UK. One of Ireland's oldest international squares."
+267,Cazaly's Stadium,Cairns,Australia,80,72,Natural,Grass,Yes,"13,500",Operational,Tropical Black Clay: Sourced from North Queensland. Holds moisture well; can be slow during the humid season.
+16,Central Broward Park,Lauderhill,USA,72,68,Natural,Grass,Yes,"20,000",Operational,Imported Clay: Soil was originally imported from Georgia/subcontinent mixes to ensure a professional turf standard in Florida.
+295,Stormont,Belfast,Ireland,70,65,Natural,Grass,No,"7,000",Operational,"Banbury Loam: Imported from UK. High clay content ensures it doesn't ""break up"" too early in the damp Irish weather."
+269,Clayton Panama,Panama City,Panama,~60,~55,Synthetic,Grass,No,500,Operational,AstroTurf over Concrete: Designed for high-rainfall regions to allow play immediately after tropical storms.
+76,College Field,St Peter Port,Guernsey,65,60,Natural,Grass,No,"1,000",Operational,English Loam: Often uses UK-imported topdressing. A historic school-based ground with traditional coastal grass.
+115,Coolidge Cricket Ground,Antigua,Antigua,68,64,Natural,Grass,Yes,"5,000",Operational,"Antiguan Clay: Locally sourced. Known as the ""Sticky Wicket"" formerly; now a modernized training and T20 hub."
+10,County Ground,Taunton,UK,65,60,Natural,Grass,Yes,"8,500",Operational,"Banbury Loam: Sourced from Oxfordshire. Known as a ""small ground"" paradise for batters with very short boundaries."
+122,Daren Sammy Stadium,Gros Islet,St Lucia,72,68,Natural,Grass,Yes,"15,000",Operational,"Local St Lucian Clay: Sourced from the northern volcanic plains. Typically offers good ""carry"" for Caribbean fast bowlers."
+304,De Beers Diamond Oval,Kimberley,South Africa,75,70,Natural,Grass,Yes,"11,000",Operational,Local Northern Cape Clay: Sourced from the Karoo region. Very dry soil that often leads to early cracking and turn.
+138,Desert Springs,Almeria,Spain,70,65,Natural,Grass,No,"1,000",Operational,Ongar Loam: Imported from UK. Spain's first ever international-standard grass square.
+331,DY Patil Stadium,Mumbai,India,72,68,Natural,Grass,Yes,"55,000",Operational,Red Soil: Sourced from the Kalyan/Dombivli belt. Known for high bounce and a lightning-fast outfield.
+64,ACA-VDCA Stadium,Vizag,India,70,65,Natural,Grass,Yes,"25,000",Operational,Local Black Soil: Sourced from the Coastal Andhra region. High water table nearby makes it a traditionally low-bounce track.
+237,Dreux Sport Club,Dreux,France,~62,~58,Synthetic,Grass,No,500,Operational,Synthetic Matting: Used for high-frequency league play. Standard European mat over a hard sub-base.
+17,Dubai Intl. Stadium,Dubai,UAE,74,68,Natural,Grass,Yes,"25,000",Operational,"Nandipur Clay: Imported from Pakistan. Designed to provide a ""Ring of Fire"" atmosphere with subcontinental pitch behavior."
+58,Eden Gardens,Kolkata,India,68,64,Natural,Grass,Yes,"68,000",Operational,Black Soil: Sourced from local alluvial deposits. Recently mixed with foreign clay to ensure better bounce for T20s.
+8,Eden Park,Auckland,NZ,65,55,Drop-in,Grass,Yes,"42,000",Operational,"Patumahoe Clay: Sourced from South Auckland. Infamous for its extremely short ""straight"" boundaries due to its rugby layout."
+34,Edgbaston,Birmingham,UK,72,68,Natural,Grass,Yes,"25,000",Operational,"Banbury Loam: Sourced from Oxfordshire. Widely considered the ""loudest"" ground in England with a true, fair pitch."
+137,Entebbe Cricket Oval,Entebbe,Uganda,68,64,Natural,Grass,No,"2,000",Operational,Local Lake Victoria Clay: Sourced from nearby shores. High organic content; tends to stay slow and low.
+281,Estonian National Field,Tallinn,Estonia,65,60,Synthetic,Grass,No,"1,000",Operational,Synthetic Mat: Professional grade mat over a crushed stone base to handle the freezing Baltic climate.
+206,Europa Sports Complex,Gibraltar,Gibraltar,62,58,Synthetic,Artificial,No,"1,500",Operational,Artificial Surface: Built on a multi-purpose complex. Uses a high-density mat to ensure consistent bounce.
+247,Faleata Oval No 2,Apia,Samoa,68,65,Natural,Grass,No,"1,500",Operational,Volcanic Pacific Soil: Locally sourced. Highly porous and rich in minerals; provides a very fast outfield.
+220,GB Oval,Szodliget,Hungary,65,62,Natural,Grass,No,500,Operational,Imported UK Loam: Uses Banbury Loam topdressing to maintain turf quality in Central Europe.
+161,GMHBA Stadium,Geelong,Australia,85,65,Drop-in,Grass,Yes,"40,000",Operational,"Merri Creek Clay: Drop-in pitches using heavy black clay from Victoria. Long, narrow AFL-style dimensions."
+159,Gaddafi Stadium,Lahore,Pakistan,72,68,Natural,Grass,Yes,"34,000",Operational,"Nandipur Clay: Sourced from Guijranwala district. Famous for being a ""flat track"" paradise for batters."
+199,Gahanga Intl. Stadium,Kigali,Rwanda,70,65,Natural,Grass,No,"10,000",Operational,Local Earth Mix: Pitch clay is a mix of local Rwandan earth and Bermuda Grass for heat resistance.
+344,Geelong Cricket Ground,Geelong,Australia,75,70,Natural,Grass,No,"2,000",Operational,Local Victorian Loam: Standard regional soil; separate from the major GMHBA stadium nearby.
+257,Gelephu Intl. Ground,Gelephu,Bhutan,65,62,Natural,Grass,No,"3,000",Operational,"Local Himalayan Clay: Locally sourced. The first natural grass pitch in Bhutan, developed with ACC support."
+210,Goldenacre,Edinburgh,Scotland,68,64,Natural,Grass,No,"3,000",Operational,"Banbury Loam: Imported from Oxfordshire, UK. Standard for elite Scottish club and representative grounds."
+275,Grainville,St Saviour,Jersey,70,65,Natural,Grass,No,"2,000",Operational,"English Loam: Sourced from UK suppliers. Known for holding a ""green top"" due to the coastal humidity."
+227,Grand Prairie Stadium,Dallas,USA,75,70,Natural,Grass,Yes,"15,000",Operational,Imported Clay: A specialized high-clay mix (likely Mississippi/Georgia) to mimic subcontinental pace.
+134,Grange Cricket Club,Edinburgh,Scotland,70,65,Natural,Grass,No,"5,000",Operational,Ongar Loam: Imported from UK. Scotland's premier international venue; known for true bounce.
+13,Green Park,Kanpur,India,72,66,Natural,Grass,Yes,"32,000",Operational,Ganga Alluvial Soil: Sourced from the Ganges riverbank. Traditionally slow and low; favors spinners.
+38,Greenfield Intl. Stadium,Trivandrum,India,70,65,Natural,Grass,Yes,"50,000",Operational,Local Red Soil: Mix of local Kerala soil and Maharashtra Red Clay for better durability and bounce.
+131,Gucherre Ground,Albergaria,Portugal,62,58,Synthetic,Grass,No,300,Operational,Synthetic Matting: Used primarily for ECN and domestic league matches on a hard-packed base.
+243,Port Soif,Guernsey,Guernsey,65,60,Natural,Grass,No,"1,000",Operational,UK Loam: Imported English soil. Coastal location leads to significant seam movement in the mornings.
+294,Gymkhana Club Ground,Nairobi,Kenya,72,68,Natural,Grass,No,"7,000",Operational,Kenyan Red Clay: Locally sourced from the Central Highlands. Extremely hard and fast when dry.
+191,Gymkhana (Nairobi),Nairobi,Kenya,72,68,Natural,Grass,No,"7,000",Operational,Kenyan Red Clay: Same as ID 294; historical hub for Kenyan cricket since the 2003 World Cup.
+180,Hagley Oval,Christchurch,New Zealand,78,72,Natural,Grass,Yes,"18,000",Operational,Patumahoe Clay: Sourced from South Auckland. Replaced AMI Stadium as the city's main cricket hub.
+152,Happy Valley Ground,Episkopi,Cyprus,65,60,Natural,Grass,No,500,Operational,Local Limestone Clay: Chalky local soil; often plays very dry and favors slow bowlers.
+5,Harare Sports Club,Harare,Zimbabwe,75,70,Natural,Grass,Yes,"10,000",Operational,Red Clay Soil: Sourced from the Mashonaland plateau. Known for high altitude and fast-scoring conditions.
+51,Hazelaarweg,Rotterdam,Netherlands,70,66,Natural,Grass,No,"3,500",Operational,Imported Dutch Loam: High-density clay sourced locally in the Netherlands to survive high rainfall.
+106,Headingley,Leeds,UK,75,70,Natural,Grass,Yes,"18,000",Operational,"Banbury Loam: Sourced from Oxfordshire. Known for ""swinging"" conditions due to the local airflow."
+320,HPCA Stadium,Dharamshala,India,70,65,Natural,Grass,Yes,"23,000",Operational,Ryegrass/Black Soil: Mix of local soil and imported winter-grade grass for high-altitude survival.
+43,Holkar Stadium,Indore,India,65,62,Natural,Grass,Yes,"30,000",Operational,Red Soil: Sourced from Maharashtra. Famously small boundaries and a high-bounce track.
+203,Hurlingham Club,Buenos Aires,Argentina,65,60,Natural,Grass,No,500,Operational,"Pampas Clay: Locally sourced. One of the most historic ""English-style"" squares in South America."
+91,ICC Academy Ground No 2,Dubai,UAE,70,66,Natural,Grass,Yes,"3,000",Operational,Nandipur Clay: Imported from Pakistan. Used specifically for high-performance training and associate internationals.
+153,ICC Academy,Dubai,UAE,72,68,Natural,Grass,Yes,"5,000",Operational,"Global Soil Mix: Features distinct pitches using Australian (Bulli), English (Ongar), and Asian (Nandipur) soils for diverse training."
+312,ICC Global Cricket Academy,Dubai,UAE,72,68,Natural,Grass,Yes,"5,000",Operational,Same as ID 153. This is the primary high-performance hub for the ICC.
+193,Independence Park,Port Vila,Vanuatu,68,62,Natural,Grass,No,"1,000",Operational,"Local Coral-based Clay: Locally sourced. The ground sits on a coral base, making it extremely well-draining."
+84,Indian Association Ground,Singapore,Singapore,65,60,Natural,Grass,Yes,"1,000",Operational,Local Coastal Clay: Sourced from Jurong. High humidity and heavy rainfall require frequent top-dressing with imported loam.
+175,Indian Association Ground,Singapore,Singapore,65,60,Natural,Grass,Yes,"1,000",Operational,Same as ID 84. A key hub for Singapore's domestic and T20 international matches.
+154,Integrated Polytechnic Regional Centre,Kigali,Rwanda,68,64,Natural,Grass,No,"10,000",Operational,Kicukiro Clay: Locally sourced Rwandan soil. Recently renovated to meet ICC accreditation for African qualifiers.
+346,International Sports Stadium,Coffs Harbour,Australia,82,72,Natural,Grass,Yes,"10,000",Operational,Santa Ana Couch/Black Clay: Sourced from NSW. Known for high-standard drainage (17km of pipes under the surface).
+351,International Sports Stadium,Coffs Harbour,Australia,82,72,Natural,Grass,Yes,"10,000",Operational,Same as ID 346. Frequently hosts BBL matches and state-level cricket.
+276,Ishoj Cricket Club,Ishoj,Denmark,~62,~58,Synthetic,Grass,No,500,Operational,Synthetic Matting: Standard Danish mat over a hard-packed gravel base.
+32,JSCA International Stadium,Ranchi,India,75,70,Natural,Grass,Yes,"50,000",Operational,Local Black Soil: Sourced from Jharkhand. Designed so no shadows fall on the 9 match pitches before 4:45 PM.
+293,Jade Stadium,Christchurch,New Zealand,70-75,65-70,Natural,Grass,Yes,"38,628",Permanently Closed,Canterbury Silt: Decommissioned after 2011 earthquake. Site now used as a community park (Lancaster Park).
+270,Jimmy Powell Oval,George Town,Cayman Islands,65,60,Natural,Grass,No,"1,000",Operational,"Cayman Red Soil: Sourced from Grand Cayman. High-iron volcanic soil; produces consistent, low bounce."
+260,Jinja Cricket Ground,Jinja,Uganda,66,62,Natural,Grass,No,"1,000",Operational,Local Nile Silt: Sourced from the Victoria Nile bank. Tends to be soft and aids spin.
+183,John Davies Oval,Queenstown,New Zealand,75,70,Natural,Grass,No,"19,000",Operational,Remarkables Loam: Sourced from local Otago deposits. Spectacular backdrop; pitch is historically pace-friendly.
+350,Junction Oval,Melbourne,Australia,78,72,Natural,Grass,Yes,"7,000",Operational,Merri Creek Clay: Heavy black clay from Victoria. Reconstructed in 2018 as a dedicated cricket-only boutique venue.
+290,The Oval,London,UK,75,70,Natural,Grass,Yes,"27,500",Operational,Banbury Loam: Sourced from Oxfordshire. Historically considered the fastest and truest bounce in England.
+25,Kensington Oval,Bridgetown,Barbados,72,68,Natural,Grass,Yes,"28,000",Operational,"Coral-Lime Clay: Sourced from the St. Philip parish. World-famous for its high ""white-ball"" bounce and carry."
+133,Kerava National Ground,Kerava,Finland,65,60,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Likely Ongar Loam to ensure the square survives the Finnish winter cycle.
+325,Khan Shaheb Osman Ali Stadium,Fatullah,Bangladesh,70,65,Natural,Grass,Yes,"25,000",Operational,Floodplain Alluvial Silt: Sourced from the Buriganga basin. High water table makes the pitch damp and slow.
+75,King George V Ground,Castel,Guernsey,65,60,Natural,Grass,No,"1,500",Operational,UK Loam Mix: Standard English loam. Coastal climate provides significant movement for swing bowlers.
+242,King George V Ground,Castel,Guernsey,65,60,Natural,Grass,No,"1,500",Operational,Same as ID 75. Primary venue for ICC international matches in the Channel Islands.
+77,Kingsmead,Durban,South Africa,72,68,Natural,Grass,Yes,"25,000",Operational,"Local Coastal Clay: Sourced from the uMgeni River. Famous for ""seaming"" due to the high humidity from the Indian Ocean."
+208,Kingsmead,Durban,South Africa,72,68,Natural,Grass,Yes,"25,000",Operational,"Same as ID 77. A historic venue known for the ""Tide"" effect on ball swing."
+79,Kinrara Academy Oval,Kuala Lumpur,Malaysia,68,65,Natural,Grass,Yes,"4,000",Permanently Closed,Klang Valley Clay: Evicted in 2022 due to land development. Was the premier associate venue in SE Asia.
+277,Koge Cricket Club,Koge,Denmark,~62,~58,Synthetic,Grass,No,500,Operational,Synthetic Matting: Standard European mat-on-concrete setup for local league consistency.
+73,Kyambogo Cricket Oval,Kampala,Uganda,68,64,Natural,Grass,No,"1,000",Operational,Red Clay Silt: Sourced from Kampala Central. Traditionally a spinner’s paradise with low bounce.
+92,La Manga (Bottom),Murcia,Spain,65,60,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Standard professional loam to maintain elite standards in the arid Spanish climate.
+235,La Manga (Top),Murcia,Spain,65,60,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Same as ID 92. High usage ground for European cricket training camps.
+353,Lavington Sports Oval,Albury,Australia,82,70,Natural,Grass,Yes,"20,000",Operational,Local NSW Black Clay: Sourced from Riverina. Frequently used for pre-season and state matches.
+184,Lisicji Jarak Ground,Belgrade,Serbia,64,60,Synthetic,Grass,No,500,Operational,Standard AstroTurf: High-density mat over a concrete base. Used for the Balkan Cricket Cup.
+50,Lord's,London,UK,72,68,Natural,Grass,Yes,"31,100",Operational,"Banbury Loam: Sourced from Oxfordshire. Features the famous 2.5m ""slope"" from North to South."
+236,Los Reyes Polo Club,Guacima,Costa Rica,~60,~55,Synthetic,Grass,No,300,Operational,Synthetic Matting: Durable mat over a gravel base to survive heavy tropical rainfall.
+74,Lugogo Cricket Oval,Kampala,Uganda,68,62,Natural,Grass,No,"2,000",Operational,"Local Clay/Silt Mix: Sourced from the Lake Victoria basin. Slower bounce, spin-friendly."
+15,M Chinnaswamy Stadium,Bangalore,India,65,60,Natural,Grass,Yes,"40,000",Operational,Local Red Soil: Sourced from Karnataka. World's first sub-air drainage system used to clear rain.
+60,MA Chidambaram (Chepauk),Chennai,India,70,66,Natural,Grass,Yes,"38,000",Operational,"Red Soil: Sourced from Tamil Nadu. High clay content; famous for ""turn and bounce"" for spinners."
+332,Maharaja Yadavindra Singh,Mullanpur,India,72,70,Natural,Grass,Yes,"33,000",Operational,Black Soil: Sourced from Odisha. Developed as a high-pace/bounce alternative to old Mohali.
+93,MCA Stadium,Pune,India,75,70,Natural,Grass,Yes,"37,000",Operational,Maharashtra Black Soil: Sourced from local volcanic rock. Known as a batter's paradise.
+359,Mahinda Rajapaksa Stadium,Hambantota,Sri Lanka,75,70,Natural,Grass,Yes,"35,000",Operational,Local Coastal Alluvial: Sourced from the Southern Province. Very dry and wind-affected.
+284,Malkerns Country Club,Malkerns,Eswatini,62,58,Natural,Grass,No,500,Operational,Local Highveld Soil: Naturally occurring red clay; typically stays low and slow.
+23,Mangaung Oval,Bloemfontein,South Africa,75,70,Natural,Grass,Yes,"20,000",Operational,Free State Clay: Locally sourced. Known for being extremely flat and batting-friendly.
+71,Manuka Oval,Canberra,Australia,82,72,Drop-in,Grass,Yes,"13,550",Operational,Canberra Black Soil: Locally sourced; creates a very consistent and reliable bounce.
+278,Maple Leaf (NE Ground),King City,Canada,68,64,Natural,Grass,No,"7,000",Operational,Imported UK Loam: Likely Banbury top-dressing to maintain turf in cold climates.
+254,Maple Leaf (NW Ground),King City,Canada,70,65,Natural,Grass,No,"7,000",Operational,Same as ID 278. Canada's primary hub for T20 Global and Associate cricket.
+266,Marrara Stadium,Darwin,Australia,80,72,Natural,Grass,Yes,"15,000",Operational,Black Darwin Clay: Sourced locally. Used for winter cricket due to the tropical dry season.
+126,Marsa Sports Club,Marsa,Malta,68,64,Natural,Grass,No,"1,000",Operational,Imported Loam: Heavy reliance on UK-imported soil to manage the dry Mediterranean heat.
+339,Marvel Stadium,Melbourne,Australia,82,70,Drop-in,Grass,Yes,"53,359",Operational,Merri Creek Clay: Drop-in pitches from Victoria. Features a retractable roof for indoor cricket.
+6,McLean Park,Napier,New Zealand,70,65,Natural,Grass,Yes,"19,700",Operational,Patumahoe Clay: Sourced from South Auckland. Historically high-scoring with a very fast outfield.
+172,Meersen,Ghent,Belgium,62,58,Synthetic,Grass,No,300,Operational,Standard ECN Mat: Used for domestic Belgian league play.
+1,MCG,Melbourne,Australia,84,75,Drop-in,Grass,Yes,"100,024",Operational,Merri Creek Clay: Heavy black clay. Massive square boundaries are the biggest in world cricket.
+204,Mission Road Ground,Mong Kok,Hong Kong,65,60,Natural,Grass,No,"3,500",Operational,Local HK Clay: Sourced from the New Territories. Known for high humidity affecting ball swing.
+246,Mladost Cricket Ground,Zagreb,Croatia,62,58,Synthetic,Grass,No,300,Operational,Synthetic Matting: Durable setup for emerging European cricket.
+139,Moara Vlasiei,Ilfov County,Romania,68,64,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Top-dressing imported to maintain a professional grass square in Romania.
+309,Mombasa Sports Club,Mombasa,Kenya,70,65,Natural,Grass,No,"2,000",Operational,Coastal Clay: Sourced from the Mombasa coast. Slower than Nairobi red clay.
+305,Moses Mabhida,Durban,South Africa,72,68,Drop-in,Grass,Yes,"54,000",Operational,Local Black Soil: Multi-purpose FIFA stadium occasionally converted for T20 cricket.
+224,Mulpani Ground,Kathmandu,Nepal,70,65,Natural,Grass,No,"10,000",Operational,Kathmandu Valley Clay: Locally sourced; high altitude makes the ball travel much further.
+336,Multan Cricket Stadium,Multan,Pakistan,75,70,Natural,Grass,Yes,"30,000",Operational,"Local Silt/Clay Mix: Known as a very dry, batting-friendly surface with zero movement."
+265,Namibia Ground,Windhoek,Namibia,70,65,Natural,Grass,No,"1,000",Operational,Local Arid Clay: Sourced from Khomas region. Very hard and fast in the dry heat.
+198,Narendra Modi Stadium,Ahmedabad,India,75,70,Natural,Grass,Yes,"132,000",Operational,Red & Black Soil: Features both soil types (sourced from Maharashtra & Local) on the same square.
+228,Nassau County Intl.,New York,USA,72,68,Drop-in,Grass,No,"34,000",Permanently Closed,Adelaide Soil: Pitches were drop-ins using Athelstone Clay from Australia for the 2024 T20 World Cup. Deconstructed.
+121,National Cricket Stadium,St George's,Grenada,72,68,Natural,Grass,Yes,"20,000",Operational,"Grenadian Volcanic Soil: Rich in nutrients; produces a very lush, green outfield."
+125,National Sports Academy,Sofia,Bulgaria,65,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Used for international associate fixtures in Bulgaria.
+222,National Stadium,Hamilton,Bermuda,70,65,Natural,Grass,Yes,"8,500",Operational,Local Bermuda Clay: Same as ID 89; used for multi-sport events including international cricket.
+158,National Stadium,Karachi,Pakistan,72,68,Natural,Grass,Yes,"34,000",Operational,"Nandipur Clay: Sourced from Punjab, Pakistan. One of the flatest decks in world cricket."
+334,Nehru Stadium,Kochi,India,75,70,Natural,Grass,Yes,"55,000",Operational,Local Alluvial Mix: High rainfall area; pitch is often damp and slower compared to North India.
+289,Wanderers Stadium,Johannesburg,South Africa,75,70,Natural,Grass,Yes,"28,000",Operational,"Highveld Clay: Sourced from the Gauteng plateau. Known as the ""Bullring"" for high altitude/scoring."
+41,Newlands,Cape Town,South Africa,72,68,Natural,Grass,Yes,"25,000",Operational,Western Cape Clay: Sourced from Paarl. Famous for swing under the Table Mountain shadow.
+261,NCF Oval 1,Abuja,Nigeria,68,64,Natural,Grass,No,"2,000",Operational,"Local Red Clay: Sourced from Central Nigeria. Hard, dry, and fast in the Harmattan season."
+262,NCF Oval 2,Abuja,Nigeria,68,64,Natural,Grass,No,"2,000",Operational,Same as ID 261. Key facility for Nigeria’s growing T20 infrastructure.
+354,North Sydney Oval,Sydney,Australia,68,58,Natural,Grass,Yes,"16,000",Operational,Bulli Clay: Imported from NSW. Primarily used for Women’s Internationals; very high scoring.
+303,OUTsurance Oval,Bloemfontein,South Africa,75,70,Natural,Grass,Yes,"20,000",Operational,Same as ID 23. Locally known as Mangaung Oval for international matches.
+35,Old Trafford,Manchester,UK,73,68,Natural,Grass,Yes,"26,000",Operational,"Banbury Loam: Sourced from Oxfordshire. Considered the ""spinning"" capital of English cricket."
+318,P Sara Oval,Colombo,Sri Lanka,70,66,Natural,Grass,Yes,"15,000",Operational,Local Colombo Silt: Sourced from the Kelani River. Historic ground; tends to assist pace early on.
+86,Pallekele Intl. Stadium,Kandy,Sri Lanka,75,70,Natural,Grass,Yes,"35,000",Operational,Kandy Clay: Locally sourced. High altitude/humidity leads to significant swing.
+72,Perth Stadium (Optus),Perth,Australia,80,72,Drop-in,Grass,Yes,"60,000",Operational,Warlands Clay: Sourced from Western Australia. Designed to replicate the WACA’s pace/bounce.
+99,Pierre Werner Ground,Walferdange,Luxembourg,65,60,Natural,Grass,No,"1,000",Operational,Imported UK Loam: Likely Ongar; high clay content to endure Northern European rain.
+234,Prairie View Complex,Houston,USA,72,68,Natural,Grass,No,"5,000",Operational,Local Texas Clay: Sourced from Waller County. Known for being slow but consistent.
+83,Providence Stadium,Guyana,Guyana,72,68,Natural,Grass,Yes,"15,000",Operational,"Local Demerara Silt: Sourced from the river basin. Low bounce, heavy turn for spinners."
+301,PCA IS Bindra Stadium,Mohali,India,75,70,Natural,Grass,Yes,"26,000",Operational,"Local Punjab Soil: Known for having the most ""grass cover"" of any Indian stadium traditionally."
+26,Queen's Park Oval,Port of Spain,Trinidad,72,68,Natural,Grass,Yes,"20,000",Operational,Local Trinidad Clay: Sourced from Caroni. Very large square; traditionally aids spinners.
+167,Queens Sports Club,Bulawayo,Zimbabwe,72,68,Natural,Grass,No,"13,000",Operational,"Bulawayo Red Clay: Locally sourced; creates a very flat, high-bounce surface."
+120,R Premadasa Stadium,Colombo,Sri Lanka,70,66,Natural,Grass,Yes,"35,000",Operational,Kelani River Clay: Sourced from Colombo. Heavily aids spinners under D/N conditions.
+81,Rajiv Gandhi Stadium,Hyderabad,India,75,70,Natural,Grass,Yes,"39,000",Operational,Local Black Soil: Sourced from Telangana. Known for being very hard and dry.
+255,Rangiri Dambulla,Dambulla,Sri Lanka,75,70,Natural,Grass,Yes,"16,800",Operational,"Local Dry Zone Soil: Sourced from Central Province. Very fast outfield, seamer-friendly early."
+100,Rawalpindi Stadium,Rawalpindi,Pakistan,75,70,Natural,Grass,Yes,"28,000",Operational,"Local Potohar Clay: Known for the ""Rawalpindi Express"" pace; very hard surface."
+12,Riverside Ground,Chester-le-S,UK,75,70,Natural,Grass,Yes,"19,000",Operational,Banbury Loam: Sourced from Oxfordshire. Most northerly test ground in England.
+238,Roma Cricket Ground,Spinaceto,Italy,64,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Primary hub for Italian national team training.
+173,Royal Brussels Ground,Waterloo,Belgium,65,60,Natural,Grass,No,500,Operational,Imported UK Loam: High maintenance to ensure grass standards in Belgium.
+258,Ruaraka Sports Club,Nairobi,Kenya,68,64,Natural,Grass,No,"1,000",Operational,Kenyan Red Clay: Standard high-altitude fast pitch common in Nairobi.
+28,Sabina Park,Kingston,Jamaica,72,68,Natural,Grass,Yes,"20,000",Operational,"Liguanea Plain Clay: Local dark soil; historically the fastest in the Caribbean, though now more balanced."
+194,Sano International Ground,Sano,Japan,68,64,Natural,Grass,No,"2,500",Operational,Imported Australian Clay: Soil specifically brought from NSW to ensure a professional bounce in Japan.
+205,Santarem Cricket Ground,Albergaria,Portugal,62,58,Synthetic,Grass,No,300,Operational,Standard ECN Mat: High-density synthetic mat used for the European Cricket Network fixtures.
+256,Sao Fernando Polo & CC,Seropedica,Brazil,65,60,Natural,Grass,No,500,Operational,"Local Brazilian Clay: Sourced from the Rio de Janeiro state. Soft soil; produces low, slow bounce."
+37,Saurashtra CA Stadium,Rajkot,India,70,65,Natural,Grass,Yes,"28,000",Operational,"Local Black Soil: Sourced from the Saurashtra region. Known as one of India's flattest, highest-scoring decks."
+329,Sawai Mansingh Stadium,Jaipur,India,72,68,Natural,Grass,Yes,"30,000",Operational,Local Clay Mix: Features a unique mix of Rajasthan sand and clay; tends to stay low as the game progresses.
+245,Saxton Oval,Nelson,New Zealand,75,70,Natural,Grass,No,"6,000",Operational,Patumahoe Clay: Sourced from Auckland. Noted for its high-quality boutique drainage and consistent carry.
+124,Scott Page Field,Prague,Czech Rep,65,62,Synthetic,Grass,No,500,Operational,Synthetic Matting: Durable mat on concrete; primary home for Czech international matches.
+22,Seddon Park,Hamilton,New Zealand,72,68,Natural,Grass,Yes,"10,000",Operational,"Patumahoe Clay: Standard NZ soil. A ""boutique"" circular ground famous for being a batting paradise."
+249,Selangor Turf Club,Kuala Lumpur,Malaysia,68,64,Natural,Grass,No,"1,000",Operational,Local Alluvial Silt: Sourced from the Klang River basin. Often damp; favors slow bowlers.
+24,Senwes Park,Potchefstroom,South Africa,75,70,Natural,Grass,Yes,"18,000",Operational,North West Clay: Local high-clay soil; produces very true bounce and is excellent for day cricket.
+335,Shaheed Veer Narayan,Raipur,India,78,72,Natural,Grass,Yes,"65,000",Operational,Local Chhattisgarh Soil: Large dimensions and hard-packed soil; often plays similar to the MCG.
+136,Sharjah Cricket Stadium,Sharjah,UAE,65,62,Natural,Grass,Yes,"16,000",Operational,Imported Pakistan Clay: Historically used Nandipur soil. Small boundaries make it a world-record hub for sixes.
+18,Sheikh Zayed Stadium,Abu Dhabi,UAE,74,70,Natural,Grass,Yes,"20,000",Operational,"Imported Pakistan Clay: Sourced from Punjab. Famous for the large green grass banks and ""true"" bounce."
+307,Shere Bangla Stadium,Mirpur,Bangladesh,70,66,Natural,Grass,Yes,"25,000",Operational,"Local Mirpur Clay: Extremely high water table; tends to be the ""spin capital"" of the subcontinent."
+240,S.M. Scindia Stadium,Gwalior,India,72,70,Natural,Grass,Yes,"30,000",Operational,Red Soil: Sourced from Maharashtra. New venue (2024) designed for high-pace T20 matches.
+244,Sikh Union Club,Nairobi,Kenya,68,64,Natural,Grass,No,"2,000",Operational,Kenyan Red Clay: Locally sourced. Hard-baked soil that creates a very fast outfield.
+264,Singapore National Ground,Singapore,Singapore,70,66,Natural,Grass,Yes,"5,000",Operational,Imported Australian Loam: Often uses specialized top-dressing to counter the extreme tropical humidity.
+157,Sir Vivian Richards,Antigua,Antigua,72,68,Natural,Grass,Yes,"10,000",Operational,"Local Antiguan Clay: Sourced from the North Sound area. Known for having good ""life"" for fast bowlers."
+21,Sky Stadium,Wellington,New Zealand,75,70,Drop-in,Grass,Yes,"34,500",Operational,"Patumahoe Clay: Drop-in pitches used in a ""Cake Tin"" stadium layout; heavily wind-affected."
+11,Sophia Gardens,Cardiff,UK,75,70,Natural,Grass,Yes,"15,643",Operational,"Banbury Loam: Sourced from Oxfordshire. Known for being a ""big"" ground with one very short side."
+166,Sportpark Westvliet,The Hague,Netherlands,70,66,Natural,Grass,No,"3,000",Operational,Imported UK Loam: High-clay content to withstand the wet Dutch climate.
+78,St George's Park,Gqeberha,South Africa,75,70,Natural,Grass,Yes,"19,000",Operational,Local Eastern Cape Clay: Sourced from Gqeberha. Traditionally slower and helps the older ball reverse swing.
+306,Stadium Australia,Sydney,Australia,85,75,Drop-in,Grass,Yes,"82,500",Operational,Bulli Clay: Drop-in pitches using NSW gold-standard soil. Occasional use for high-profile T20s.
+40,SuperSport Park,Centurion,South Africa,75,70,Natural,Grass,Yes,"22,000",Operational,"Highveld Clay: Sourced from Pretoria. At altitude, the ball flies; the pitch is famously fast."
+19,Sydney Cricket Ground,Sydney,Australia,80,75,Natural,Grass,Yes,"48,000",Operational,"Bulli Clay: Sourced from Bulli, NSW. The only major Australian pitch that traditionally favors spin."
+47,Sylhet Intl. Stadium,Sylhet,Bangladesh,72,68,Natural,Grass,Yes,"18,500",Operational,Tea Garden Soil: Mix of local hilly soil and silt. Usually provides more bounce than Mirpur.
+9,The Rose Bowl,Southampton,UK,75,70,Natural,Grass,Yes,"25,000",Operational,"Banbury Loam: Sourced from Oxfordshire. Designed as a ""circular"" ground to ensure equal boundaries."
+49,The Village,Malahide,Ireland,72,68,Natural,Grass,No,"11,500",Operational,Ongar Loam: Imported from UK. Set in a castle demesne; one of the most picturesque grounds in Europe.
+296,Trent Bridge,Nottingham,UK,70,65,Natural,Grass,Yes,"17,500",Operational,Banbury Loam: Locally sourced/UK mix. Known for world-record high T20 and ODI scores.
+119,TU Intl. Ground,Kirtipur,Nepal,70,66,Natural,Grass,No,"20,000",Operational,Kathmandu Valley Clay: Local mountain soil. High altitude makes it a nightmare for bowlers.
+182,University Oval,Dunedin,New Zealand,75,70,Natural,Grass,No,"6,000",Operational,"Local Otago Loam: Known for being ""colder"" and offering seam movement throughout the day."
+252,University of Dar-es-Salaam Ground,Dar-es-Salaam,Tanzania,65,60,Natural,Grass,No,500,Operational,Coastal Clay: Locally sourced from the Pwani region. Tends to be sandy and slow.
+231,University of Doha for Science & Tech,Doha,Qatar,68,64,Natural,Grass,Yes,"1,500",Operational,Imported Nandipur Clay: Sourced from Pakistan. High-clay content to provide a true bounce in the desert.
+155,University of Lagos Oval,Lagos,Nigeria,62,58,Natural,Grass,No,"1,000",Operational,Local Lagos Clay: Sourced from the Ogun River basin. Traditionally favors spinners with low bounce.
+352,University of Tasmania Stadium,Launceston,Australia,85,70,Drop-in,Grass,Yes,"19,000",Operational,Local Northern Tas Loam: Used for BBL; features one of the longest straight boundaries in the world.
+53,VRA Ground,Amstelveen,Netherlands,72,68,Natural,Grass,No,"4,500",Operational,Imported UK Loam: Likely Ongar Loam; helps maintain a firm square despite the high Dutch water table.
+280,Vassil Levski National Academy,Sofia,Bulgaria,65,60,Synthetic,Grass,No,500,Operational,Synthetic Matting: Durable mat over a hard-packed base to survive the Balkan winters.
+271,Velden Cricket Ground,Latschach,Austria,65,62,Natural,Grass,No,"1,000",Operational,Imported UK/Italian Loam: Sourced to provide a professional turf standard for Central European tournaments.
+14,"VCA Stadium, Jamtha",Nagpur,India,80,75,Natural,Grass,Yes,"45,000",Operational,"Local Black Soil: Sourced from Vidarbha. Known for its massive size and for being a ""true"" cricket pitch."
+118,Wanderers Cricket Ground,Windhoek,Namibia,72,68,Natural,Grass,No,"2,000",Operational,"Local Khomas Clay: Very hard and dry; the ball travels fast through the thin, arid air."
+44,Wankhede Stadium,Mumbai,India,68,65,Natural,Grass,Yes,"33,108",Operational,"Kalyan Red Soil: Sourced from Thane. Famous for its ""red soil bounce"" and coastal swing."
+170,Warner Park,Basseterre,St Kitts,65,60,Natural,Grass,Yes,"8,000",Operational,"St Kitts Volcanic Soil: Extremely small boundaries and high-scoring ""road-like"" pitches."
+156,West End Park Intl. Stadium,Doha,Qatar,72,68,Natural,Grass,Yes,"13,000",Operational,Imported Pakistan Clay: Specifically sourced to mimic subcontinental conditions for the expat community.
+291,WACA Ground,Perth,Australia,75,70,Natural,Grass,Yes,"20,000",Operational,"Warlands Clay: Sourced from Harvey, WA. Historically the fastest, most feared pitch in the world."
+88,White Hill Field,Sandys Parish,Bermuda,68,64,Natural,Grass,No,"1,000",Operational,Bermuda Red Clay: Local porous soil; allows for quick drying after Atlantic rain squalls.
+192,Willowmoore Park,Benoni,South Africa,72,68,Natural,Grass,Yes,"20,000",Operational,"Local Gauteng Clay: Sourced from the East Rand. Known as a seam-friendly ""green-top"" venue."
+168,Windsor Park,Roseau,Dominica,72,68,Natural,Grass,Yes,"12,000",Operational,Local Volcanic Silt: Rich black soil; often stays slow and favors spin late in the match.
+250,YSD-UKM Cricket Oval,Bangi,Malaysia,68,64,Natural,Grass,Yes,"1,000",Operational,"Local Alluvial Clay: Sourced from Selangor. High humidity often keeps the pitch ""tacky"" and slow."
+253,Yeonhui Cricket Ground,Incheon,South Korea,68,64,Natural,Grass,No,"2,500",Operational,Imported Australian Clay: Sourced from NSW to provide the highest standard for Asian Games legacy.
+87,Zahur Ahmed Chowdhury Stadium,Chattogram,Bangladesh,70,66,Natural,Grass,Yes,"22,000",Operational,"Local Coastal Silt: Sourced from Chittagong. Traditionally a very high-scoring, flat batting track."
+135,Zayed Cricket Stadium,Abu Dhabi,UAE,74,70,Natural,Grass,Yes,"20,000",Operational,Nandipur Clay: Sourced from Pakistan. Iconic for its large grass banks and fair contest between bat and ball.
+221,Zhejiang University Field,Hangzhou,China,68,64,Natural,Grass,No,"3,000",Operational,Imported Australian Clay: Sourced from NSW; specifically developed for the 2022 Asian Games.
