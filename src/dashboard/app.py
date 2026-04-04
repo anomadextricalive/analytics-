@@ -1465,14 +1465,20 @@ if "01" in page:
                 st.write(f"**players collection count:** `{n}`")
             except Exception as e:
                 st.write(f"**players count error:** `{e}`")
-        _rp  = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM players")
-        _rb  = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM player_career_bat WHERE tournament='ALL'")
-        _rbw = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM player_career_bowl WHERE tournament='ALL'")
-        _rr  = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM player_ratings WHERE tournament='ALL'")
-        st.write(f"**players:** `{_rp['n'][0] if not _rp.empty else 'err'}` | **career_bat ALL:** `{_rb['n'][0] if not _rb.empty else 'err'}` | **career_bowl ALL:** `{_rbw['n'][0] if not _rbw.empty else 'err'}` | **ratings ALL:** `{_rr['n'][0] if not _rr.empty else 'err'}`")
-        _sid = _exec_sql(_db_engine, "SELECT id FROM players LIMIT 1")
-        _sbat = _exec_sql(_db_engine, "SELECT player_id, innings FROM player_career_bat WHERE tournament='ALL' LIMIT 1")
-        st.write(f"**sample player id dtype:** `{_sid['id'].dtype if not _sid.empty else 'err'}` | **sample bat player_id dtype:** `{_sbat['player_id'].dtype if not _sbat.empty else 'err'}`")
+        st.cache_data.clear()
+        _p   = _exec_sql(_db_engine, "SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
+        _pcb = _exec_sql(_db_engine, "SELECT player_id, innings, runs FROM player_career_bat WHERE tournament='ALL'")
+        _pbw = _exec_sql(_db_engine, "SELECT player_id, innings AS bowl_innings FROM player_career_bowl WHERE tournament='ALL'")
+        st.write(f"**p rows:** `{len(_p)}` dtypes: `{dict(_p.dtypes)}`")
+        st.write(f"**pcb rows:** `{len(_pcb)}` dtypes: `{dict(_pcb.dtypes)}`")
+        _merged = _p.merge(_pcb, left_on="id", right_on="player_id", how="left")
+        st.write(f"**after merge rows:** `{len(_merged)}` | innings nulls: `{_merged['innings'].isna().sum()}`")
+        _merged["innings"] = _merged["innings"].fillna(0)
+        _filtered = _merged[_merged["innings"] >= 1]
+        st.write(f"**after innings>=1 filter:** `{len(_filtered)}`")
+        _merged2 = _p.merge(_pbw, left_on="id", right_on="player_id", how="left")
+        _merged2["bowl_innings"] = _merged2["bowl_innings"].fillna(0)
+        st.write(f"**bowl innings>=1:** `{len(_merged2[_merged2['bowl_innings'] >= 1])}`")
         st.write(f"**all_players() rows:** `{len(all_players())}`")
     # ── END DEBUG ──
 
