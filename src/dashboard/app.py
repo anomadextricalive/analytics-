@@ -796,27 +796,26 @@ def all_players() -> pd.DataFrame:
             pass  # fall through to SQLite
 
     # SQLite path: simple per-table queries merged in Python (avoids JOIN issues)
-    def _sq(q):
-        try:
-            with _db_engine.connect() as conn:
-                return pd.read_sql(text(q), conn)
-        except Exception:
-            return pd.DataFrame()
-
-    p    = _sq("SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
+    p    = _exec_sql(_db_engine, "SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
     if p.empty:
         return pd.DataFrame()
 
-    pcb  = _sq("SELECT player_id, innings, runs, average, strike_rate, adj_average, adj_strike_rate, fifties, hundreds, hs, pp_sr, mid_sr, death_sr FROM player_career_bat WHERE tournament = 'ALL'")
-    pr   = _sq("SELECT player_id, bat_rating, bowl_rating, overall_rating, opener_score, finisher_score, anchor_score, chase_score, pp_bat_score, death_bat_score, pp_bowl_score, death_bowl_score FROM player_ratings WHERE tournament = 'ALL'")
-    pcbw = _sq("SELECT player_id, innings AS bowl_innings FROM player_career_bowl WHERE tournament = 'ALL'")
+    pcb  = _exec_sql(_db_engine, "SELECT player_id, innings, runs, average, strike_rate, adj_average, adj_strike_rate, fifties, hundreds, hs, pp_sr, mid_sr, death_sr FROM player_career_bat WHERE tournament = 'ALL'")
+    pr   = _exec_sql(_db_engine, "SELECT player_id, bat_rating, bowl_rating, overall_rating, opener_score, finisher_score, anchor_score, chase_score, pp_bat_score, death_bat_score, pp_bowl_score, death_bowl_score FROM player_ratings WHERE tournament = 'ALL'")
+    pcbw = _exec_sql(_db_engine, "SELECT player_id, innings AS bowl_innings FROM player_career_bowl WHERE tournament = 'ALL'")
+
+    # Cast merge keys to same type — SQLite nullable ints can come back as float64
+    p["id"] = p["id"].astype("Int64")
+    for _df in [pcb, pr, pcbw]:
+        if not _df.empty:
+            _df["player_id"] = _df["player_id"].astype("Int64")
 
     df = p.merge(pcb,  left_on="id", right_on="player_id", how="left") \
           .merge(pr,   left_on="id", right_on="player_id", how="left", suffixes=("", "_r")) \
           .merge(pcbw, left_on="id", right_on="player_id", how="left", suffixes=("", "_bw"))
 
     df["innings"]      = df["innings"].fillna(0).astype(int)
-    df["bowl_innings"] = df.get("bowl_innings", pd.Series(0, index=df.index)).fillna(0).astype(int)
+    df["bowl_innings"] = df["bowl_innings"].fillna(0).astype(int) if "bowl_innings" in df.columns else 0
     df = df[(df["innings"] >= 1) | (df["bowl_innings"] >= 1)]
     df = df.sort_values("overall_rating", ascending=False, na_position="last")
     for c in [col for col in df.columns if col.endswith("_r") or col.endswith("_bw") or col == "player_id"]:
