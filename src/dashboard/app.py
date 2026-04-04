@@ -19,16 +19,18 @@ sys.path.insert(0, str(ROOT))
 from config import DB_PATH
 from src.db.schema import get_engine
 
-# Auto-decompress DB if missing (for hosted deployments with read-only fs)
-_gz = ROOT / "data" / "cricket.db.gz"
-if not DB_PATH.exists() and _gz.exists():
-    import gzip, shutil, os
-    # Streamlit Cloud has a read-only repo dir — write to /tmp instead
-    _tmp_db = Path("/tmp/cricket.db")
+# DB_PATH comes from config which always resolves correctly.
+# Use its parent to find the gz — avoids ROOT being wrong in exec() contexts.
+_gz = Path(DB_PATH).parent / "cricket.db.gz"
+_tmp_db = Path("/tmp/cricket.db")
+
+if _gz.exists():
+    import gzip, shutil
+    # Always decompress to /tmp so we get the current schema, not a stale
+    # cached cricket.db that may be missing columns added since last commit.
     if not _tmp_db.exists():
         with gzip.open(_gz, "rb") as _f_in, open(_tmp_db, "wb") as _f_out:
             shutil.copyfileobj(_f_in, _f_out)
-    # Monkey-patch DB_PATH so get_engine() uses /tmp/cricket.db
     import config as _cfg
     _cfg.DB_PATH = _tmp_db
     DB_PATH = _tmp_db
@@ -536,7 +538,7 @@ def sql(q: str, **kw) -> pd.DataFrame:
 def _sqlite_fallback(q: str, **kw) -> pd.DataFrame:
     """Run a SQL query, decompressing the DB to /tmp if needed."""
     _tmp_db = Path("/tmp/cricket.db")
-    _gz     = ROOT / "data" / "cricket.db.gz"
+    _gz     = Path(DB_PATH).parent / "cricket.db.gz"
     if not _tmp_db.exists() and _gz.exists():
         import gzip, shutil
         with gzip.open(_gz, "rb") as _fi, open(_tmp_db, "wb") as _fo:
