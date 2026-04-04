@@ -515,40 +515,44 @@ _db_engine = get_db_engine()
 _use_mongo = _mongo is not None
 
 
+def _exec_sql(engine, q: str, **kw) -> pd.DataFrame:
+    """Execute a SQL query against the given engine, return a DataFrame.
+    Uses conn.execute() directly to avoid pd.read_sql compatibility issues
+    with Python 3.14 / SQLAlchemy 2.x / pandas 2.x."""
+    try:
+        params = kw if kw else {}
+        with engine.connect() as conn:
+            result = conn.execute(text(q), params)
+            rows   = result.fetchall()
+            cols   = list(result.keys())
+        return pd.DataFrame(rows, columns=cols)
+    except Exception:
+        return pd.DataFrame()
+
+
 def sql(q: str, **kw) -> pd.DataFrame:
     """Run a SQL query — uses MongoDB on hosted deployments, SQLite locally."""
     if _use_mongo:
         return _mongo_sql(q, **kw)
-    try:
-        with _db_engine.connect() as conn:
-            return pd.read_sql(text(q), conn, params=kw or None)
-    except Exception:
-        return pd.DataFrame()
+    return _exec_sql(_db_engine, q, **kw)
 
 
 def _sqlite_fallback(q: str, **kw) -> pd.DataFrame:
-    """Ensure SQLite DB is available and run the query."""
+    """Run a SQL query, decompressing the DB to /tmp if needed."""
     _tmp_db = Path("/tmp/cricket.db")
     _gz     = ROOT / "data" / "cricket.db.gz"
-    # Decompress if not present
     if not _tmp_db.exists() and _gz.exists():
         import gzip, shutil
         with gzip.open(_gz, "rb") as _fi, open(_tmp_db, "wb") as _fo:
             shutil.copyfileobj(_fi, _fo)
-    # Rebuild session pointing at /tmp db if needed
     if _tmp_db.exists():
         try:
             from sqlalchemy import create_engine as _ce
             _eng = _ce(f"sqlite:///{_tmp_db}", echo=False)
-            with _eng.connect() as conn:
-                return pd.read_sql(text(q), conn, params=kw or None)
+            return _exec_sql(_eng, q, **kw)
         except Exception:
             pass
-    try:
-        with _db_engine.connect() as conn:
-            return pd.read_sql(text(q), conn, params=kw or None)
-    except Exception:
-        return pd.DataFrame()
+    return _exec_sql(_db_engine, q, **kw)
 
 
 def _mongo_sql(q: str, **kw) -> pd.DataFrame:
@@ -791,28 +795,33 @@ def all_players() -> pd.DataFrame:
         except Exception:
             pass  # fall through to SQLite
 
-    # SQLite path (local dev or MongoDB unavailable)
-    return _sqlite_fallback("""
-        SELECT p.id, p.cricsheet_key AS name, p.country,
-               p.bowling_style, p.player_role,
-               COALESCE(pcb.innings, 0) AS innings,
-               COALESCE(pcb.runs, 0) AS runs,
-               pcb.average, pcb.strike_rate,
-               pcb.adj_average, pcb.adj_strike_rate,
-               pcb.fifties, pcb.hundreds, pcb.hs,
-               pcb.pp_sr, pcb.mid_sr, pcb.death_sr,
-               pr.bat_rating, pr.bowl_rating, pr.overall_rating,
-               pr.opener_score, pr.finisher_score, pr.anchor_score,
-               pr.chase_score, pr.pp_bat_score, pr.death_bat_score,
-               pr.pp_bowl_score, pr.death_bowl_score
-        FROM players p
-        LEFT JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
-        LEFT JOIN player_ratings pr ON pr.player_id = p.id AND pr.tournament = 'ALL'
-        LEFT JOIN player_career_bowl pcbw ON pcbw.player_id = p.id AND pcbw.tournament = 'ALL'
-        WHERE COALESCE(pcb.innings, 0) >= 1
-           OR COALESCE(pcbw.innings, 0) >= 1
-        ORDER BY COALESCE(pr.overall_rating, 0) DESC
-    """)
+    # SQLite path: simple per-table queries merged in Python (avoids JOIN issues)
+    def _sq(q):
+        try:
+            with _db_engine.connect() as conn:
+                return pd.read_sql(text(q), conn)
+        except Exception:
+            return pd.DataFrame()
+
+    p    = _sq("SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
+    if p.empty:
+        return pd.DataFrame()
+
+    pcb  = _sq("SELECT player_id, innings, runs, average, strike_rate, adj_average, adj_strike_rate, fifties, hundreds, hs, pp_sr, mid_sr, death_sr FROM player_career_bat WHERE tournament = 'ALL'")
+    pr   = _sq("SELECT player_id, bat_rating, bowl_rating, overall_rating, opener_score, finisher_score, anchor_score, chase_score, pp_bat_score, death_bat_score, pp_bowl_score, death_bowl_score FROM player_ratings WHERE tournament = 'ALL'")
+    pcbw = _sq("SELECT player_id, innings AS bowl_innings FROM player_career_bowl WHERE tournament = 'ALL'")
+
+    df = p.merge(pcb,  left_on="id", right_on="player_id", how="left") \
+          .merge(pr,   left_on="id", right_on="player_id", how="left", suffixes=("", "_r")) \
+          .merge(pcbw, left_on="id", right_on="player_id", how="left", suffixes=("", "_bw"))
+
+    df["innings"]      = df["innings"].fillna(0).astype(int)
+    df["bowl_innings"] = df.get("bowl_innings", pd.Series(0, index=df.index)).fillna(0).astype(int)
+    df = df[(df["innings"] >= 1) | (df["bowl_innings"] >= 1)]
+    df = df.sort_values("overall_rating", ascending=False, na_position="last")
+    for c in [col for col in df.columns if col.endswith("_r") or col.endswith("_bw") or col == "player_id"]:
+        df.drop(columns=c, inplace=True, errors="ignore")
+    return df.reset_index(drop=True)
 
 
 @st.cache_data(ttl=120)
@@ -1460,35 +1469,13 @@ if "01" in page:
                 st.write(f"**players collection count:** `{n}`")
             except Exception as e:
                 st.write(f"**players count error:** `{e}`")
-        # Test simple query
-        try:
-            with _db_engine.connect() as _c:
-                _r = pd.read_sql(text("SELECT COUNT(*) as n FROM players"), _c)
-            st.write(f"**SQLite players count:** `{_r['n'][0]}`")
-        except Exception as e:
-            st.write(f"**SQLite simple error:** `{e}`")
-        # Test join query directly
-        _join_q = """
-            SELECT p.id, p.cricsheet_key AS name
-            FROM players p
-            LEFT JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
-            WHERE COALESCE(pcb.innings, 0) >= 1
-            LIMIT 5
-        """
-        try:
-            with _db_engine.connect() as _c:
-                _r2 = pd.read_sql(text(_join_q), _c)
-            st.write(f"**JOIN test rows:** `{len(_r2)}`")
-            st.write(_r2)
-        except Exception as e:
-            st.write(f"**JOIN error:** `{e}`")
-        # Test tables exist
-        try:
-            with _db_engine.connect() as _c:
-                _t = pd.read_sql(text("SELECT name FROM sqlite_master WHERE type='table'"), _c)
-            st.write(f"**Tables:** `{sorted(_t['name'].tolist())}`")
-        except Exception as e:
-            st.write(f"**Tables error:** `{e}`")
+        _r = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM players")
+        st.write(f"**SQLite players count:** `{_r['n'][0] if not _r.empty else 'error'}`")
+        _r2 = _exec_sql(_db_engine, "SELECT player_id, innings FROM player_career_bat WHERE tournament = 'ALL' LIMIT 3")
+        st.write(f"**player_career_bat sample ({len(_r2)} rows):**"); st.write(_r2)
+        _t = _exec_sql(_db_engine, "SELECT name FROM sqlite_master WHERE type='table'")
+        st.write(f"**Tables:** `{sorted(_t['name'].tolist()) if not _t.empty else 'error'}`")
+        st.write(f"**all_players() rows:** `{len(all_players())}`")
     # ── END DEBUG ──
 
     df = all_players()
