@@ -26,11 +26,10 @@ _tmp_db = Path("/tmp/cricket.db")
 
 if _gz.exists():
     import gzip, shutil
-    # Always decompress to /tmp so we get the current schema, not a stale
-    # cached cricket.db that may be missing columns added since last commit.
-    if not _tmp_db.exists():
-        with gzip.open(_gz, "rb") as _f_in, open(_tmp_db, "wb") as _f_out:
-            shutil.copyfileobj(_f_in, _f_out)
+    # Always overwrite — /tmp persists across Streamlit Cloud deployments,
+    # so a stale cached DB could survive with an old schema.
+    with gzip.open(_gz, "rb") as _f_in, open(_tmp_db, "wb") as _f_out:
+        shutil.copyfileobj(_f_in, _f_out)
     import config as _cfg
     _cfg.DB_PATH = _tmp_db
     DB_PATH = _tmp_db
