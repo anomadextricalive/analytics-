@@ -516,22 +516,21 @@ _use_mongo = _mongo is not None
 
 
 def _exec_sql(engine, q: str, **kw) -> pd.DataFrame:
-    """Execute a SQL query against the given engine, return a DataFrame.
-    Uses mappings() to get dicts — works reliably on Python 3.14 / SA 2.x."""
-    try:
-        params = kw if kw else {}
-        with engine.connect() as conn:
-            rows = conn.execute(text(q), params).mappings().fetchall()
-        return pd.DataFrame([dict(r) for r in rows])
-    except Exception:
-        return pd.DataFrame()
+    """Execute a SQL query against the given engine, return a DataFrame."""
+    with engine.connect() as conn:
+        result = conn.execute(text(q), kw) if kw else conn.execute(text(q))
+        rows = result.mappings().fetchall()
+    return pd.DataFrame([dict(r) for r in rows])
 
 
 def sql(q: str, **kw) -> pd.DataFrame:
     """Run a SQL query — uses MongoDB on hosted deployments, SQLite locally."""
     if _use_mongo:
         return _mongo_sql(q, **kw)
-    return _exec_sql(_db_engine, q, **kw)
+    try:
+        return _exec_sql(_db_engine, q, **kw)
+    except Exception:
+        return pd.DataFrame()
 
 
 def _sqlite_fallback(q: str, **kw) -> pd.DataFrame:
@@ -1466,19 +1465,25 @@ if "01" in page:
             except Exception as e:
                 st.write(f"**players count error:** `{e}`")
         st.cache_data.clear()
-        _p   = _exec_sql(_db_engine, "SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
-        _pcb = _exec_sql(_db_engine, "SELECT player_id, innings, runs FROM player_career_bat WHERE tournament='ALL'")
-        _pbw = _exec_sql(_db_engine, "SELECT player_id, innings AS bowl_innings FROM player_career_bowl WHERE tournament='ALL'")
-        st.write(f"**p rows:** `{len(_p)}` dtypes: `{dict(_p.dtypes)}`")
-        st.write(f"**pcb rows:** `{len(_pcb)}` dtypes: `{dict(_pcb.dtypes)}`")
-        _merged = _p.merge(_pcb, left_on="id", right_on="player_id", how="left")
-        st.write(f"**after merge rows:** `{len(_merged)}` | innings nulls: `{_merged['innings'].isna().sum()}`")
-        _merged["innings"] = _merged["innings"].fillna(0)
-        _filtered = _merged[_merged["innings"] >= 1]
-        st.write(f"**after innings>=1 filter:** `{len(_filtered)}`")
-        _merged2 = _p.merge(_pbw, left_on="id", right_on="player_id", how="left")
-        _merged2["bowl_innings"] = _merged2["bowl_innings"].fillna(0)
-        st.write(f"**bowl innings>=1:** `{len(_merged2[_merged2['bowl_innings'] >= 1])}`")
+        try:
+            _p = _exec_sql(_db_engine, "SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
+            st.write(f"**p rows:** `{len(_p)}` cols: `{list(_p.columns)}`")
+        except Exception as _e:
+            st.error(f"players query failed: {_e}")
+            _p = pd.DataFrame()
+        try:
+            _pcb = _exec_sql(_db_engine, "SELECT player_id, innings, runs FROM player_career_bat WHERE tournament='ALL'")
+            st.write(f"**pcb rows:** `{len(_pcb)}` cols: `{list(_pcb.columns)}`")
+        except Exception as _e:
+            st.error(f"career_bat query failed: {_e}")
+            _pcb = pd.DataFrame()
+        if not _p.empty and not _pcb.empty:
+            try:
+                _merged = _p.merge(_pcb, left_on="id", right_on="player_id", how="left")
+                _merged["innings"] = _merged["innings"].fillna(0)
+                st.write(f"**merged rows:** `{len(_merged)}` | innings>=1: `{(_merged['innings']>=1).sum()}`")
+            except Exception as _e:
+                st.error(f"merge failed: {_e}")
         st.write(f"**all_players() rows:** `{len(all_players())}`")
     # ── END DEBUG ──
 
