@@ -696,7 +696,7 @@ _NAV_PAGES = [
     "Matchup Lab",
     "Match Predictor",
 ]
-_nav_sel = st.pills("", _NAV_PAGES, default="Player Explorer",
+_nav_sel = st.pills("Navigation", _NAV_PAGES, default="Player Explorer",
                     key="top_nav", label_visibility="collapsed")
 page = f"0{_NAV_PAGES.index(_nav_sel) + 1}  {_nav_sel}"
 
@@ -737,7 +737,62 @@ st.markdown("""
 
 @st.cache_data(ttl=120)
 def all_players() -> pd.DataFrame:
-    return sql("""
+    # Fast MongoDB path: fetch collections independently and merge in Python
+    if _use_mongo:
+        try:
+            players_raw = list(_mongo["players"].find(
+                {}, {"_id": 0, "id": 1, "cricsheet_key": 1, "country": 1,
+                     "bowling_style": 1, "player_role": 1}
+            ))
+            if not players_raw:
+                raise ValueError("empty players collection")
+            p = pd.DataFrame(players_raw).rename(columns={"cricsheet_key": "name"})
+
+            bat_raw = list(_mongo["player_career_bat"].find(
+                {"tournament": "ALL"},
+                {"_id": 0, "player_id": 1, "innings": 1, "runs": 1,
+                 "average": 1, "strike_rate": 1, "adj_average": 1,
+                 "adj_strike_rate": 1, "fifties": 1, "hundreds": 1, "hs": 1,
+                 "pp_sr": 1, "mid_sr": 1, "death_sr": 1}
+            ))
+            pcb = pd.DataFrame(bat_raw) if bat_raw else pd.DataFrame(
+                columns=["player_id", "innings", "runs"])
+
+            rat_raw = list(_mongo["player_ratings"].find(
+                {"tournament": "ALL"},
+                {"_id": 0, "player_id": 1, "bat_rating": 1, "bowl_rating": 1,
+                 "overall_rating": 1, "opener_score": 1, "finisher_score": 1,
+                 "anchor_score": 1, "chase_score": 1, "pp_bat_score": 1,
+                 "death_bat_score": 1, "pp_bowl_score": 1, "death_bowl_score": 1}
+            ))
+            pr = pd.DataFrame(rat_raw) if rat_raw else pd.DataFrame(
+                columns=["player_id"])
+
+            bowl_raw = list(_mongo["player_career_bowl"].find(
+                {"tournament": "ALL"},
+                {"_id": 0, "player_id": 1, "innings": 1}
+            ))
+            pcbw = pd.DataFrame(bowl_raw).rename(
+                columns={"innings": "bowl_innings"}) if bowl_raw else pd.DataFrame(
+                columns=["player_id", "bowl_innings"])
+
+            df = p.merge(pcb, left_on="id", right_on="player_id", how="left") \
+                  .merge(pr,  left_on="id", right_on="player_id", how="left", suffixes=("", "_r")) \
+                  .merge(pcbw, left_on="id", right_on="player_id", how="left", suffixes=("", "_bw"))
+
+            df["innings"]     = df["innings"].fillna(0).astype(int)
+            df["bowl_innings"] = df.get("bowl_innings", pd.Series(0, index=df.index)).fillna(0).astype(int)
+            df = df[(df["innings"] >= 1) | (df["bowl_innings"] >= 1)]
+            df = df.sort_values("overall_rating", ascending=False, na_position="last")
+            # Drop helper merge columns
+            for c in [col for col in df.columns if col.endswith("_r") or col.endswith("_bw") or col == "player_id"]:
+                df.drop(columns=c, inplace=True, errors="ignore")
+            return df.reset_index(drop=True)
+        except Exception:
+            pass  # fall through to SQLite
+
+    # SQLite path (local dev or MongoDB unavailable)
+    return _sqlite_fallback("""
         SELECT p.id, p.cricsheet_key AS name, p.country,
                p.bowling_style, p.player_role,
                COALESCE(pcb.innings, 0) AS innings,
