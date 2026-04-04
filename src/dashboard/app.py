@@ -1449,6 +1449,32 @@ if "01" in page:
       <p>Browse every player in the database · filter · sort · click to expand</p>
     </div>""", unsafe_allow_html=True)
 
+    # ── DEBUG (remove after fixing hosted deployment) ──
+    with st.expander("🔧 Debug info", expanded=True):
+        st.write(f"**MongoDB connected:** `{_use_mongo}`")
+        st.write(f"**DB_PATH:** `{DB_PATH}`")
+        tmp_db = Path("/tmp/cricket.db")
+        st.write(f"**/tmp/cricket.db exists:** `{tmp_db.exists()}`")
+        gz = ROOT / "data" / "cricket.db.gz"
+        st.write(f"**cricket.db.gz exists:** `{gz.exists()}`")
+        if _use_mongo:
+            try:
+                n = _mongo["players"].count_documents({})
+                st.write(f"**players collection count:** `{n}`")
+            except Exception as e:
+                st.write(f"**players count error:** `{e}`")
+        _df_debug = all_players()
+        st.write(f"**all_players() rows:** `{len(_df_debug)}`")
+        if _df_debug.empty:
+            # Try raw SQLite
+            try:
+                with _db_engine.connect() as _c:
+                    _r = pd.read_sql(text("SELECT COUNT(*) as n FROM players"), _c)
+                st.write(f"**SQLite players count:** `{_r['n'][0]}`")
+            except Exception as e:
+                st.write(f"**SQLite error:** `{e}`")
+    # ── END DEBUG ──
+
     df = all_players()
     if df.empty:
         st.warning("No players found. Run the ingestion pipeline first.")
