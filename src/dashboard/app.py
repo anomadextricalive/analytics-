@@ -1452,27 +1452,43 @@ if "01" in page:
     # ── DEBUG (remove after fixing hosted deployment) ──
     with st.expander("🔧 Debug info", expanded=True):
         st.write(f"**MongoDB connected:** `{_use_mongo}`")
-        st.write(f"**DB_PATH:** `{DB_PATH}`")
-        tmp_db = Path("/tmp/cricket.db")
-        st.write(f"**/tmp/cricket.db exists:** `{tmp_db.exists()}`")
-        gz = ROOT / "data" / "cricket.db.gz"
-        st.write(f"**cricket.db.gz exists:** `{gz.exists()}`")
+        st.write(f"**DB_PATH:** `{DB_PATH}` exists=`{Path(DB_PATH).exists()}`")
+        st.write(f"**ROOT:** `{ROOT}`")
         if _use_mongo:
             try:
                 n = _mongo["players"].count_documents({})
                 st.write(f"**players collection count:** `{n}`")
             except Exception as e:
                 st.write(f"**players count error:** `{e}`")
-        _df_debug = all_players()
-        st.write(f"**all_players() rows:** `{len(_df_debug)}`")
-        if _df_debug.empty:
-            # Try raw SQLite
-            try:
-                with _db_engine.connect() as _c:
-                    _r = pd.read_sql(text("SELECT COUNT(*) as n FROM players"), _c)
-                st.write(f"**SQLite players count:** `{_r['n'][0]}`")
-            except Exception as e:
-                st.write(f"**SQLite error:** `{e}`")
+        # Test simple query
+        try:
+            with _db_engine.connect() as _c:
+                _r = pd.read_sql(text("SELECT COUNT(*) as n FROM players"), _c)
+            st.write(f"**SQLite players count:** `{_r['n'][0]}`")
+        except Exception as e:
+            st.write(f"**SQLite simple error:** `{e}`")
+        # Test join query directly
+        _join_q = """
+            SELECT p.id, p.cricsheet_key AS name
+            FROM players p
+            LEFT JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
+            WHERE COALESCE(pcb.innings, 0) >= 1
+            LIMIT 5
+        """
+        try:
+            with _db_engine.connect() as _c:
+                _r2 = pd.read_sql(text(_join_q), _c)
+            st.write(f"**JOIN test rows:** `{len(_r2)}`")
+            st.write(_r2)
+        except Exception as e:
+            st.write(f"**JOIN error:** `{e}`")
+        # Test tables exist
+        try:
+            with _db_engine.connect() as _c:
+                _t = pd.read_sql(text("SELECT name FROM sqlite_master WHERE type='table'"), _c)
+            st.write(f"**Tables:** `{sorted(_t['name'].tolist())}`")
+        except Exception as e:
+            st.write(f"**Tables error:** `{e}`")
     # ── END DEBUG ──
 
     df = all_players()
