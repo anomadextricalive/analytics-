@@ -508,11 +508,11 @@ def get_mongo():
         return None
 
 @st.cache_resource
-def get_db_engine():
-    return get_engine(DB_PATH)
+def get_db_engine(path: str):
+    return get_engine(path)
 
 _mongo     = get_mongo()
-_db_engine = get_db_engine()
+_db_engine = get_db_engine(str(DB_PATH))
 _use_mongo = _mongo is not None
 
 
