@@ -517,15 +517,12 @@ _use_mongo = _mongo is not None
 
 def _exec_sql(engine, q: str, **kw) -> pd.DataFrame:
     """Execute a SQL query against the given engine, return a DataFrame.
-    Uses conn.execute() directly to avoid pd.read_sql compatibility issues
-    with Python 3.14 / SQLAlchemy 2.x / pandas 2.x."""
+    Uses mappings() to get dicts — works reliably on Python 3.14 / SA 2.x."""
     try:
         params = kw if kw else {}
         with engine.connect() as conn:
-            result = conn.execute(text(q), params)
-            rows   = result.fetchall()
-            cols   = list(result.keys())
-        return pd.DataFrame(rows, columns=cols)
+            rows = conn.execute(text(q), params).mappings().fetchall()
+        return pd.DataFrame([dict(r) for r in rows])
     except Exception:
         return pd.DataFrame()
 
@@ -1468,12 +1465,14 @@ if "01" in page:
                 st.write(f"**players collection count:** `{n}`")
             except Exception as e:
                 st.write(f"**players count error:** `{e}`")
-        _r = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM players")
-        st.write(f"**SQLite players count:** `{_r['n'][0] if not _r.empty else 'error'}`")
-        _r2 = _exec_sql(_db_engine, "SELECT player_id, innings FROM player_career_bat WHERE tournament = 'ALL' LIMIT 3")
-        st.write(f"**player_career_bat sample ({len(_r2)} rows):**"); st.write(_r2)
-        _t = _exec_sql(_db_engine, "SELECT name FROM sqlite_master WHERE type='table'")
-        st.write(f"**Tables:** `{sorted(_t['name'].tolist()) if not _t.empty else 'error'}`")
+        _rp  = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM players")
+        _rb  = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM player_career_bat WHERE tournament='ALL'")
+        _rbw = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM player_career_bowl WHERE tournament='ALL'")
+        _rr  = _exec_sql(_db_engine, "SELECT COUNT(*) as n FROM player_ratings WHERE tournament='ALL'")
+        st.write(f"**players:** `{_rp['n'][0] if not _rp.empty else 'err'}` | **career_bat ALL:** `{_rb['n'][0] if not _rb.empty else 'err'}` | **career_bowl ALL:** `{_rbw['n'][0] if not _rbw.empty else 'err'}` | **ratings ALL:** `{_rr['n'][0] if not _rr.empty else 'err'}`")
+        _sid = _exec_sql(_db_engine, "SELECT id FROM players LIMIT 1")
+        _sbat = _exec_sql(_db_engine, "SELECT player_id, innings FROM player_career_bat WHERE tournament='ALL' LIMIT 1")
+        st.write(f"**sample player id dtype:** `{_sid['id'].dtype if not _sid.empty else 'err'}` | **sample bat player_id dtype:** `{_sbat['player_id'].dtype if not _sbat.empty else 'err'}`")
         st.write(f"**all_players() rows:** `{len(all_players())}`")
     # ── END DEBUG ──
 
