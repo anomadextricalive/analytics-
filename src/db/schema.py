@@ -750,6 +750,44 @@ class PlayerRating(Base):
     updated_at      = Column(Date)
 
 
+class PlayerSimilarity(Base):
+    """Precomputed cosine-similarity between player role profiles."""
+    __tablename__ = "player_similarity"
+
+    player_id_a = Column(Integer, ForeignKey("players.id"), primary_key=True)
+    player_id_b = Column(Integer, ForeignKey("players.id"), primary_key=True)
+    tournament  = Column(String, primary_key=True, default="ALL")
+    similarity  = Column(Float)   # 0–1
+
+    __table_args__ = (
+        Index("ix_sim_a", "player_id_a", "tournament"),
+    )
+
+
+class PlayerForm(Base):
+    """Rolling form metrics per player — updated each pipeline run."""
+    __tablename__ = "player_form"
+
+    player_id      = Column(Integer, ForeignKey("players.id"), primary_key=True)
+
+    avg_5          = Column(Float)
+    avg_10         = Column(Float)
+    avg_20         = Column(Float)
+    sr_5           = Column(Float)
+    sr_10          = Column(Float)
+    sr_20          = Column(Float)
+
+    career_avg     = Column(Float)
+    career_sr      = Column(Float)
+    cv             = Column(Float)   # coefficient of variation (std/mean×100)
+
+    breakout_flag  = Column(Boolean, default=False)
+    breakout_delta = Column(Float)   # avg_10 − career_avg
+
+    innings_total  = Column(Integer)
+    updated_at     = Column(Date)
+
+
 def get_engine(db_path=None):
     from config import DB_PATH
     path = db_path or DB_PATH

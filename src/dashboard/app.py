@@ -52,21 +52,37 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700;800&display=swap');
 
+:root {
+    --bg:        #F7FAFF;
+    --surface:   #FFFFFF;
+    --border:    #E2E8F4;
+    --border-md: #C8D6ED;
+    --text:      #0F172A;
+    --muted:     #64748B;
+    --accent:    #1B4FA8;
+    --accent2:   #3A86FF;
+    --red:       #D21F3C;
+    --green:     #059669;
+    --yellow:    #F59E0B;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.07);
+    --shadow-md: 0 4px 12px rgba(15,23,42,.09);
+    --radius:    6px;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body,
 [data-testid="stAppViewContainer"],
 [data-testid="stAppViewBlockContainer"],
 [data-testid="block-container"], .main {
-    background: #FFFCF2 !important;
+    background: var(--bg) !important;
     font-family: 'Space Grotesk', sans-serif !important;
-    color: #0D0D0D !important;
+    color: var(--text) !important;
 }
 
-/* Force ALL text inside the app to be dark unless overridden */
 .main p, .main span, .main div, .main label,
 .main li, .main a, .main strong, .main em {
-    color: #0D0D0D !important;
+    color: var(--text) !important;
 }
 
 #MainMenu, footer, header,
@@ -80,114 +96,109 @@ html, body,
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: #0D0D0D !important;
-    border-right: 4px solid #FFE500 !important;
+    background: #0F172A !important;
+    border-right: 1px solid #1E293B !important;
 }
 [data-testid="stSidebar"] *,
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
 [data-testid="stSidebar"] div,
-[data-testid="stSidebar"] label { color: #FFFCF2 !important; }
+[data-testid="stSidebar"] label { color: #E2E8F0 !important; }
 [data-testid="stSidebar"] .stRadio label {
     font-family: 'Space Mono', monospace !important;
     font-size: .78rem !important;
-    letter-spacing: .05em !important;
+    letter-spacing: .04em !important;
 }
 [data-testid="stSidebar"] .stSelectbox label,
 [data-testid="stSidebar"] .stMarkdown p {
     font-family: 'Space Mono', monospace !important;
     font-size: .72rem !important;
-    opacity: .7;
+    opacity: .65;
 }
 [data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
-    background: #1A1A1A !important;
-    border: 2px solid #FFE500 !important;
-    border-radius: 0 !important;
-    color: #FFFCF2 !important;
+    background: #1E293B !important;
+    border: 1px solid #334155 !important;
+    border-radius: var(--radius) !important;
+    color: #E2E8F0 !important;
 }
 
 /* ── Page header ── */
 .nb-page-header {
-    border-left: 6px solid #FFE500;
-    padding: .3rem 0 .3rem 1rem;
-    margin: 1.6rem 0 1.4rem;
+    border-left: 4px solid var(--accent);
+    padding: .35rem 0 .35rem 1rem;
+    margin: 1.4rem 0 1.2rem;
 }
 .nb-page-header h2 {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.5rem;
+    font-size: 1.45rem;
     font-weight: 800;
     letter-spacing: -.02em;
-    color: #0D0D0D;
+    color: var(--text);
     margin: 0;
 }
 .nb-page-header p {
     font-family: 'Space Mono', monospace;
     font-size: .68rem;
-    color: #555 !important;
+    color: var(--muted) !important;
     margin: .2rem 0 0;
 }
 
 /* ── Section labels ── */
 .nb-label {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     font-family: 'Space Mono', monospace;
     font-size: .6rem;
     font-weight: 700;
-    letter-spacing: .14em;
+    letter-spacing: .12em;
     text-transform: uppercase;
-    background: #FFE500;
-    color: #0D0D0D !important;
-    border: 2.5px solid #0D0D0D;
-    padding: 3px 10px;
-    margin-bottom: 1rem;
+    color: var(--accent) !important;
+    border-bottom: 2px solid var(--accent);
+    padding: 0 0 3px 0;
+    margin-bottom: .85rem;
 }
-.nb-divider { height: 3px; background: #0D0D0D; margin: 2rem 0; }
+.nb-divider { height: 1px; background: var(--border); margin: 1.8rem 0; }
 
 /* ── Stat cards ── */
 .nb-card {
-    background: #FFFCF2;
-    border: 3px solid #0D0D0D;
-    box-shadow: 5px 5px 0 #0D0D0D;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
     padding: 1rem 1.2rem;
-    transition: transform .1s, box-shadow .1s;
+    transition: box-shadow .15s;
 }
-.nb-card:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 #0D0D0D; }
-.nb-card.yellow { background: #FFE500; }
-.nb-card.blue   { background: #3A86FF; }
-.nb-card.green  { background: #06D6A0; }
-.nb-card.pink   { background: #FF6B9D; }
-.nb-card.orange { background: #FF8C42; }
-.nb-card.purple { background: #9B5DE5; }
-.nb-card.black  { background: #0D0D0D; }
-.nb-card.blue  *,
-.nb-card.purple *,
-.nb-card.black  * { color: #FFFCF2 !important; }
-.nb-card.black .c-val { color: #FFE500 !important; }
+.nb-card:hover { box-shadow: var(--shadow-md); }
+.nb-card.yellow { background: #FFFBEB; border-color: #FDE68A; }
+.nb-card.blue   { background: #EFF6FF; border-color: #BFDBFE; }
+.nb-card.green  { background: #ECFDF5; border-color: #A7F3D0; }
+.nb-card.pink   { background: #FFF1F2; border-color: #FECDD3; }
+.nb-card.orange { background: #FFF7ED; border-color: #FED7AA; }
+.nb-card.purple { background: #F5F3FF; border-color: #DDD6FE; }
+.nb-card.black  { background: #0F172A; border-color: #1E293B; }
+.nb-card.black  * { color: #E2E8F0 !important; }
 .nb-card .c-label {
     font-family: 'Space Mono', monospace;
-    font-size: .6rem;
+    font-size: .58rem;
     font-weight: 700;
     letter-spacing: .1em;
     text-transform: uppercase;
-    color: #0D0D0D !important;
-    opacity: .55;
+    color: var(--muted) !important;
     margin-bottom: .4rem;
 }
-.nb-card.blue .c-label,
-.nb-card.purple .c-label,
-.nb-card.black .c-label { opacity: .75; }
 .nb-card .c-val {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 2rem;
+    font-size: 1.9rem;
     font-weight: 800;
     line-height: 1;
     letter-spacing: -.03em;
-    color: #0D0D0D !important;
+    color: var(--text) !important;
 }
+.nb-card.black .c-val { color: #F8FAFC !important; }
 .nb-card .c-sub {
     font-family: 'Space Mono', monospace;
     font-size: .6rem;
-    color: #555 !important;
+    color: var(--muted) !important;
     margin-top: .25rem;
 }
 
@@ -195,287 +206,323 @@ html, body,
 .nb-table {
     width: 100%;
     border-collapse: collapse;
-    border: 3px solid #0D0D0D;
-    box-shadow: 5px 5px 0 #0D0D0D;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
     font-family: 'Space Mono', monospace;
-    font-size: .75rem;
-    background: #FFFCF2;
+    font-size: .74rem;
+    background: var(--surface);
+    overflow: hidden;
 }
-.nb-table thead tr { background: #0D0D0D; }
+.nb-table thead tr { background: var(--accent); }
 .nb-table th {
-    color: #FFE500 !important;
+    color: #fff !important;
     text-transform: uppercase;
-    letter-spacing: .08em;
-    font-size: .6rem;
+    letter-spacing: .07em;
+    font-size: .58rem;
     padding: .6rem .85rem;
     text-align: left;
-    border-right: 1px solid #333;
+    border-right: 1px solid rgba(255,255,255,.12);
     white-space: nowrap;
 }
 .nb-table td {
-    padding: .5rem .85rem;
-    color: #0D0D0D !important;
-    border-bottom: 2px solid #0D0D0D;
-    border-right: 1px solid #E8E4D8;
+    padding: .48rem .85rem;
+    color: var(--text) !important;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
     vertical-align: middle;
 }
-.nb-table tr:nth-child(even) td { background: #F5F2E8; }
-.nb-table tr:hover td { background: #FFF5B0; cursor: pointer; }
-.nb-table td:first-child { font-weight: 700; color: #0D0D0D !important; }
+.nb-table tr:last-child td { border-bottom: none; }
+.nb-table tr:nth-child(even) td { background: #F7FAFF; }
+.nb-table tr:hover td { background: #EFF6FF; cursor: pointer; }
+.nb-table td:first-child { font-weight: 700; }
 
 /* ── Rating bar ── */
 .rat-bar-bg {
-    background: #E8E4D8;
-    border: 2px solid #0D0D0D;
-    height: 12px;
+    background: var(--border);
+    border-radius: 99px;
+    height: 8px;
     width: 100%;
+    overflow: hidden;
 }
-.rat-bar-fill { height: 100%; border-right: 2px solid #0D0D0D; }
+.rat-bar-fill { height: 100%; border-radius: 99px; }
 
 /* ── Plotly charts ── */
 .stPlotlyChart > div {
-    border: 3px solid #0D0D0D !important;
-    box-shadow: 5px 5px 0 #0D0D0D !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    overflow: hidden;
 }
 
-/* ── All native Streamlit text elements ── */
+/* ── Streamlit text ── */
 .stMarkdown p, .stMarkdown li, .stMarkdown h1,
 .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
-    color: #0D0D0D !important;
+    color: var(--text) !important;
 }
 
 /* ── Inputs ── */
-.stTextInput > label,
-.stSelectbox > label,
-.stMultiSelect > label,
-.stSlider > label,
-.stNumberInput > label,
-.stDateInput > label { color: #0D0D0D !important; font-family: 'Space Mono', monospace !important; font-size: .68rem !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: .06em !important; }
-
-.stTextInput input {
-    border: 2.5px solid #0D0D0D !important;
-    border-radius: 0 !important;
+.stTextInput > label, .stSelectbox > label,
+.stMultiSelect > label, .stSlider > label,
+.stNumberInput > label, .stDateInput > label {
+    color: var(--muted) !important;
     font-family: 'Space Mono', monospace !important;
-    background: #FFFCF2 !important;
-    color: #0D0D0D !important;
-    box-shadow: 3px 3px 0 #0D0D0D !important;
+    font-size: .65rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .06em !important;
 }
-.stTextInput input:focus { outline: none !important; background: #FFF5B0 !important; }
-.stTextInput input::placeholder { color: #888 !important; }
+.stTextInput input {
+    border: 1px solid var(--border-md) !important;
+    border-radius: var(--radius) !important;
+    font-family: 'Space Mono', monospace !important;
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+.stTextInput input:focus {
+    outline: none !important;
+    border-color: var(--accent2) !important;
+    box-shadow: 0 0 0 3px rgba(58,134,255,.12) !important;
+}
+.stTextInput input::placeholder { color: var(--muted) !important; }
 
 /* ── Selectbox ── */
 .stSelectbox [data-baseweb="select"] > div,
 [data-testid="stSelectbox"] > div > div {
-    border: 2.5px solid #0D0D0D !important;
-    border-radius: 0 !important;
+    border: 1px solid var(--border-md) !important;
+    border-radius: var(--radius) !important;
     font-family: 'Space Mono', monospace !important;
-    background: #FFFCF2 !important;
-    color: #0D0D0D !important;
-    box-shadow: 3px 3px 0 #0D0D0D !important;
+    background: var(--surface) !important;
+    color: var(--text) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 .stSelectbox [data-baseweb="select"] span,
-.stSelectbox [data-baseweb="select"] div { color: #0D0D0D !important; }
+.stSelectbox [data-baseweb="select"] div { color: var(--text) !important; }
 
-/* Dropdown menu popup */
-[data-baseweb="popover"] li,
-[data-baseweb="menu"] li,
-[role="listbox"] li,
-[role="option"] {
-    background: #FFFCF2 !important;
-    color: #0D0D0D !important;
+[data-baseweb="popover"] li, [data-baseweb="menu"] li,
+[role="listbox"] li, [role="option"] {
+    background: var(--surface) !important;
+    color: var(--text) !important;
     font-family: 'Space Mono', monospace !important;
-    font-size: .75rem !important;
+    font-size: .74rem !important;
 }
-[role="option"]:hover,
-[role="option"][aria-selected="true"] {
-    background: #FFE500 !important;
-    color: #0D0D0D !important;
+[role="option"]:hover, [role="option"][aria-selected="true"] {
+    background: #EFF6FF !important;
+    color: var(--accent) !important;
 }
 
 /* ── Multiselect ── */
 [data-testid="stMultiSelect"] > div > div {
-    border: 2.5px solid #0D0D0D !important;
-    border-radius: 0 !important;
-    background: #FFFCF2 !important;
-    box-shadow: 3px 3px 0 #0D0D0D !important;
+    border: 1px solid var(--border-md) !important;
+    border-radius: var(--radius) !important;
+    background: var(--surface) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
-[data-testid="stMultiSelect"] span { color: #0D0D0D !important; }
+[data-testid="stMultiSelect"] span { color: var(--text) !important; }
 [data-baseweb="tag"] {
-    background: #FFE500 !important;
-    border: 2px solid #0D0D0D !important;
-    border-radius: 0 !important;
+    background: #EFF6FF !important;
+    border: 1px solid #BFDBFE !important;
+    border-radius: 4px !important;
 }
-[data-baseweb="tag"] span { color: #0D0D0D !important; }
+[data-baseweb="tag"] span { color: var(--accent) !important; }
 
 /* ── Buttons ── */
 .stButton button {
-    background: #FFE500 !important;
-    color: #0D0D0D !important;
-    border: 3px solid #0D0D0D !important;
-    box-shadow: 4px 4px 0 #0D0D0D !important;
-    border-radius: 0 !important;
+    background: var(--accent) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: var(--shadow-sm) !important;
+    border-radius: var(--radius) !important;
     font-family: 'Space Mono', monospace !important;
     font-size: .72rem !important;
     font-weight: 700 !important;
-    letter-spacing: .08em !important;
+    letter-spacing: .06em !important;
     text-transform: uppercase !important;
     padding: .45rem 1.1rem !important;
-    transition: all .1s !important;
+    transition: background .15s, box-shadow .15s !important;
 }
-.stButton button:hover  { transform: translate(-2px,-2px) !important; box-shadow: 6px 6px 0 #0D0D0D !important; }
-.stButton button:active { transform: translate(2px,2px)   !important; box-shadow: 2px 2px 0 #0D0D0D !important; }
-.stButton button p, .stButton button span { color: #0D0D0D !important; }
+.stButton button:hover  { background: #1440A0 !important; box-shadow: var(--shadow-md) !important; }
+.stButton button:active { background: #0E338A !important; }
+.stButton button p, .stButton button span { color: #fff !important; }
 
 /* ── Slider ── */
 .stSlider [data-testid="stThumbValue"] {
     font-family: 'Space Mono', monospace !important;
     font-size: .7rem !important;
-    background: #FFE500 !important;
-    color: #0D0D0D !important;
-    border: 2px solid #0D0D0D !important;
-    border-radius: 0 !important;
+    background: var(--accent) !important;
+    color: #fff !important;
+    border-radius: 4px !important;
 }
-.stSlider [data-testid="stSliderTrack"] { background: #0D0D0D !important; }
 
 /* ── Metric overrides ── */
 [data-testid="stMetric"] {
-    background: #FFFCF2 !important;
-    border: 3px solid #0D0D0D !important;
-    box-shadow: 4px 4px 0 #0D0D0D !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-sm) !important;
     padding: .8rem 1rem !important;
 }
 [data-testid="stMetricLabel"],
 [data-testid="stMetricLabel"] p,
 [data-testid="stMetricLabel"] span {
     font-family: 'Space Mono', monospace !important;
-    font-size: .62rem !important;
+    font-size: .6rem !important;
     letter-spacing: .08em !important;
     text-transform: uppercase !important;
-    color: #555 !important;
+    color: var(--muted) !important;
 }
 [data-testid="stMetricValue"],
 [data-testid="stMetricValue"] div {
     font-family: 'Space Grotesk', sans-serif !important;
     font-weight: 800 !important;
-    color: #0D0D0D !important;
+    color: var(--text) !important;
 }
-[data-testid="stMetricDelta"],
-[data-testid="stMetricDelta"] p { color: #0D0D0D !important; }
+[data-testid="stMetricDelta"] svg { display: none; }
 
-/* ── Dataframes / st.dataframe ── */
+/* ── Dataframes ── */
 [data-testid="stDataFrame"] {
-    border: 3px solid #0D0D0D !important;
-    box-shadow: 4px 4px 0 #0D0D0D !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    overflow: hidden;
 }
 [data-testid="stDataFrame"] th {
-    background: #0D0D0D !important;
-    color: #FFE500 !important;
+    background: var(--accent) !important;
+    color: #fff !important;
     font-family: 'Space Mono', monospace !important;
-    font-size: .65rem !important;
+    font-size: .62rem !important;
     text-transform: uppercase !important;
+    letter-spacing: .05em !important;
 }
 [data-testid="stDataFrame"] td {
-    color: #0D0D0D !important;
+    color: var(--text) !important;
     font-family: 'Space Mono', monospace !important;
     font-size: .72rem !important;
-    background: #FFFCF2 !important;
+    background: var(--surface) !important;
 }
 
 /* ── Expander ── */
 [data-testid="stExpander"] {
-    border: 2.5px solid #0D0D0D !important;
-    border-radius: 0 !important;
-    box-shadow: 3px 3px 0 #0D0D0D !important;
-    background: #FFFCF2 !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: var(--shadow-sm) !important;
+    background: var(--surface) !important;
 }
 [data-testid="stExpander"] summary {
     font-family: 'Space Mono', monospace !important;
     font-weight: 700 !important;
-    color: #0D0D0D !important;
-    background: #FFE500 !important;
-    padding: .4rem .8rem !important;
+    color: var(--text) !important;
+    background: #F1F5F9 !important;
+    padding: .45rem .85rem !important;
+    border-radius: var(--radius) !important;
 }
 
 /* ── Tabs ── */
 [data-testid="stTabs"] [role="tab"] {
     font-family: 'Space Mono', monospace !important;
-    font-size: .7rem !important;
+    font-size: .65rem !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: .06em !important;
-    border: 2px solid transparent !important;
+    border: none !important;
     border-radius: 0 !important;
-    color: #555 !important;
+    color: var(--muted) !important;
+    padding: .5rem .8rem !important;
 }
 [data-testid="stTabs"] [role="tab"][aria-selected="true"] {
-    background: #FFE500 !important;
-    border: 2px solid #0D0D0D !important;
-    color: #0D0D0D !important;
+    background: transparent !important;
+    color: var(--accent) !important;
+    border-bottom: 2px solid var(--accent) !important;
 }
 [data-testid="stTabs"] [role="tablist"] {
-    border-bottom: 3px solid #0D0D0D !important;
-    gap: 4px !important;
+    border-bottom: 1px solid var(--border) !important;
+    gap: 0 !important;
 }
 [data-testid="stTabs"] [role="tabpanel"] {
-    background: #FFFCF2 !important;
+    background: transparent !important;
     padding-top: 1rem !important;
 }
 
-/* ── Info / warning / success / error boxes ── */
+/* ── Alerts ── */
 [data-testid="stAlert"] {
-    border: 2.5px solid #0D0D0D !important;
-    border-radius: 0 !important;
-    box-shadow: 3px 3px 0 #0D0D0D !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    box-shadow: none !important;
 }
-[data-testid="stAlert"] p { color: #0D0D0D !important; }
+[data-testid="stAlert"] p { color: var(--text) !important; }
 
 /* ── H2H comparison panel ── */
 .h2h-name {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 800;
     padding: .5rem 1rem;
-    border: 3px solid #0D0D0D;
-    box-shadow: 4px 4px 0 #0D0D0D;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
     margin-bottom: 1rem;
     text-align: center;
     color: #fff !important;
 }
-.h2h-name.a { background: #3A86FF; }
-.h2h-name.b { background: #FF6B9D; }
+.h2h-name.a { background: var(--accent2); }
+.h2h-name.b { background: var(--red); }
 
 /* ── Pill ── */
 .pill {
     display: inline-block;
     padding: 2px 8px;
-    border: 2px solid #0D0D0D;
+    border-radius: 99px;
     font-family: 'Space Mono', monospace;
-    font-size: .6rem;
+    font-size: .58rem;
     font-weight: 700;
-    letter-spacing: .06em;
+    letter-spacing: .05em;
     text-transform: uppercase;
-    color: #0D0D0D !important;
 }
-.pill.blue   { background: #3A86FF; color: #fff !important; }
-.pill.yellow { background: #FFE500; color: #0D0D0D !important; }
-.pill.green  { background: #06D6A0; color: #0D0D0D !important; }
-.pill.pink   { background: #FF6B9D; color: #fff !important; }
+.pill.blue   { background: #EFF6FF; color: var(--accent) !important; }
+.pill.yellow { background: #FFFBEB; color: #92400E !important; }
+.pill.green  { background: #ECFDF5; color: var(--green) !important; }
+.pill.pink   { background: #FFF1F2; color: var(--red) !important; }
 
 /* ── Number input ── */
 [data-testid="stNumberInput"] input {
-    border: 2.5px solid #0D0D0D !important;
-    border-radius: 0 !important;
-    background: #FFFCF2 !important;
-    color: #0D0D0D !important;
+    border: 1px solid var(--border-md) !important;
+    border-radius: var(--radius) !important;
+    background: var(--surface) !important;
+    color: var(--text) !important;
     font-family: 'Space Mono', monospace !important;
 }
 
 /* ── Code blocks ── */
 code, pre {
-    background: #0D0D0D !important;
-    color: #FFE500 !important;
-    border-radius: 0 !important;
+    background: #1E293B !important;
+    color: #7DD3FC !important;
+    border-radius: var(--radius) !important;
     font-family: 'Space Mono', monospace !important;
+}
+
+/* ── Nav pills ── */
+[data-testid="stPills"] button {
+    border-radius: var(--radius) !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: .65rem !important;
+    font-weight: 700 !important;
+    letter-spacing: .05em !important;
+    text-transform: uppercase !important;
+    border: 1px solid var(--border) !important;
+    color: var(--muted) !important;
+    background: var(--surface) !important;
+    transition: all .12s !important;
+}
+[data-testid="stPills"] button[aria-selected="true"],
+[data-testid="stPills"] button[data-active="true"] {
+    background: var(--accent) !important;
+    color: #fff !important;
+    border-color: var(--accent) !important;
+}
+[data-testid="stPills"] button:hover:not([aria-selected="true"]) {
+    background: #EFF6FF !important;
+    border-color: var(--accent2) !important;
+    color: var(--accent) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -510,6 +557,42 @@ def get_mongo():
 @st.cache_resource
 def get_db_engine(path: str):
     return get_engine(path)
+
+# ── Preset Teams ──────────────────────────────────────────
+import json as _json
+
+_PRESETS_PATH = ROOT / "data" / "preset_teams.json"
+
+def _load_presets() -> dict:
+    """
+    Returns dict of {team_name: {"playing_xi": [...], "bench": [...], "substitutes": [...]}}.
+    Migrates old flat-list format automatically.
+    """
+    try:
+        if _PRESETS_PATH.exists():
+            raw = _json.loads(_PRESETS_PATH.read_text())
+            migrated = {}
+            for k, v in raw.items():
+                if isinstance(v, list):
+                    # old format — treat as playing_xi
+                    migrated[k] = {"playing_xi": v, "bench": [], "substitutes": []}
+                else:
+                    migrated[k] = {
+                        "playing_xi":  v.get("playing_xi",  []),
+                        "bench":       v.get("bench",       []),
+                        "substitutes": v.get("substitutes", []),
+                    }
+            return migrated
+    except Exception:
+        pass
+    return {}
+
+def _save_presets(presets: dict):
+    try:
+        _PRESETS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _PRESETS_PATH.write_text(_json.dumps(presets, indent=2))
+    except Exception as e:
+        st.error(f"Could not save presets: {e}")
 
 _mongo     = get_mongo()
 _db_engine = get_db_engine(str(DB_PATH))
@@ -642,19 +725,29 @@ def _mongo_sql(q: str, **kw) -> pd.DataFrame:
 
 def _plotly_defaults(fig, height=360):
     fig.update_layout(
-        plot_bgcolor="#FFFCF2", paper_bgcolor="#FFFCF2",
-        font=dict(family="Space Grotesk", color="#0D0D0D", size=11),
-        margin=dict(l=10, r=10, t=30, b=10),
+        plot_bgcolor="#FFFFFF", paper_bgcolor="#FFFFFF",
+        font=dict(family="Space Grotesk", color="#0F172A", size=11),
+        margin=dict(l=12, r=12, t=48, b=36),
         height=height,
         legend=dict(
             font=dict(family="Space Mono", size=10),
-            bgcolor="#fff", bordercolor="#0D0D0D", borderwidth=2,
+            bgcolor="rgba(255,255,255,0.9)",
+            bordercolor="#E2E8F4", borderwidth=1,
         ),
+        uniformtext=dict(minsize=8, mode="hide"),
     )
-    fig.update_xaxes(linecolor="#0D0D0D", linewidth=2, gridcolor="#E8E4D8",
-                     tickfont=dict(family="Space Mono", size=10))
-    fig.update_yaxes(linecolor="#0D0D0D", linewidth=2, gridcolor="#E8E4D8",
-                     tickfont=dict(family="Space Mono", size=10))
+    fig.update_xaxes(
+        linecolor="#E2E8F4", linewidth=1,
+        gridcolor="#F1F5F9", gridwidth=1,
+        tickfont=dict(family="Space Mono", size=10),
+        showgrid=True, zeroline=False,
+    )
+    fig.update_yaxes(
+        linecolor="#E2E8F4", linewidth=1,
+        gridcolor="#F1F5F9", gridwidth=1,
+        tickfont=dict(family="Space Mono", size=10),
+        showgrid=True, zeroline=False,
+    )
     return fig
 
 
@@ -696,10 +789,13 @@ _NAV_PAGES = [
     "Prediction Engine",
     "Matchup Lab",
     "Match Predictor",
+    "Squad Manager",
+    "Player Comparison",
 ]
 _nav_sel = st.pills("Navigation", _NAV_PAGES, default="Player Explorer",
                     key="top_nav", label_visibility="collapsed")
-page = f"0{_NAV_PAGES.index(_nav_sel) + 1}  {_nav_sel}"
+_nav_idx = _NAV_PAGES.index(_nav_sel) + 1
+page = f"{'0' if _nav_idx < 10 else ''}{_nav_idx}  {_nav_sel}"
 
 st.markdown("""
 <style>
@@ -902,6 +998,130 @@ def player_milestones_df(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
+def all_ratings_df() -> pd.DataFrame:
+    """All player ratings sub-scores — used for multi-player radar + similarity."""
+    return sql("""
+        SELECT pr.player_id, p.cricsheet_key AS name, p.country,
+               pr.opener_score, pr.finisher_score, pr.anchor_score,
+               pr.pp_bat_score, pr.death_bat_score, pr.chase_score,
+               pr.pp_bowl_score, pr.mid_bowl_score, pr.death_bowl_score,
+               pr.bat_rating, pr.bowl_rating, pr.overall_rating
+        FROM player_ratings pr
+        JOIN players p ON p.id = pr.player_id
+        WHERE pr.tournament = 'ALL'
+        ORDER BY COALESCE(pr.overall_rating, 0) DESC
+    """)
+
+
+@st.cache_data(ttl=120)
+def player_phase_contribution(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT pp_runs, pp_balls, mid_runs, mid_balls, death_runs, death_balls,
+               pp_sr, mid_sr, death_sr
+        FROM player_career_bat
+        WHERE player_id = :pid AND tournament = 'ALL'
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_similar(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT p.cricsheet_key AS name, p.country,
+               ps.similarity,
+               pr.bat_rating, pr.bowl_rating, pr.overall_rating,
+               pr.opener_score, pr.finisher_score, pr.anchor_score
+        FROM player_similarity ps
+        JOIN players p  ON p.id  = ps.player_id_b
+        JOIN player_ratings pr ON pr.player_id = ps.player_id_b
+                               AND pr.tournament = 'ALL'
+        WHERE ps.player_id_a = :pid AND ps.tournament = 'ALL'
+        ORDER BY ps.similarity DESC
+        LIMIT 10
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_form_info(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT avg_5, avg_10, avg_20, sr_5, sr_10, sr_20,
+               career_avg, career_sr, cv,
+               breakout_flag, breakout_delta, innings_total
+        FROM player_form WHERE player_id = :pid
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def breakout_players_df() -> pd.DataFrame:
+    return sql("""
+        SELECT p.cricsheet_key AS name, p.country,
+               pf.career_avg, pf.avg_10, pf.breakout_delta, pf.cv,
+               pr.bat_rating, pr.overall_rating, pf.innings_total
+        FROM player_form pf
+        JOIN players p ON p.id = pf.player_id
+        JOIN player_ratings pr ON pr.player_id = pf.player_id
+                               AND pr.tournament = 'ALL'
+        WHERE pf.breakout_flag = 1 AND pf.innings_total >= 10
+        ORDER BY pf.breakout_delta DESC
+        LIMIT 30
+    """)
+
+
+@st.cache_data(ttl=120)
+def dismissal_phase_heatmap_df(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT
+            d.wicket_kind AS dismissal,
+            CASE d.phase
+                WHEN 0 THEN 'Powerplay'
+                WHEN 1 THEN 'Middle'
+                ELSE 'Death'
+            END AS phase,
+            COUNT(*) AS count
+        FROM deliveries d
+        WHERE d.player_out_id = :pid
+          AND d.is_wicket = 1
+          AND d.wicket_kind IS NOT NULL
+        GROUP BY d.wicket_kind, d.phase
+        ORDER BY d.phase, count DESC
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_dismissal_bat(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT dismissal_kind, count, pct
+        FROM player_dismissal_analysis
+        WHERE player_id = :pid
+        ORDER BY count DESC
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_dismissal_bowl(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT dismissal_kind, count, pct
+        FROM player_bowling_dismissal_analysis
+        WHERE player_id = :pid
+        ORDER BY count DESC
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_recent_innings(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT pi.runs, pi.balls_faced, pi.not_out,
+               pi.dismissal_kind, m.match_date, m.season,
+               t.name AS opposition
+        FROM player_innings pi
+        JOIN matches m ON m.id = pi.match_id
+        JOIN innings i ON i.id = pi.innings_id
+        LEFT JOIN teams t ON t.id = i.bowling_team_id
+        WHERE pi.batter_id = :pid AND pi.balls_faced > 0
+        ORDER BY m.match_date ASC
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
 def all_venues() -> pd.DataFrame:
     return sql("""
         SELECT v.id, v.name, v.city, v.country,
@@ -1056,17 +1276,58 @@ def _radar(cats, vals_a, vals_b, name_a, name_b):
                                    name=name_b, line=dict(color=COLORS["B"], width=2.5)))
     fig.update_layout(
         polar=dict(
+            bgcolor="#FFFFFF",
+            radialaxis=dict(visible=True, range=[0, 100],
+                            tickfont=dict(family="Space Mono", size=8),
+                            gridcolor="#E2E8F4", linecolor="#E2E8F4"),
+            angularaxis=dict(tickfont=dict(family="Space Mono", size=9),
+                             gridcolor="#E2E8F4", linecolor="#E2E8F4"),
+        ),
+        plot_bgcolor="#FFFFFF", paper_bgcolor="#FFFFFF",
+        font=dict(family="Space Grotesk", color="#0F172A"),
+        margin=dict(l=40, r=40, t=40, b=40),
+        height=380,
+        legend=dict(font=dict(family="Space Mono", size=10),
+                    bgcolor="rgba(255,255,255,0.9)",
+                    bordercolor="#E2E8F4", borderwidth=1),
+        showlegend=True,
+    )
+    return fig
+
+
+_MULTI_RADAR_PALETTE = [
+    "#3A86FF","#FF6B9D","#06D6A0","#FFE500",
+    "#FF6B35","#9B5DE5","#00B4D8","#F77F00",
+]
+
+
+def _radar_multi(cats: list, players: list[tuple[str, list[float]]]) -> go.Figure:
+    """Multi-player radar for up to 8 players. players = [(name, [vals…]), …]"""
+    cats_c = cats + [cats[0]]
+    fig = go.Figure()
+    for idx, (name, vals) in enumerate(players):
+        v = list(vals) + [vals[0]]
+        clr = _MULTI_RADAR_PALETTE[idx % len(_MULTI_RADAR_PALETTE)]
+        fig.add_trace(go.Scatterpolar(
+            r=v, theta=cats_c,
+            fill="toself", opacity=0.65,
+            name=name,
+            line=dict(color=clr, width=2),
+        ))
+    fig.update_layout(
+        polar=dict(
             bgcolor="#FFFCF2",
             radialaxis=dict(visible=True, range=[0, 100],
                             tickfont=dict(family="Space Mono", size=8)),
             angularaxis=dict(tickfont=dict(family="Space Mono", size=9)),
         ),
-        plot_bgcolor="#FFFCF2", paper_bgcolor="#FFFCF2",
-        font=dict(family="Space Grotesk", color="#0D0D0D"),
+        plot_bgcolor="#FFFFFF", paper_bgcolor="#FFFFFF",
+        font=dict(family="Space Grotesk", color="#0F172A"),
         margin=dict(l=40, r=40, t=40, b=40),
-        height=380,
-        legend=dict(font=dict(family="Space Mono", size=10),
-                    bgcolor="#fff", bordercolor="#0D0D0D", borderwidth=2),
+        height=480,
+        legend=dict(font=dict(family="Space Mono", size=9),
+                    bgcolor="rgba(255,255,255,0.9)",
+                    bordercolor="#E2E8F4", borderwidth=1),
         showlegend=True,
     )
     return fig
@@ -1615,8 +1876,9 @@ if "01" in page:
         mc5.metric("SR",         _r(p.get("strike_rate")))
         mc6.metric("Bat Rating", _r(p.get("bat_rating")))
 
-        t1, t2, t3, t4, t5, t6 = st.tabs(
-            ["Season Trend", "By Position", "By Opponent", "Milestones", "Venues", "vs Bowl Style"])
+        t1, t2, t3, t4, t5, t6, t7, t8 = st.tabs(
+            ["Season Trend", "By Position", "By Opponent", "Milestones",
+             "Venues", "vs Bowl Style", "Dismissal Analysis", "Form & Consistency"])
 
         with t1:
             seas = player_seasons(pid)
@@ -1763,6 +2025,252 @@ if "01" in page:
                 st.plotly_chart(_plotly_defaults(fig), width="stretch",
                                 config={"displayModeBar": False})
                 st.dataframe(vdf, hide_index=True)
+
+        with t7:
+            _DISM_CLR = {
+                "caught": "#3A86FF", "bowled": "#FF6B9D", "lbw": "#FFE500",
+                "run out": "#06D6A0", "stumped": "#FF6B35", "hit wicket": "#9B5DE5",
+                "retired hurt": "#B2BEC3",
+            }
+            d_bat  = player_dismissal_bat(pid)
+            d_bowl = player_dismissal_bowl(pid)
+            dc1, dc2 = st.columns(2)
+            with dc1:
+                st.markdown('<div class="nb-label">How They Get Out (Batting)</div>',
+                            unsafe_allow_html=True)
+                if not d_bat.empty:
+                    clrs = [_DISM_CLR.get(k, "#B2BEC3") for k in d_bat["dismissal_kind"]]
+                    fig_db = go.Figure(go.Pie(
+                        labels=d_bat["dismissal_kind"], values=d_bat["count"],
+                        hole=0.55,
+                        marker=dict(colors=clrs, line=dict(color="#0D0D0D", width=2)),
+                        textinfo="label+percent",
+                        textfont=dict(family="Space Mono", size=10),
+                        hovertemplate="<b>%{label}</b><br>%{value} times (%{percent})<extra></extra>",
+                    ))
+                    fig_db.update_layout(
+                        showlegend=False,
+                        annotations=[dict(
+                            text=f"<b>{int(d_bat['count'].sum())}</b><br>dismissed",
+                            x=0.5, y=0.5,
+                            font=dict(size=13, family="Space Grotesk"),
+                            showarrow=False,
+                        )],
+                    )
+                    st.plotly_chart(_plotly_defaults(fig_db, 320), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(
+                        d_bat.rename(columns={"dismissal_kind": "Mode",
+                                               "count": "Times", "pct": "Pct%"}),
+                        hide_index=True)
+                else:
+                    st.info("No batting dismissal data.")
+
+            with dc2:
+                st.markdown('<div class="nb-label">How They Take Wickets (Bowling)</div>',
+                            unsafe_allow_html=True)
+                if not d_bowl.empty:
+                    clrs_b = [_DISM_CLR.get(k, "#B2BEC3") for k in d_bowl["dismissal_kind"]]
+                    fig_dw = go.Figure(go.Pie(
+                        labels=d_bowl["dismissal_kind"], values=d_bowl["count"],
+                        hole=0.55,
+                        marker=dict(colors=clrs_b, line=dict(color="#0D0D0D", width=2)),
+                        textinfo="label+percent",
+                        textfont=dict(family="Space Mono", size=10),
+                        hovertemplate="<b>%{label}</b><br>%{value} times (%{percent})<extra></extra>",
+                    ))
+                    fig_dw.update_layout(
+                        showlegend=False,
+                        annotations=[dict(
+                            text=f"<b>{int(d_bowl['count'].sum())}</b><br>wickets",
+                            x=0.5, y=0.5,
+                            font=dict(size=13, family="Space Grotesk"),
+                            showarrow=False,
+                        )],
+                    )
+                    st.plotly_chart(_plotly_defaults(fig_dw, 320), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(
+                        d_bowl.rename(columns={"dismissal_kind": "Mode",
+                                                "count": "Times", "pct": "Pct%"}),
+                        hide_index=True)
+                else:
+                    st.info("No bowling dismissal data (non-bowler or too few wickets).")
+
+            # ── Dismissal Phase Heatmap ──────────────────────────────────────
+            st.markdown('<div class="nb-label" style="margin-top:1.2rem">'
+                        'Dismissal Phase Heatmap</div>', unsafe_allow_html=True)
+            hm_df = dismissal_phase_heatmap_df(pid)
+            if not hm_df.empty:
+                pivot = (hm_df.pivot_table(
+                    index="dismissal", columns="phase",
+                    values="count", aggfunc="sum", fill_value=0
+                ).reindex(columns=["Powerplay", "Middle", "Death"], fill_value=0))
+                fig_hm = go.Figure(go.Heatmap(
+                    z=pivot.values,
+                    x=pivot.columns.tolist(),
+                    y=pivot.index.tolist(),
+                    colorscale=[[0, "#FFFCF2"], [0.5, "#FFE500"], [1, "#FF6B35"]],
+                    text=pivot.values,
+                    texttemplate="%{text}",
+                    textfont=dict(family="Space Mono", size=11),
+                    hovertemplate="<b>%{y}</b> in <b>%{x}</b><br>%{z} times<extra></extra>",
+                    showscale=True,
+                    colorbar=dict(tickfont=dict(family="Space Mono", size=9)),
+                ))
+                fig_hm.update_layout(
+                    xaxis=dict(tickfont=dict(family="Space Mono", size=10)),
+                    yaxis=dict(tickfont=dict(family="Space Mono", size=10)),
+                )
+                st.plotly_chart(_plotly_defaults(fig_hm, 300), width="stretch",
+                                config={"displayModeBar": False})
+                st.caption("Counts how many times the batter was dismissed in each phase. "
+                           "Excludes run outs (fielding, not technique).")
+            else:
+                st.info("No ball-by-ball dismissal data for this player.")
+
+        with t8:
+            inn_df = player_recent_innings(pid)
+            if not inn_df.empty:
+                inn_df["match_date"] = pd.to_datetime(inn_df["match_date"])
+                inn_df = inn_df.sort_values("match_date").reset_index(drop=True)
+                inn_df["innings_no"] = range(1, len(inn_df) + 1)
+
+                f8c1, f8c2 = st.columns([3, 1])
+                with f8c2:
+                    window = st.slider("Rolling window", 5, 20, 10, key="form_window")
+
+                inn_df["rolling_avg"] = inn_df["runs"].rolling(window, min_periods=3).mean()
+                balls_safe = inn_df["balls_faced"].replace(0, np.nan)
+                inn_df["sr_per_inn"]  = inn_df["runs"] / balls_safe * 100
+                inn_df["rolling_sr"]  = inn_df["sr_per_inn"].rolling(window, min_periods=3).mean()
+
+                career_avg = inn_df["runs"].mean()
+                career_sr  = (inn_df["runs"].sum() / inn_df["balls_faced"].sum() * 100
+                               if inn_df["balls_faced"].sum() > 0 else 0)
+                cv = (inn_df["runs"].std() / career_avg * 100) if career_avg > 0 else 0
+                c_label = "Very Consistent" if cv < 60 else "Moderate" if cv < 90 else "Streaky"
+
+                with f8c2:
+                    st.metric("Innings", len(inn_df))
+                    st.metric("Career Avg", f"{career_avg:.1f}")
+                    st.metric("Career SR",  f"{career_sr:.1f}")
+                    st.metric("Consistency CV", f"{cv:.0f}%",
+                               help=f"{c_label} — lower = more consistent; CV = std / mean × 100")
+
+                with f8c1:
+                    bar_colors = [
+                        "#FF6B9D" if r == 0 and not no else
+                        "#FFE500" if no else "#3A86FF"
+                        for r, no in zip(inn_df["runs"], inn_df["not_out"])
+                    ]
+                    fig_f = go.Figure()
+                    fig_f.add_trace(go.Bar(
+                        x=inn_df["innings_no"], y=inn_df["runs"],
+                        name="Runs",
+                        marker=dict(color=bar_colors, line=dict(color="#0D0D0D", width=1.2)),
+                        customdata=np.stack([
+                            inn_df["opposition"].fillna("?"),
+                            inn_df["match_date"].dt.strftime("%Y-%m-%d"),
+                            inn_df["balls_faced"],
+                        ], axis=-1),
+                        hovertemplate=(
+                            "Inn %{x} — <b>%{y} runs</b><br>"
+                            "vs %{customdata[0]}<br>"
+                            "%{customdata[1]}<br>"
+                            "Balls: %{customdata[2]}<extra></extra>"
+                        ),
+                    ))
+                    fig_f.add_trace(go.Scatter(
+                        x=inn_df["innings_no"], y=inn_df["rolling_avg"],
+                        name=f"Rolling {window}-inn Avg",
+                        mode="lines",
+                        line=dict(color="#06D6A0", width=2.5),
+                    ))
+                    fig_f.add_hline(y=career_avg, line_dash="dot", line_color="#0D0D0D",
+                                     annotation_text=f"career avg {career_avg:.1f}",
+                                     annotation_font=dict(family="Space Mono", size=9))
+                    fig_f.update_layout(
+                        title="Innings-by-Innings Runs  (yellow = not out · pink = duck)",
+                        xaxis_title="Innings #", yaxis_title="Runs",
+                        legend=dict(orientation="h", y=1.08),
+                    )
+                    st.plotly_chart(_plotly_defaults(fig_f), width="stretch",
+                                    config={"displayModeBar": False})
+
+                    fig_sr = go.Figure()
+                    fig_sr.add_trace(go.Scatter(
+                        x=inn_df["innings_no"], y=inn_df["rolling_sr"],
+                        name=f"Rolling {window}-inn SR",
+                        mode="lines+markers",
+                        line=dict(color="#FF6B35", width=2.5),
+                        marker=dict(size=5, color="#FF6B35",
+                                    line=dict(width=1.5, color="#0D0D0D")),
+                    ))
+                    fig_sr.add_hline(y=career_sr, line_dash="dot", line_color="#0D0D0D",
+                                      annotation_text=f"career SR {career_sr:.1f}",
+                                      annotation_font=dict(family="Space Mono", size=9))
+                    fig_sr.update_layout(
+                        title=f"Rolling Strike Rate (window = {window} innings)",
+                        yaxis_title="SR", xaxis_title="Innings #",
+                    )
+                    st.plotly_chart(_plotly_defaults(fig_sr, 280), width="stretch",
+                                    config={"displayModeBar": False})
+
+                st.dataframe(
+                    inn_df[["innings_no", "match_date", "opposition",
+                             "runs", "balls_faced", "not_out", "dismissal_kind"]]
+                    .rename(columns={
+                        "innings_no": "#", "match_date": "Date", "opposition": "vs",
+                        "runs": "Runs", "balls_faced": "Balls",
+                        "not_out": "NO", "dismissal_kind": "Out",
+                    }),
+                    hide_index=True,
+                )
+            else:
+                st.info("No innings data for this player.")
+
+    # ── Similar Players + Breakout Alert ────────────────────────────────
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+    _sim_col, _brk_col = st.columns([3, 2])
+
+    with _sim_col:
+        st.markdown('<div class="nb-label">Similar Players (Role Profile)</div>',
+                    unsafe_allow_html=True)
+        _sim_df = player_similar(pid)
+        if not _sim_df.empty:
+            _sim_df["Similarity"] = (_sim_df["similarity"] * 100).round(1).astype(str) + "%"
+            st.dataframe(
+                _sim_df[["name","country","Similarity","bat_rating","bowl_rating","overall_rating"]]
+                .rename(columns={"name":"Player","country":"Country",
+                                  "bat_rating":"Bat","bowl_rating":"Bowl",
+                                  "overall_rating":"Overall"}),
+                hide_index=True, height=300,
+            )
+        else:
+            st.info("Run `python scripts/pipeline.py enrich` to enable similarity.")
+
+    with _brk_col:
+        st.markdown('<div class="nb-label">Form Alert</div>', unsafe_allow_html=True)
+        _fdf = player_form_info(pid)
+        if not _fdf.empty:
+            _f = _fdf.iloc[0]
+            _flag = bool(_f.get("breakout_flag"))
+            _delta = _f.get("breakout_delta")
+            if _flag and _delta:
+                st.success(f"Breakout — last 10 avg **+{_delta:.1f}** above career")
+            else:
+                st.info("No breakout signal (last 10 innings near career average)")
+            _fc1, _fc2 = st.columns(2)
+            _fc1.metric("Avg (5 inn)",  f"{_f.get('avg_5',0) or 0:.1f}")
+            _fc2.metric("Avg (10 inn)", f"{_f.get('avg_10',0) or 0:.1f}")
+            _fc1.metric("SR (5 inn)",   f"{_f.get('sr_5',0) or 0:.1f}")
+            _fc2.metric("SR (10 inn)",  f"{_f.get('sr_10',0) or 0:.1f}")
+            _fc1.metric("Career Avg",   f"{_f.get('career_avg',0) or 0:.1f}")
+            _fc2.metric("CV",           f"{_f.get('cv',0) or 0:.0f}%",
+                         help="Coefficient of variation — lower = more consistent")
+        else:
+            st.info("Run `python scripts/pipeline.py enrich` to enable form stats.")
 
     # ── full player table (below drill-down) ──
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
@@ -1970,6 +2478,27 @@ elif "02" in page:
     st.plotly_chart(_plotly_defaults(fig, 300), width="stretch",
                     config={"displayModeBar": False})
 
+    # ── Phase Runs Contribution ──
+    st.markdown('<div class="nb-label">Phase Runs Contribution</div>',
+                unsafe_allow_html=True)
+    _pca = player_phase_contribution(int(pa["id"]))
+    _pcb = player_phase_contribution(int(pb["id"]))
+    if not _pca.empty and not _pcb.empty:
+        _ra, _rb = _pca.iloc[0], _pcb.iloc[0]
+        _ph_labels = ["Powerplay", "Middle", "Death"]
+        _runs_a = [_ra.get("pp_runs",0) or 0, _ra.get("mid_runs",0) or 0, _ra.get("death_runs",0) or 0]
+        _runs_b = [_rb.get("pp_runs",0) or 0, _rb.get("mid_runs",0) or 0, _rb.get("death_runs",0) or 0]
+        fig_pr = go.Figure()
+        fig_pr.add_trace(go.Bar(name=name_a, x=_ph_labels, y=_runs_a,
+                                 marker=dict(color=COLORS["A"], line=dict(color="#0D0D0D",width=2)),
+                                 text=[f"{int(v):,}" for v in _runs_a], textposition="outside"))
+        fig_pr.add_trace(go.Bar(name=name_b, x=_ph_labels, y=_runs_b,
+                                 marker=dict(color=COLORS["B"], line=dict(color="#0D0D0D",width=2)),
+                                 text=[f"{int(v):,}" for v in _runs_b], textposition="outside"))
+        fig_pr.update_layout(barmode="group", yaxis_title="Total Runs")
+        st.plotly_chart(_plotly_defaults(fig_pr, 280), width="stretch",
+                        config={"displayModeBar": False})
+
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
 
     # ── Chase split ──
@@ -1999,6 +2528,48 @@ elif "02" in page:
             fig.update_layout(title=nm)
             st.plotly_chart(_plotly_defaults(fig, 280), width="stretch",
                             config={"displayModeBar": False})
+
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+
+    # ── Dismissal Profile ──
+    st.markdown('<div class="nb-label">Dismissal Profile Comparison</div>',
+                unsafe_allow_html=True)
+    _H2H_DISM_CLR = {
+        "caught": "#3A86FF", "bowled": "#FF6B9D", "lbw": "#FFE500",
+        "run out": "#06D6A0", "stumped": "#FF6B35", "hit wicket": "#9B5DE5",
+        "retired hurt": "#B2BEC3",
+    }
+    da_a = player_dismissal_bat(int(pa["id"]))
+    da_b = player_dismissal_bat(int(pb["id"]))
+    if not da_a.empty or not da_b.empty:
+        dh1, dh2 = st.columns(2)
+        for _dcol, _nm, _dat in [(dh1, name_a, da_a), (dh2, name_b, da_b)]:
+            with _dcol:
+                if not _dat.empty:
+                    _clrs = [_H2H_DISM_CLR.get(k, "#B2BEC3") for k in _dat["dismissal_kind"]]
+                    _fig_d = go.Figure(go.Pie(
+                        labels=_dat["dismissal_kind"], values=_dat["count"],
+                        hole=0.5,
+                        marker=dict(colors=_clrs, line=dict(color="#0D0D0D", width=2)),
+                        textinfo="label+percent",
+                        textfont=dict(family="Space Mono", size=9),
+                        hovertemplate="<b>%{label}</b><br>%{value} (%{percent})<extra></extra>",
+                    ))
+                    _fig_d.update_layout(
+                        showlegend=False, title=_nm,
+                        annotations=[dict(
+                            text=f"<b>{int(_dat['count'].sum())}</b><br>out",
+                            x=0.5, y=0.5,
+                            font=dict(size=12, family="Space Grotesk"),
+                            showarrow=False,
+                        )],
+                    )
+                    st.plotly_chart(_plotly_defaults(_fig_d, 280), width="stretch",
+                                    config={"displayModeBar": False})
+                else:
+                    st.info(f"No dismissal data for {_nm}.")
+    else:
+        st.info("No dismissal data available for either player.")
 
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
 
@@ -2909,6 +3480,60 @@ if page == "06  Match Predictor":
     venues_df  = all_venues()
     venue_names = venues_df["name"].tolist() if not venues_df.empty else []
 
+    # ── Load from Squad Presets ─────────────────────────────────────────
+    _mp_presets     = _load_presets()
+    _mp_preset_opts = ["— choose squad —"] + list(_mp_presets.keys())
+
+    st.markdown("""
+    <div style="background:#0D0D0D;border:3px solid #FFE500;padding:.9rem 1.2rem .7rem;
+                margin-bottom:1.2rem">
+      <div style="font-family:Space Mono;font-size:.7rem;font-weight:700;color:#FFE500;
+                  letter-spacing:.1em;margin-bottom:.55rem">⚡ LOAD FROM SQUAD PRESETS
+        <span style="font-weight:400;opacity:.6;font-size:.62rem;margin-left:.6rem">
+          — build squads on the Squad Manager page</span>
+      </div>""", unsafe_allow_html=True)
+
+    _lc1, _lc2 = st.columns(2)
+    with _lc1:
+        st.markdown("<div style='font-family:Space Mono;font-size:.65rem;color:#FFE500;"
+                    "opacity:.7;margin-bottom:.2rem'>YOUR XI</div>", unsafe_allow_html=True)
+        _your_sq = st.selectbox("Your squad", _mp_preset_opts,
+                                key="mp_your_squad", label_visibility="collapsed")
+        if _your_sq != "— choose squad —":
+            _sq_data = _mp_presets[_your_sq]
+            _xi = _sq_data["playing_xi"]
+            _bench = _sq_data["bench"]
+            _subs  = _sq_data["substitutes"]
+            st.caption(f"XI: {len(_xi)} · Bench: {len(_bench)} · Subs: {len(_subs)}")
+        if st.button("Apply → Your XI", key="mp_apply_your",
+                     disabled=(_your_sq == "— choose squad —"),
+                     use_container_width=True):
+            _xi = _mp_presets[_your_sq]["playing_xi"]
+            for i in range(11):
+                st.session_state[f"your_{i}"] = _xi[i] if i < len(_xi) else "— select —"
+            st.rerun()
+
+    with _lc2:
+        st.markdown("<div style='font-family:Space Mono;font-size:.65rem;color:#FFE500;"
+                    "opacity:.7;margin-bottom:.2rem'>OPP XI</div>", unsafe_allow_html=True)
+        _opp_sq = st.selectbox("Opp squad", _mp_preset_opts,
+                               key="mp_opp_squad", label_visibility="collapsed")
+        if _opp_sq != "— choose squad —":
+            _sq_data2 = _mp_presets[_opp_sq]
+            _xi2   = _sq_data2["playing_xi"]
+            _bench2 = _sq_data2["bench"]
+            _subs2  = _sq_data2["substitutes"]
+            st.caption(f"XI: {len(_xi2)} · Bench: {len(_bench2)} · Subs: {len(_subs2)}")
+        if st.button("Apply → Opp XI", key="mp_apply_opp",
+                     disabled=(_opp_sq == "— choose squad —"),
+                     use_container_width=True):
+            _xi2 = _mp_presets[_opp_sq]["playing_xi"]
+            for i in range(11):
+                st.session_state[f"opp_{i}"] = _xi2[i] if i < len(_xi2) else "— select —"
+            st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
     # ── Team selection ─────────────────────────────────────────────────
     def _swap_teams():
         for i in range(11):
@@ -3440,3 +4065,372 @@ if page == "06  Match Predictor":
           </span>
         </div>""", unsafe_allow_html=True)
         st.caption("⚠ Predictions are based on career stats + venue factors. T20 cricket is highly variable — treat as a guide, not a guarantee.")
+
+
+# ═══════════════════════════════════════════════════════════
+# PAGE 7 — SQUAD MANAGER
+# ═══════════════════════════════════════════════════════════
+if "07  Squad Manager" in page:
+    st.markdown("""
+    <div class="nb-page-header">
+      <h2>Squad Manager</h2>
+      <p>Build and save team presets — Playing XI · Bench · Substitutes · Load into Match Predictor</p>
+    </div>""", unsafe_allow_html=True)
+
+    _sq_all_df   = all_players()
+    _sq_names    = ["— select —"] + sorted(_sq_all_df["name"].tolist())
+    _sq_presets  = _load_presets()
+
+    # ── Tabs: Browse squads | Create / Edit ───────────────────────────
+    _sq_tab1, _sq_tab2 = st.tabs(["📋  Your Squads", "✏️  Create / Edit Squad"])
+
+    # ─────────────────────────────────────────────────────────
+    # TAB 1: Browse & delete
+    # ─────────────────────────────────────────────────────────
+    with _sq_tab1:
+        if not _sq_presets:
+            st.info("No squads saved yet. Go to **Create / Edit Squad** to build your first one.")
+        else:
+            for _sq_tname, _sq_tdata in _sq_presets.items():
+                _xi_list  = _sq_tdata.get("playing_xi",  [])
+                _bn_list  = _sq_tdata.get("bench",       [])
+                _sb_list  = _sq_tdata.get("substitutes", [])
+
+                with st.expander(
+                    f"**{_sq_tname}**  ·  XI: {len(_xi_list)}  ·  Bench: {len(_bn_list)}"
+                    f"  ·  Subs: {len(_sb_list)}"
+                ):
+                    _tc1, _tc2, _tc3 = st.columns(3)
+                    with _tc1:
+                        st.markdown("**Playing XI**")
+                        for _pi, _pn in enumerate(_xi_list, 1):
+                            st.markdown(
+                                f"<div style='font-family:Space Mono;font-size:.75rem;"
+                                f"padding:.15rem 0'>"
+                                f"<b style='opacity:.45'>{_pi:02d}</b>&nbsp; {_pn}</div>",
+                                unsafe_allow_html=True,
+                            )
+                        for _pi in range(len(_xi_list) + 1, 12):
+                            st.markdown(
+                                f"<div style='font-family:Space Mono;font-size:.75rem;"
+                                f"opacity:.3;padding:.15rem 0'>{_pi:02d}&nbsp; —</div>",
+                                unsafe_allow_html=True,
+                            )
+                    with _tc2:
+                        st.markdown("**Bench**")
+                        if _bn_list:
+                            for _pn in _bn_list:
+                                st.markdown(
+                                    f"<div style='font-family:Space Mono;font-size:.75rem;"
+                                    f"padding:.15rem 0'>· {_pn}</div>",
+                                    unsafe_allow_html=True,
+                                )
+                        else:
+                            st.caption("—")
+                    with _tc3:
+                        st.markdown("**Substitutes**")
+                        if _sb_list:
+                            for _pn in _sb_list:
+                                st.markdown(
+                                    f"<div style='font-family:Space Mono;font-size:.75rem;"
+                                    f"padding:.15rem 0'>· {_pn}</div>",
+                                    unsafe_allow_html=True,
+                                )
+                        else:
+                            st.caption("—")
+
+                    st.markdown("---")
+                    _act1, _act2, _act3 = st.columns([2, 2, 1])
+                    with _act1:
+                        if st.button("✏️ Edit this squad", key=f"sq_edit_{_sq_tname}",
+                                     use_container_width=True):
+                            st.session_state["sq_editing"] = _sq_tname
+                            st.session_state["sq_active_tab"] = 1
+                            st.rerun()
+                    with _act2:
+                        if st.button("📋 Duplicate", key=f"sq_dup_{_sq_tname}",
+                                     use_container_width=True):
+                            _dup_name = f"{_sq_tname} (copy)"
+                            _ctr = 2
+                            while _dup_name in _sq_presets:
+                                _dup_name = f"{_sq_tname} (copy {_ctr})"
+                                _ctr += 1
+                            _sq_presets[_dup_name] = _json.loads(_json.dumps(_sq_tdata))
+                            _save_presets(_sq_presets)
+                            st.success(f"Duplicated as **{_dup_name}**")
+                            st.rerun()
+                    with _act3:
+                        if st.button("🗑️ Delete", key=f"sq_del_{_sq_tname}",
+                                     type="primary", use_container_width=True):
+                            del _sq_presets[_sq_tname]
+                            _save_presets(_sq_presets)
+                            st.success(f"Deleted **{_sq_tname}**")
+                            st.rerun()
+
+    # ─────────────────────────────────────────────────────────
+    # TAB 2: Create / Edit
+    # ─────────────────────────────────────────────────────────
+    with _sq_tab2:
+        # Pre-fill if editing an existing squad
+        _editing = st.session_state.get("sq_editing", None)
+        _edit_data = _sq_presets.get(_editing, {}) if _editing else {}
+
+        if _editing:
+            st.markdown(
+                f"<div style='font-family:Space Mono;font-size:.72rem;background:#FFE500;"
+                f"color:#0D0D0D;padding:.3rem .7rem;display:inline-block;margin-bottom:.6rem;"
+                f"border:2px solid #0D0D0D'>EDITING: {_editing}</div>",
+                unsafe_allow_html=True,
+            )
+            if st.button("✕ Cancel edit", key="sq_cancel_edit"):
+                del st.session_state["sq_editing"]
+                st.rerun()
+
+        _default_name = _editing or ""
+        _sq_form_name = st.text_input(
+            "Team name",
+            value=_default_name,
+            key="sq_form_name",
+            placeholder="e.g. India 2024, MI Dream XI, Pakistan T20I",
+        )
+
+        st.markdown("#### Playing XI")
+        st.caption("Slot 1–2 = Openers · 3–5 = Batters · 6–7 = All-rounders · 8–11 = Bowlers")
+
+        _xi_defaults = _edit_data.get("playing_xi", [])
+        _sq_xi = []
+        _xi_cols = st.columns(2)
+        for _i in range(11):
+            _default_p = _xi_defaults[_i] if _i < len(_xi_defaults) else "— select —"
+            _col = _xi_cols[_i % 2]
+            with _col:
+                _role_lbl = (
+                    "Opener" if _i < 2
+                    else "Batter" if _i < 5
+                    else "All-rounder" if _i < 7
+                    else "Bowler"
+                )
+                _p = st.selectbox(
+                    f"{_i+1:02d}  {_role_lbl}",
+                    _sq_names,
+                    index=_sq_names.index(_default_p) if _default_p in _sq_names else 0,
+                    key=f"sq_xi_{_i}",
+                )
+                if _p != "— select —":
+                    _sq_xi.append(_p)
+
+        st.markdown("#### Bench")
+        st.caption("Players available to replace a starter — select as many as needed")
+        _bench_defaults = _edit_data.get("bench", [])
+        _bench_opts = [n for n in _sq_names if n != "— select —"]
+        _sq_bench = st.multiselect(
+            "Bench players",
+            _bench_opts,
+            default=[p for p in _bench_defaults if p in _bench_opts],
+            key="sq_bench",
+            label_visibility="collapsed",
+        )
+
+        st.markdown("#### Substitutes")
+        st.caption("Impact subs or travelling reserves")
+        _subs_defaults = _edit_data.get("substitutes", [])
+        _sq_subs = st.multiselect(
+            "Substitutes",
+            _bench_opts,
+            default=[p for p in _subs_defaults if p in _bench_opts],
+            key="sq_subs",
+            label_visibility="collapsed",
+        )
+
+        st.markdown("---")
+        _save_col, _clear_col = st.columns([2, 1])
+        with _save_col:
+            if st.button("💾 Save squad", key="sq_save_btn", use_container_width=True,
+                         type="primary"):
+                _fname = _sq_form_name.strip()
+                if not _fname:
+                    st.warning("Enter a team name first.")
+                elif len(_sq_xi) < 1:
+                    st.warning("Add at least 1 player to the Playing XI.")
+                else:
+                    # If renaming an existing squad, remove the old key
+                    if _editing and _editing != _fname and _editing in _sq_presets:
+                        del _sq_presets[_editing]
+                    _sq_presets[_fname] = {
+                        "playing_xi":  _sq_xi,
+                        "bench":       _sq_bench,
+                        "substitutes": _sq_subs,
+                    }
+                    _save_presets(_sq_presets)
+                    if "sq_editing" in st.session_state:
+                        del st.session_state["sq_editing"]
+                    st.success(
+                        f"Saved **{_fname}** — XI: {len(_sq_xi)}, "
+                        f"Bench: {len(_sq_bench)}, Subs: {len(_sq_subs)}"
+                    )
+                    st.rerun()
+        with _clear_col:
+            if st.button("✕ Clear form", key="sq_clear_btn", use_container_width=True):
+                if "sq_editing" in st.session_state:
+                    del st.session_state["sq_editing"]
+                for _i in range(11):
+                    if f"sq_xi_{_i}" in st.session_state:
+                        del st.session_state[f"sq_xi_{_i}"]
+                for _k in ("sq_bench", "sq_subs", "sq_form_name"):
+                    if _k in st.session_state:
+                        del st.session_state[_k]
+                st.rerun()
+
+
+# ═══════════════════════════════════════════════════════════
+# PAGE 8 — PLAYER COMPARISON
+# ═══════════════════════════════════════════════════════════
+
+elif "08" in page:
+    st.markdown("""
+    <div class="nb-page-header">
+      <h2>Player Comparison</h2>
+      <p>Multi-player radar · phase runs · breakout leaderboard · similarity scouting</p>
+    </div>""", unsafe_allow_html=True)
+
+    _all_rat = all_ratings_df()
+    if _all_rat.empty:
+        st.warning("No ratings data. Run the analytics pipeline first.")
+        st.stop()
+
+    _all_names = _all_rat["name"].tolist()
+
+    # ── Player selector (up to 8) ──────────────────────────────────────
+    _sel_names = st.multiselect(
+        "Select up to 8 players",
+        _all_names,
+        default=_all_names[:4],
+        max_selections=8,
+    )
+
+    if not _sel_names:
+        st.info("Select at least one player above.")
+        st.stop()
+
+    _sel_df = _all_rat[_all_rat["name"].isin(_sel_names)].copy()
+
+    _RADAR_KEYS = ["opener_score","finisher_score","anchor_score",
+                   "pp_bat_score","death_bat_score","chase_score",
+                   "pp_bowl_score","mid_bowl_score","death_bowl_score"]
+    _RADAR_LABS = ["Opener","Finisher","Anchor","PP Bat",
+                   "Death Bat","Chase","PP Bowl","Mid Bowl","Death Bowl"]
+
+    # ── Multi-player Radar ─────────────────────────────────────────────
+    st.markdown('<div class="nb-label">Role Profile Radar</div>', unsafe_allow_html=True)
+    _radar_players = []
+    for _, _row in _sel_df.iterrows():
+        _vals = [float(_row.get(k) or 0) for k in _RADAR_KEYS]
+        _radar_players.append((_row["name"], _vals))
+
+    st.plotly_chart(_radar_multi(_RADAR_LABS, _radar_players),
+                    width="stretch", config={"displayModeBar": False})
+
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+
+    # ── Phase Runs + SR grouped bar ────────────────────────────────────
+    st.markdown('<div class="nb-label">Phase Contribution — Runs & Strike Rate</div>',
+                unsafe_allow_html=True)
+
+    _phase_rows = []
+    for _, _row in _sel_df.iterrows():
+        _pc = player_phase_contribution(int(_row["player_id"]))
+        if not _pc.empty:
+            _r = _pc.iloc[0]
+            _phase_rows.append({
+                "Player": _row["name"],
+                "PP Runs":    int(_r.get("pp_runs",0) or 0),
+                "Mid Runs":   int(_r.get("mid_runs",0) or 0),
+                "Death Runs": int(_r.get("death_runs",0) or 0),
+                "PP SR":      float(_r.get("pp_sr",0) or 0),
+                "Mid SR":     float(_r.get("mid_sr",0) or 0),
+                "Death SR":   float(_r.get("death_sr",0) or 0),
+            })
+
+    if _phase_rows:
+        _ph_df = pd.DataFrame(_phase_rows).set_index("Player")
+        _pc1, _pc2 = st.columns(2)
+
+        with _pc1:
+            st.markdown('<div class="nb-label" style="font-size:.7rem">Runs by Phase</div>',
+                        unsafe_allow_html=True)
+            _fig_ph = go.Figure()
+            for _ph, _clr in [("PP Runs","#3A86FF"),("Mid Runs","#FFE500"),("Death Runs","#FF6B35")]:
+                _fig_ph.add_trace(go.Bar(
+                    name=_ph.replace(" Runs",""),
+                    x=_ph_df.index.tolist(),
+                    y=_ph_df[_ph].tolist(),
+                    marker=dict(color=_clr, line=dict(color="#0D0D0D", width=1.5)),
+                    text=[f"{int(v):,}" for v in _ph_df[_ph]],
+                    textposition="inside",
+                ))
+            _fig_ph.update_layout(barmode="stack", xaxis_tickangle=-30,
+                                   yaxis_title="Runs", legend=dict(orientation="h", y=1.05))
+            st.plotly_chart(_plotly_defaults(_fig_ph, 360), width="stretch",
+                            config={"displayModeBar": False})
+
+        with _pc2:
+            st.markdown('<div class="nb-label" style="font-size:.7rem">Strike Rate by Phase</div>',
+                        unsafe_allow_html=True)
+            _fig_sr = go.Figure()
+            for _ph, _clr in [("PP SR","#3A86FF"),("Mid SR","#FFE500"),("Death SR","#FF6B35")]:
+                _fig_sr.add_trace(go.Bar(
+                    name=_ph.replace(" SR",""),
+                    x=_ph_df.index.tolist(),
+                    y=_ph_df[_ph].tolist(),
+                    marker=dict(color=_clr, line=dict(color="#0D0D0D", width=1.5)),
+                    text=[f"{v:.0f}" for v in _ph_df[_ph]],
+                    textposition="outside",
+                ))
+            _fig_sr.update_layout(barmode="group", xaxis_tickangle=-30,
+                                   yaxis_title="SR", legend=dict(orientation="h", y=1.05))
+            st.plotly_chart(_plotly_defaults(_fig_sr, 360), width="stretch",
+                            config={"displayModeBar": False})
+
+        st.dataframe(_ph_df.style.background_gradient(
+            subset=["PP SR","Mid SR","Death SR"], cmap="RdYlGn"),
+            use_container_width=True)
+
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+
+    # ── Rating comparison table ────────────────────────────────────────
+    st.markdown('<div class="nb-label">Rating Summary</div>', unsafe_allow_html=True)
+    _rat_show = _sel_df[["name","country","bat_rating","bowl_rating","overall_rating",
+                           "opener_score","finisher_score","anchor_score",
+                           "chase_score","pp_bat_score","death_bat_score",
+                           "pp_bowl_score","death_bowl_score"]].copy()
+    _rat_show.columns = ["Player","Country","Bat","Bowl","Overall",
+                          "Opener","Finisher","Anchor","Chase",
+                          "PP Bat","Death Bat","PP Bowl","Death Bowl"]
+    st.dataframe(
+        _rat_show.set_index("Player").style.background_gradient(
+            subset=["Bat","Bowl","Overall","Opener","Finisher","Anchor",
+                    "Chase","PP Bat","Death Bat","PP Bowl","Death Bowl"],
+            cmap="RdYlGn", vmin=0, vmax=100),
+        use_container_width=True,
+    )
+
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+
+    # ── Breakout Leaderboard ───────────────────────────────────────────
+    st.markdown('<div class="nb-label">Breakout Leaderboard — Rising Players</div>',
+                unsafe_allow_html=True)
+    _brk = breakout_players_df()
+    if not _brk.empty:
+        _brk["Δ Avg"] = _brk["breakout_delta"].map(lambda x: f"+{x:.1f}" if x else "—")
+        _brk["CV"] = _brk["cv"].map(lambda x: f"{x:.0f}%" if x else "—")
+        st.dataframe(
+            _brk[["name","country","career_avg","avg_10","Δ Avg","CV",
+                  "bat_rating","innings_total"]]
+            .rename(columns={"name":"Player","country":"Country",
+                              "career_avg":"Career Avg","avg_10":"Last 10 Avg",
+                              "bat_rating":"Bat Rating","innings_total":"Inn"}),
+            hide_index=True, use_container_width=True,
+        )
+        st.caption("Players whose last 10-innings average is ≥ 20% above their career average.")
+    else:
+        st.info("No breakout players detected, or run `python scripts/pipeline.py enrich` first.")
