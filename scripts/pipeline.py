@@ -33,6 +33,7 @@ from src.ingest.parser import ingest_directory
 from src.analytics.pitch import compute_venue_factors
 from src.analytics.metrics import rebuild_all_metrics
 from src.analytics.rating import rebuild_ratings
+from src.analytics.similarity import build_similarity, build_form
 
 console = Console()
 
@@ -123,9 +124,24 @@ def ratings(tournament):
 
 
 @cli.command()
+def enrich():
+    """Compute player similarity and rolling form metrics."""
+    engine = get_engine(DB_PATH)
+    from src.db.schema import init_db
+    init_db(DB_PATH)   # ensure new tables exist
+    session = Session(engine)
+    console.print("[bold]Computing player similarity…[/bold]")
+    build_similarity(session, tournament="ALL")
+    console.print("[bold]Computing rolling form metrics…[/bold]")
+    build_form(session)
+    session.close()
+    console.print("[green]Enrich complete.[/green]")
+
+
+@cli.command()
 @click.option("--tournaments", "-t", multiple=True)
 def all(tournaments):
-    """Run the complete pipeline: download → ingest → venue → metrics → ratings."""
+    """Run the complete pipeline: download → ingest → venue → metrics → ratings → enrich."""
     ctx = click.get_current_context()
     console.print("[bold magenta]Running full pipeline[/bold magenta]")
     ctx.invoke(download, tournaments=tournaments, force=False)
@@ -133,6 +149,7 @@ def all(tournaments):
     ctx.invoke(venue)
     ctx.invoke(metrics)
     ctx.invoke(ratings, tournament="ALL")
+    ctx.invoke(enrich)
     console.print("\n[bold green]Pipeline complete.[/bold green]")
     console.print("Launch dashboard:  streamlit run src/dashboard/app.py")
 
