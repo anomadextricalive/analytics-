@@ -136,6 +136,15 @@ def enrich():
     build_form(session)
     session.close()
     console.print("[green]Enrich complete.[/green]")
+    # Keep cricket.db.gz in sync so the dashboard fallback path stays current
+    import gzip, shutil, tempfile
+    gz_path = Path(DB_PATH).parent / "cricket.db.gz"
+    console.print("[bold]Updating cricket.db.gz…[/bold]")
+    with open(DB_PATH, "rb") as _fi, gzip.open(gz_path, "wb") as _fo:
+        shutil.copyfileobj(_fi, _fo)
+    _tmp = Path(tempfile.gettempdir()) / "cricket.db"
+    if _tmp.exists():
+        _tmp.unlink()
 
 
 @cli.command()

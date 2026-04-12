@@ -958,8 +958,22 @@ def player_positions(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_by_opponent(pid: int) -> pd.DataFrame:
-    return sql("""
+def player_by_opponent(pid: int, team_type: str = "all") -> pd.DataFrame:
+    """team_type: 'all' | 'clubs' | 'countries'"""
+    type_filter = ""
+    if team_type == "countries":
+        type_filter = """
+            AND po.opponent_id IN (
+                SELECT DISTINCT team1_id FROM matches WHERE tournament = 't20i_male'
+                UNION SELECT DISTINCT team2_id FROM matches WHERE tournament = 't20i_male'
+            )"""
+    elif team_type == "clubs":
+        type_filter = """
+            AND po.opponent_id NOT IN (
+                SELECT DISTINCT team1_id FROM matches WHERE tournament = 't20i_male'
+                UNION SELECT DISTINCT team2_id FROM matches WHERE tournament = 't20i_male'
+            )"""
+    return sql(f"""
         SELECT t.name AS opponent, po.bat_innings AS inn,
                po.bat_runs AS runs, po.bat_average AS avg,
                po.bat_sr AS sr, po.bat_fifties AS fifties,
@@ -967,7 +981,28 @@ def player_by_opponent(pid: int) -> pd.DataFrame:
                po.bowl_wickets AS wkts, po.bowl_economy AS econ
         FROM player_perf_by_opponent po
         JOIN teams t ON t.id = po.opponent_id
-        WHERE po.player_id = :pid ORDER BY po.bat_innings DESC
+        WHERE po.player_id = :pid {type_filter}
+        ORDER BY po.bat_innings DESC
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_vs_bowler(pid: int) -> pd.DataFrame:
+    return sql("""
+        SELECT p.cricsheet_key AS bowler, p.country,
+               COUNT(*) AS balls,
+               SUM(d.bat_runs) AS runs,
+               SUM(CASE WHEN d.is_wicket = 1 AND d.player_out_id = :pid THEN 1 ELSE 0 END) AS dismissals,
+               ROUND(SUM(d.bat_runs) * 100.0 / COUNT(*), 1) AS sr,
+               ROUND(SUM(d.bat_runs) * 1.0 /
+                     NULLIF(SUM(CASE WHEN d.is_wicket = 1 AND d.player_out_id = :pid THEN 1 ELSE 0 END), 0), 1) AS avg
+        FROM deliveries d
+        JOIN players p ON p.id = d.bowler_id
+        WHERE d.batter_id = :pid AND d.wide = 0
+        GROUP BY d.bowler_id
+        HAVING balls >= 6
+        ORDER BY balls DESC
+        LIMIT 50
     """, pid=pid)
 
 
@@ -1043,10 +1078,12 @@ def player_similar(pid: int) -> pd.DataFrame:
 @st.cache_data(ttl=120)
 def player_form_info(pid: int) -> pd.DataFrame:
     return sql("""
-        SELECT avg_5, avg_10, avg_20, sr_5, sr_10, sr_20,
-               career_avg, career_sr, cv,
-               breakout_flag, breakout_delta, innings_total
-        FROM player_form WHERE player_id = :pid
+        SELECT pf.avg_5, pf.avg_10, pf.avg_20, pf.sr_5, pf.sr_10, pf.sr_20,
+               pf.career_avg, pf.career_sr, pf.cv,
+               pf.breakout_flag, pf.breakout_delta, pf.innings_total
+        FROM player_form pf
+        JOIN players p ON p.id = pf.player_id
+        WHERE pf.player_id = :pid
     """, pid=pid)
 
 
@@ -1927,16 +1964,48 @@ if "01" in page:
                 st.dataframe(pos, hide_index=True)
 
         with t3:
-            opp = player_by_opponent(pid)
-            if not opp.empty:
-                top = opp.head(20)
-                fig = px.bar(top, x="opponent", y="avg", color="inn",
-                              title="Average vs Opponent (top 20 by innings)",
-                              color_continuous_scale=["#E8E4D8", "#3A86FF"])
-                fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
-                st.plotly_chart(_plotly_defaults(fig), width="stretch",
-                                config={"displayModeBar": False})
-                st.dataframe(opp, hide_index=True)
+            opp_view = st.radio(
+                "View",
+                ["Clubs", "Countries", "vs Players"],
+                horizontal=True,
+                key="opp_view_radio",
+                label_visibility="collapsed",
+            )
+            if opp_view == "Clubs":
+                opp = player_by_opponent(pid, team_type="clubs")
+                chart_title = "Average vs Club Opponents (top 20 by innings)"
+            elif opp_view == "Countries":
+                opp = player_by_opponent(pid, team_type="countries")
+                chart_title = "Average vs National Teams (top 20 by innings)"
+            else:
+                opp = None
+                chart_title = ""
+
+            if opp_view in ("Clubs", "Countries"):
+                if not opp.empty:
+                    top = opp.head(20)
+                    fig = px.bar(top, x="opponent", y="avg", color="inn",
+                                  title=chart_title,
+                                  color_continuous_scale=["#E8E4D8", "#3A86FF"])
+                    fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
+                    st.plotly_chart(_plotly_defaults(fig), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(opp, hide_index=True)
+                else:
+                    st.info("No data for this opponent type.")
+            else:
+                vb = player_vs_bowler(pid)
+                if not vb.empty:
+                    top_vb = vb.head(20)
+                    fig = px.bar(top_vb, x="bowler", y="sr", color="balls",
+                                  title="Strike Rate vs Individual Bowlers (top 20 by balls faced)",
+                                  color_continuous_scale=["#E8E4D8", "#3A86FF"])
+                    fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
+                    st.plotly_chart(_plotly_defaults(fig), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(vb, hide_index=True)
+                else:
+                    st.info("No individual matchup data available.")
 
         with t4:
             mils = player_milestones_df(pid)
