@@ -4,12 +4,15 @@ Run: streamlit run src/dashboard/app.py
 """
 
 import sys
+import os
+import difflib
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+import requests
 import streamlit as st
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -755,6 +758,171 @@ COLORS = {"A": "#3A86FF", "B": "#FF6B9D"}
 
 
 # ─────────────────────────────────────────────────────────
+# GPT / RETRIEVAL HELPERS
+# ─────────────────────────────────────────────────────────
+
+def _gemini_api_key() -> str:
+    return (
+        _get_secret("GEMINI_API_KEY")
+        or os.getenv("GEMINI_API_KEY")
+        or ""
+    )
+
+
+def _gemini_model() -> str:
+    return (
+        _get_secret("GEMINI_MODEL")
+        or os.getenv("GEMINI_MODEL")
+        or "gemini-2.0-flash"
+    )
+
+
+def _find_player_matches(question: str, limit: int = 5) -> pd.DataFrame:
+    df = all_players()
+    if df.empty:
+        return pd.DataFrame()
+
+    work = df[["id", "name", "country", "runs", "average", "strike_rate",
+               "overall_rating", "bat_rating", "bowl_rating"]].copy()
+    work["name_l"] = work["name"].fillna("").str.lower()
+    q = (question or "").strip().lower()
+    if not q:
+        return pd.DataFrame()
+
+    token_hits = work[work["name_l"].apply(lambda n: n and n in q)]
+    if len(token_hits) > 0:
+        return token_hits.head(limit).drop(columns=["name_l"])
+
+    names = work["name"].fillna("").tolist()
+    name_l_map = {n.lower(): n for n in names if n}
+    close_l = difflib.get_close_matches(q, list(name_l_map.keys()), n=limit, cutoff=0.5)
+    if not close_l:
+        q_tokens = [t for t in q.split() if len(t) >= 3]
+        if q_tokens:
+            token_hits = work[work["name_l"].apply(lambda n: any(t in n for t in q_tokens))]
+            return token_hits.head(limit).drop(columns=["name_l"])
+        return pd.DataFrame()
+
+    close_names = [name_l_map[x] for x in close_l]
+    return work[work["name"].isin(close_names)].head(limit).drop(columns=["name_l"])
+
+
+def _format_num(v, nd: int = 1) -> str:
+    if v is None or (isinstance(v, float) and np.isnan(v)):
+        return "n/a"
+    if isinstance(v, (int, np.integer)):
+        return f"{int(v):,}"
+    if isinstance(v, (float, np.floating)):
+        return f"{float(v):.{nd}f}"
+    return str(v)
+
+
+def _build_player_context(player_id: int) -> tuple[str, list[str]]:
+    df = all_players()
+    row_df = df[df["id"] == player_id]
+    if row_df.empty:
+        return "", []
+
+    r = row_df.iloc[0]
+    name = str(r.get("name") or "Unknown")
+    phase = player_by_phase(int(player_id))
+    seasons = player_seasons(int(player_id))
+
+    lines = [
+        f"Player: {name} ({r.get('country') or 'Unknown'})",
+        f"Career batting: runs={_format_num(r.get('runs'), 0)}, average={_format_num(r.get('average'))}, strike_rate={_format_num(r.get('strike_rate'))}",
+        f"Ratings: overall={_format_num(r.get('overall_rating'))}, bat={_format_num(r.get('bat_rating'))}, bowl={_format_num(r.get('bowl_rating'))}",
+        f"Role/stype: role={r.get('player_role') or 'n/a'}, bowling_style={r.get('bowling_style') or 'n/a'}",
+    ]
+
+    if phase:
+        lines.append(
+            "Phase SR: "
+            f"PP={_format_num(phase.get('Powerplay'))}, "
+            f"Middle={_format_num(phase.get('Middle'))}, "
+            f"Death={_format_num(phase.get('Death'))}, "
+            f"Overall={_format_num(phase.get('Overall'))}"
+        )
+
+    if not seasons.empty:
+        tail = seasons.tail(4).copy()
+        season_bits = []
+        for _, s in tail.iterrows():
+            season_bits.append(
+                f"{int(s.get('season'))}: runs={_format_num(s.get('runs'), 0)}, "
+                f"avg={_format_num(s.get('average'))}, sr={_format_num(s.get('sr'))}"
+            )
+        lines.append("Recent seasons: " + " | ".join(season_bits))
+
+    return "\n".join(lines), lines
+
+
+def _fallback_fact_answer(question: str, context_lines: list[str]) -> str:
+    if not context_lines:
+        return "I could not find enough player context in your DB for that question."
+    return (
+        "Grounded fact from your dataset:\n\n"
+        + context_lines[0] + "\n"
+        + context_lines[1] + "\n"
+        + context_lines[2] + "\n\n"
+        + "Ask a tighter prompt like: `Give one crude fact about Virat Kohli's SR and rating`."
+    )
+
+
+def _ask_gemini_grounded(question: str, context_text: str) -> tuple[str, str]:
+    api_key = _gemini_api_key()
+    if not api_key:
+        return "", "missing_key"
+
+    model = _gemini_model()
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "system_instruction": {
+            "parts": [
+                {
+                    "text": (
+                        "You are a cricket analytics assistant. Answer only from CONTEXT. "
+                        "If context is insufficient, say exactly what is missing. "
+                        "Keep answer short and factual."
+                    )
+                }
+            ]
+        },
+        "contents": [
+            {
+                "role": "user",
+                "parts": [
+                    {"text": f"QUESTION:\n{question}\n\nCONTEXT:\n{context_text}"}
+                ],
+            }
+        ],
+        "generationConfig": {"temperature": 0.2},
+    }
+    try:
+        res = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=30,
+        )
+        if res.status_code >= 300:
+            return "", f"http_{res.status_code}"
+        data = res.json()
+        candidates = data.get("candidates", [])
+        for cand in candidates:
+            content = cand.get("content", {})
+            for part in content.get("parts", []):
+                t = part.get("text")
+                if isinstance(t, str) and t.strip():
+                    return t.strip(), "ok"
+        return "", "empty_output"
+    except Exception:
+        return "", "request_failed"
+
+
+# ─────────────────────────────────────────────────────────
 # SIDEBAR
 # ─────────────────────────────────────────────────────────
 
@@ -781,6 +949,7 @@ with st.sidebar:
       cricsheet.org source
     </div>""", unsafe_allow_html=True)
 
+
 # ── Top navigation bar (always visible) ──────────────────
 _NAV_PAGES = [
     "Player Explorer",
@@ -791,6 +960,8 @@ _NAV_PAGES = [
     "Match Predictor",
     "Squad Manager",
     "Player Comparison",
+    "Cricket GPT",
+    "Admin",
 ]
 _nav_sel = st.pills("Navigation", _NAV_PAGES, default="Player Explorer",
                     key="top_nav", label_visibility="collapsed")
@@ -867,11 +1038,13 @@ def all_players() -> pd.DataFrame:
 
             bowl_raw = list(_mongo["player_career_bowl"].find(
                 {"tournament": "ALL"},
-                {"_id": 0, "player_id": 1, "innings": 1}
+                {"_id": 0, "player_id": 1, "innings": 1, "wickets": 1,
+                 "economy": 1, "average": 1, "strike_rate": 1}
             ))
-            pcbw = pd.DataFrame(bowl_raw).rename(
-                columns={"innings": "bowl_innings"}) if bowl_raw else pd.DataFrame(
-                columns=["player_id", "bowl_innings"])
+            pcbw = pd.DataFrame(bowl_raw).rename(columns={
+                "innings": "bowl_innings", "average": "bowl_avg", "strike_rate": "bowl_sr"
+            }) if bowl_raw else pd.DataFrame(
+                columns=["player_id", "bowl_innings", "wickets", "economy", "bowl_avg", "bowl_sr"])
 
             df = p.merge(pcb, left_on="id", right_on="player_id", how="left") \
                   .merge(pr,  left_on="id", right_on="player_id", how="left", suffixes=("", "_r")) \
@@ -895,7 +1068,7 @@ def all_players() -> pd.DataFrame:
 
     pcb  = _exec_sql(_db_engine, "SELECT player_id, innings, runs, average, strike_rate, adj_average, adj_strike_rate, fifties, hundreds, hs, pp_sr, mid_sr, death_sr FROM player_career_bat WHERE tournament = 'ALL'")
     pr   = _exec_sql(_db_engine, "SELECT player_id, bat_rating, bowl_rating, overall_rating, opener_score, finisher_score, anchor_score, chase_score, pp_bat_score, death_bat_score, pp_bowl_score, death_bowl_score FROM player_ratings WHERE tournament = 'ALL'")
-    pcbw = _exec_sql(_db_engine, "SELECT player_id, innings AS bowl_innings FROM player_career_bowl WHERE tournament = 'ALL'")
+    pcbw = _exec_sql(_db_engine, "SELECT player_id, innings AS bowl_innings, wickets, economy, average AS bowl_avg, strike_rate AS bowl_sr FROM player_career_bowl WHERE tournament = 'ALL'")
 
     # Cast merge keys to same type — SQLite nullable ints can come back as float64
     p["id"] = p["id"].astype("Int64")
@@ -1071,6 +1244,36 @@ def player_similar(pid: int) -> pd.DataFrame:
                                AND pr.tournament = 'ALL'
         WHERE ps.player_id_a = :pid AND ps.tournament = 'ALL'
         ORDER BY ps.similarity DESC
+        LIMIT 10
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_similar_upcoming(pid: int) -> pd.DataFrame:
+    """Similar players who played in the last 6 years and have good consistency."""
+    return sql("""
+        SELECT p.cricsheet_key AS name, p.country,
+               ps.similarity,
+               pr.bat_rating, pr.bowl_rating, pr.overall_rating,
+               pf.innings_total AS innings,
+               pf.cv AS consistency_cv,
+               pf.avg_10 AS recent_avg,
+               latest.last_season
+        FROM player_similarity ps
+        JOIN players p  ON p.id  = ps.player_id_b
+        JOIN player_ratings pr ON pr.player_id = ps.player_id_b
+                               AND pr.tournament = 'ALL'
+        JOIN player_form pf ON pf.player_id = ps.player_id_b
+        JOIN (
+            SELECT player_id, MAX(season) AS last_season
+            FROM player_perf_by_season
+            GROUP BY player_id
+        ) latest ON latest.player_id = ps.player_id_b
+        WHERE ps.player_id_a = :pid
+          AND ps.tournament = 'ALL'
+          AND latest.last_season >= '2020'
+          AND pf.innings_total >= 10
+        ORDER BY pf.cv ASC, ps.similarity DESC
         LIMIT 10
     """, pid=pid)
 
@@ -1274,7 +1477,7 @@ def _get_player(name: str) -> dict:
                chase.strike_rate AS chase_sr,
                first_inn.average AS first_avg
         FROM players p
-        JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
+        LEFT JOIN player_career_bat pcb ON pcb.player_id = p.id AND pcb.tournament = 'ALL'
         LEFT JOIN player_ratings pr ON pr.player_id = p.id AND pr.tournament = 'ALL'
         LEFT JOIN player_chase_bat chase
                ON chase.player_id = p.id AND chase.innings_type = 'chase'
@@ -1802,7 +2005,7 @@ if "01" in page:
         min_inn = st.slider("Min innings", 0, 100, 5)
     with fc4:
         sort_by = st.selectbox("Sort by", [
-            "innings", "bat_rating", "bowl_rating", "overall_rating",
+            "innings", "bowl_innings", "bat_rating", "bowl_rating", "overall_rating",
             "adj_average", "adj_strike_rate", "death_sr", "chase_score",
         ])
 
@@ -1818,7 +2021,10 @@ if "01" in page:
         "Slow left-arm orthodox",
         "Left-arm wrist-spin",
     ]
-    _ROLES = ["All roles", "Batter", "Bowler", "Batting All-rounder", "Bowling All-rounder"]
+    _ROLES = [
+        "All roles", "Batter", "Bowler",
+        "Batting All-rounder", "Bowling All-rounder", "Wicketkeeper Batter",
+    ]
     fc5, fc6, fc7, fc8 = st.columns([1.5, 2, 2, 1.5])
     with fc5:
         role_f = st.selectbox("Role", _ROLES, key="pe_role")
@@ -1831,18 +2037,25 @@ if "01" in page:
                                   ["All", "≥ 130", "≤ 100"],
                                   horizontal=True, key="pe_strength")
 
+    # Auto-switch sort for bowling roles so they don't disappear behind batters
+    _is_bowl_role = role_f in ("Bowler", "Bowling All-rounder")
+    if _is_bowl_role and sort_by not in ("bowl_rating", "overall_rating", "bowl_innings"):
+        sort_by = "bowl_rating"
+
     filt = df.copy()
     if search:
         filt = filt[filt["name"].str.contains(search, case=False, na=False)]
     if country != "All":
         filt = filt[filt["country"] == country]
 
-    # Role filter — skip min_inn for bowler-focused filters so pure bowlers appear
-    _bowler_filter = role_f in ("Bowler", "Bowling All-rounder") or bowl_style_f != "All styles"
     if role_f != "All roles":
         filt = filt[filt["player_role"] == role_f]
-    if not _bowler_filter:
-        filt = filt[filt["innings"] >= min_inn]
+
+    # For bowling roles use bowl_innings as the threshold; for others use max of both
+    if _is_bowl_role:
+        filt = filt[filt["bowl_innings"].fillna(0) >= min_inn]
+    else:
+        filt = filt[filt[["innings", "bowl_innings"]].max(axis=1) >= min_inn]
 
     # Bowler style filter — auto-switch sort to bowl_rating
     if bowl_style_f != "All styles":
@@ -2306,14 +2519,27 @@ if "01" in page:
     with _sim_col:
         st.markdown('<div class="nb-label">Similar Players (Role Profile)</div>',
                     unsafe_allow_html=True)
-        _sim_df = player_similar(pid)
+        _sim_mode = st.selectbox(
+            "Filter",
+            ["All Similar", "Upcoming Talent"],
+            key="sim_mode_sel",
+            label_visibility="collapsed",
+        )
+        if _sim_mode == "Upcoming Talent":
+            _sim_df = player_similar_upcoming(pid)
+            _sim_cols = ["name","country","Similarity","innings","recent_avg","consistency_cv","last_season","bat_rating","overall_rating"]
+            _sim_rename = {"name":"Player","country":"Country","innings":"Inn",
+                           "recent_avg":"Avg (last 10)","consistency_cv":"CV",
+                           "last_season":"Last Season","bat_rating":"Bat","overall_rating":"Overall"}
+        else:
+            _sim_df = player_similar(pid)
+            _sim_cols = ["name","country","Similarity","bat_rating","bowl_rating","overall_rating"]
+            _sim_rename = {"name":"Player","country":"Country",
+                           "bat_rating":"Bat","bowl_rating":"Bowl","overall_rating":"Overall"}
         if not _sim_df.empty:
             _sim_df["Similarity"] = (_sim_df["similarity"] * 100).round(1).astype(str) + "%"
             st.dataframe(
-                _sim_df[["name","country","Similarity","bat_rating","bowl_rating","overall_rating"]]
-                .rename(columns={"name":"Player","country":"Country",
-                                  "bat_rating":"Bat","bowl_rating":"Bowl",
-                                  "overall_rating":"Overall"}),
+                _sim_df[_sim_cols].rename(columns=_sim_rename),
                 hide_index=True, height=300,
             )
         else:
@@ -4503,3 +4729,230 @@ elif "08" in page:
         st.caption("Players whose last 10-innings average is ≥ 20% above their career average.")
     else:
         st.info("No breakout players detected, or run `python scripts/pipeline.py enrich` first.")
+
+
+# ═══════════════════════════════════════════════════════════
+# PAGE 9 — CRICKET GPT
+# ═══════════════════════════════════════════════════════════
+
+elif "09" in page:
+    from src.chatbot.insight_engine import generate_insight
+    from src.chatbot.chat_store import (
+        init_db as _chat_init, new_conversation, add_message,
+        load_messages, list_conversations, rename_conversation,
+        delete_conversation, auto_title,
+    )
+    from pathlib import Path as _Path
+    _CHAT_DB = _Path(DB_PATH).parent / "chats.db"
+    _chat_init(_CHAT_DB)
+
+    _api_key = _gemini_api_key()
+    _model   = _gemini_model()
+
+    # ── Sidebar: conversation list ───────────────────────────────────────────
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown(
+            "<div style='font-family:Space Mono;font-size:.7rem;"
+            "color:#FFE500;letter-spacing:.06em;margin-bottom:.5rem'>"
+            "CHAT HISTORY</div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("+ New chat", use_container_width=True):
+            st.session_state.pop("gpt_conv_id", None)
+            st.session_state["gpt_chat"] = []
+            st.rerun()
+
+        _convs = list_conversations(db_path=_CHAT_DB)
+        for _cv in _convs[:30]:
+            _label = _cv["title"][:32] + ("…" if len(_cv["title"]) > 32 else "")
+            _active = st.session_state.get("gpt_conv_id") == _cv["id"]
+            _btn_style = "primary" if _active else "secondary"
+            if st.button(_label, key=f"conv_{_cv['id']}", use_container_width=True,
+                         type=_btn_style):
+                st.session_state["gpt_conv_id"] = _cv["id"]
+                st.session_state["gpt_chat"] = load_messages(_cv["id"], _CHAT_DB)
+                st.rerun()
+
+    # ── Page header ──────────────────────────────────────────────────────────
+    st.markdown("""
+    <div class="nb-page-header">
+      <h2>Cricket GPT</h2>
+      <p>Ask anything — get empirical facts pulled live from your own database.</p>
+    </div>""", unsafe_allow_html=True)
+
+    if not _api_key:
+        st.warning(
+            "No `GEMINI_API_KEY` found. Set it via Streamlit secrets or the "
+            "`GEMINI_API_KEY` environment variable to enable this page."
+        )
+
+    with st.expander("Example questions"):
+        st.markdown(
+            "- Give me a mind-boggling fact about the Perth Stadium.\n"
+            "- What is the most diabolical dot-ball stat in IPL history?\n"
+            "- Tell me something insane about Virat Kohli's record against Australia.\n"
+            "- Which venue has the highest first-innings average but the lowest toss-win rate?\n"
+            "- What is the most extreme powerplay bowling economy ever recorded in T20 World Cup?\n"
+            "- Is there any batter who averages above 40 in chases but below 20 in first innings?\n"
+            "- How many sixes were hit in the 2022 T20 World Cup, and who hit the most?"
+        )
+
+    if "gpt_chat" not in st.session_state:
+        st.session_state["gpt_chat"] = []
+
+    # ── Render current conversation ──────────────────────────────────────────
+    for msg in st.session_state["gpt_chat"]:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+            if msg.get("queries_run"):
+                with st.expander(f"SQL queries run ({len(msg['queries_run'])})"):
+                    for qr in msg["queries_run"]:
+                        st.markdown(f"**{qr['label']}**")
+                        st.code(qr["sql"], language="sql")
+
+            if msg.get("raw_results"):
+                with st.expander("Raw data from DB"):
+                    for r in msg["raw_results"]:
+                        st.markdown(f"**{r['label']}**")
+                        if r.get("error"):
+                            st.error(r["error"])
+                        elif r["data"]:
+                            st.dataframe(pd.DataFrame(r["data"]), use_container_width=True)
+                        else:
+                            st.caption("(no rows)")
+
+    # ── Input ────────────────────────────────────────────────────────────────
+    user_q = st.chat_input(
+        "Ask a cricket question… e.g. 'What's a mind-boggling fact about Perth Stadium?'"
+    )
+
+    if user_q:
+        # Create or reuse conversation
+        if "gpt_conv_id" not in st.session_state:
+            _conv_id = new_conversation(auto_title(user_q), db_path=_CHAT_DB)
+            st.session_state["gpt_conv_id"] = _conv_id
+        else:
+            _conv_id = st.session_state["gpt_conv_id"]
+
+        # Persist + display user message
+        add_message(_conv_id, "user", user_q, db_path=_CHAT_DB)
+        st.session_state["gpt_chat"].append({"role": "user", "content": user_q})
+
+        if not _api_key:
+            _no_key_msg = "No API key configured. Set `GEMINI_API_KEY` to enable this feature."
+            add_message(_conv_id, "assistant", _no_key_msg, db_path=_CHAT_DB)
+            st.session_state["gpt_chat"].append({
+                "role": "assistant", "content": _no_key_msg,
+                "queries_run": [], "raw_results": [],
+            })
+            st.rerun()
+
+        with st.spinner("Generating queries and mining your database…"):
+            result = generate_insight(user_q, DB_PATH, _api_key, _model)
+
+        if result["error"]:
+            answer = f"**Error:** {result['error']}"
+        else:
+            answer = result["insight"] or "No insight could be generated. See the raw data below."
+            if result.get("cached"):
+                answer += "\n\n*⚡ Served from cache*"
+
+        # Persist + display assistant message
+        add_message(
+            _conv_id, "assistant", answer,
+            queries=result.get("queries_run", []),
+            results=result.get("raw_results", []),
+            db_path=_CHAT_DB,
+        )
+        st.session_state["gpt_chat"].append({
+            "role": "assistant",
+            "content": answer,
+            "queries_run": result.get("queries_run", []),
+            "raw_results": result.get("raw_results", []),
+        })
+        st.rerun()
+
+
+# ═══════════════════════════════════════════════════════════
+# PAGE 10 — ADMIN
+# ═══════════════════════════════════════════════════════════
+
+elif "Admin" in page:
+    import bcrypt as _bcrypt
+
+    # ── Password gate (unlocked per session) ──────────────────────────────
+    if not st.session_state.get("_admin_unlocked"):
+        st.markdown("""
+        <div class="nb-page-header">
+          <h2>Admin — Chat History</h2>
+          <p>Enter the admin password to continue.</p>
+        </div>""", unsafe_allow_html=True)
+        with st.form("admin_pw_form", clear_on_submit=True):
+            _pw = st.text_input("Password", type="password")
+            _ok = st.form_submit_button("Unlock", use_container_width=True)
+        if _ok:
+            _stored = _get_secret("ADMIN_PASSWORD_HASH") or ""
+            if _stored and _bcrypt.checkpw(_pw.encode(), _stored.encode()):
+                st.session_state["_admin_unlocked"] = True
+                st.rerun()
+            else:
+                st.error("Incorrect password.")
+        st.stop()
+
+    from src.chatbot.chat_store import (
+        init_db as _chat_init_a, list_conversations as _list_all,
+        load_messages as _load_msgs, delete_conversation as _del_conv,
+        admin_stats as _stats,
+    )
+    from pathlib import Path as _Pa
+    _CHAT_DB_A = _Pa(DB_PATH).parent / "chats.db"
+    _chat_init_a(_CHAT_DB_A)
+
+    st.markdown("""
+    <div class="nb-page-header">
+      <h2>Admin — Chat History</h2>
+      <p>All stored Cricket GPT conversations.</p>
+    </div>""", unsafe_allow_html=True)
+
+    if st.button("Lock admin", type="secondary"):
+        st.session_state.pop("_admin_unlocked", None)
+        st.rerun()
+
+    # ── Stats row ─────────────────────────────────────────────────────────
+    _s = _stats(_CHAT_DB_A)
+    _ca, _cb = st.columns(2)
+    _ca.metric("Total conversations", _s["total_conversations"])
+    _cb.metric("Total messages", _s["total_messages"])
+
+    if _s["daily"]:
+        _ddf = pd.DataFrame(_s["daily"])
+        _ddf.columns = ["Date", "Conversations"]
+        st.markdown("#### Activity (last 14 days)")
+        st.dataframe(_ddf, use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+
+    # ── Conversation browser ───────────────────────────────────────────────
+    st.markdown("#### All conversations")
+    _all_convs = _list_all(db_path=_CHAT_DB_A)
+    if not _all_convs:
+        st.caption("No conversations recorded yet.")
+    else:
+        for _cv in _all_convs:
+            _ts = _cv["updated_at"][:16].replace("T", " ")
+            with st.expander(f"**{_cv['title']}** · {_ts}"):
+                _msgs = _load_msgs(_cv["id"], _CHAT_DB_A)
+                for _m in _msgs:
+                    _icon = "🧑" if _m["role"] == "user" else "🤖"
+                    st.markdown(f"{_icon} **{_m['role'].capitalize()}** — {_m['created_at'][11:16]}")
+                    st.markdown(_m["content"])
+                    if _m.get("queries_run"):
+                        with st.expander(f"SQL ({len(_m['queries_run'])} queries)", expanded=False):
+                            for _qr in _m["queries_run"]:
+                                st.code(_qr["sql"], language="sql")
+                    st.markdown("---")
+                if st.button("Delete", key=f"del_{_cv['id']}", type="secondary"):
+                    _del_conv(_cv["id"], _CHAT_DB_A)
+                    st.rerun()
