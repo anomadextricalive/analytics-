@@ -49,27 +49,55 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────────────────
-# NEOBRUTALIST CSS
+# COSMIC CSS
 # ─────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
-    --bg:        #F7FAFF;
-    --surface:   #FFFFFF;
-    --border:    #E2E8F4;
-    --border-md: #C8D6ED;
-    --text:      #0F172A;
-    --muted:     #64748B;
-    --accent:    #1B4FA8;
-    --accent2:   #3A86FF;
-    --red:       #D21F3C;
-    --green:     #059669;
-    --yellow:    #F59E0B;
-    --shadow-sm: 0 1px 3px rgba(15,23,42,.07);
-    --shadow-md: 0 4px 12px rgba(15,23,42,.09);
-    --radius:    6px;
+    /* surface */
+    --cosmic-void-950: #05070F;
+    --cosmic-void-900: #0A0E1C;
+    --cosmic-void-800: #111630;
+    --cosmic-void-700: #1A2042;
+    --cosmic-void-600: #252C55;
+    /* ink */
+    --cosmic-ink-100:  #FFFFFF;
+    --cosmic-ink-300:  #C8CCDB;
+    --cosmic-ink-500:  #8A90A8;
+    --cosmic-ink-700:  #5A6080;
+    /* accents */
+    --cosmic-amber-400: #F5C842;
+    --cosmic-amber-500: #F5B829;
+    --cosmic-amber-600: #D99A1F;
+    --cosmic-mint-400:  #5EEAD4;
+    --cosmic-mint-500:  #2DD4BF;
+    --cosmic-mint-600:  #14B8A6;
+    --cosmic-magenta-400: #F472B6;
+    --cosmic-magenta-500: #EC4899;
+    --cosmic-magenta-600: #DB2777;
+    /* borders */
+    --border-subtle:  1px solid rgba(255,255,255,.06);
+    --border-default: 1px solid rgba(255,255,255,.10);
+    --border-strong:  1px solid rgba(255,255,255,.18);
+    /* elevation */
+    --elevation-card:  inset 0 1px 0 rgba(255,255,255,.04);
+    --elevation-hover: inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(94,234,212,.15);
+    /* compat aliases */
+    --bg:        var(--cosmic-void-900);
+    --surface:   var(--cosmic-void-800);
+    --text:      var(--cosmic-ink-300);
+    --muted:     var(--cosmic-ink-500);
+    --accent:    var(--cosmic-mint-500);
+    --accent2:   var(--cosmic-mint-400);
+    --red:       var(--cosmic-magenta-500);
+    --green:     var(--cosmic-mint-500);
+    --yellow:    var(--cosmic-amber-500);
+    --radius:    12px;
+    --font-display: "Oswald", "Bebas Neue", Impact, sans-serif;
+    --font-body:    "Inter", system-ui, sans-serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, monospace;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -78,14 +106,26 @@ html, body,
 [data-testid="stAppViewContainer"],
 [data-testid="stAppViewBlockContainer"],
 [data-testid="block-container"], .main {
-    background: var(--bg) !important;
-    font-family: 'Space Grotesk', sans-serif !important;
-    color: var(--text) !important;
+    background: var(--cosmic-void-900) !important;
+    font-family: var(--font-body) !important;
+    color: var(--cosmic-ink-300) !important;
+}
+
+/* Nebula bloom — two off-center radial gradients layered over the void */
+[data-testid="stAppViewContainer"]::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(26,188,176,.10) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 45% at 85% 75%, rgba(217,70,160,.08) 0%, transparent 70%);
 }
 
 .main p, .main span, .main div, .main label,
 .main li, .main a, .main strong, .main em {
-    color: var(--text) !important;
+    color: var(--cosmic-ink-300) !important;
 }
 
 #MainMenu, footer, header,
@@ -99,109 +139,112 @@ html, body,
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: #0F172A !important;
-    border-right: 1px solid #1E293B !important;
+    background: var(--cosmic-void-800) !important;
+    border-right: var(--border-subtle) !important;
 }
 [data-testid="stSidebar"] *,
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
 [data-testid="stSidebar"] div,
-[data-testid="stSidebar"] label { color: #E2E8F0 !important; }
+[data-testid="stSidebar"] label { color: var(--cosmic-ink-300) !important; }
 [data-testid="stSidebar"] .stRadio label {
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-mono) !important;
     font-size: .78rem !important;
-    letter-spacing: .04em !important;
+    letter-spacing: .06em !important;
 }
 [data-testid="stSidebar"] .stSelectbox label,
 [data-testid="stSidebar"] .stMarkdown p {
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-mono) !important;
     font-size: .72rem !important;
     opacity: .65;
 }
 [data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {
-    background: #1E293B !important;
-    border: 1px solid #334155 !important;
+    background: var(--cosmic-void-700) !important;
+    border: var(--border-default) !important;
     border-radius: var(--radius) !important;
-    color: #E2E8F0 !important;
+    color: var(--cosmic-ink-300) !important;
 }
 
 /* ── Page header ── */
 .nb-page-header {
-    border-left: 4px solid var(--accent);
+    border-left: 3px solid var(--cosmic-mint-500);
     padding: .35rem 0 .35rem 1rem;
     margin: 1.4rem 0 1.2rem;
 }
 .nb-page-header h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.45rem;
-    font-weight: 800;
-    letter-spacing: -.02em;
-    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: .01em;
+    text-transform: uppercase;
+    color: var(--cosmic-ink-100);
     margin: 0;
 }
 .nb-page-header p {
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .68rem;
-    color: var(--muted) !important;
+    color: var(--cosmic-ink-500) !important;
     margin: .2rem 0 0;
 }
 
-/* ── Section labels ── */
+/* ── Section labels (eyebrow / kicker) ── */
 .nb-label {
     display: inline-flex;
     align-items: center;
-    font-family: 'Space Mono', monospace;
-    font-size: .6rem;
-    font-weight: 700;
-    letter-spacing: .12em;
+    font-family: var(--font-body);
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .18em;
     text-transform: uppercase;
-    color: var(--accent) !important;
-    border-bottom: 2px solid var(--accent);
+    color: var(--cosmic-mint-400) !important;
+    border-bottom: none;
     padding: 0 0 3px 0;
     margin-bottom: .85rem;
 }
-.nb-divider { height: 1px; background: var(--border); margin: 1.8rem 0; }
+.nb-divider { height: 1px; background: rgba(255,255,255,.06); margin: 1.8rem 0; }
 
 /* ── Stat cards ── */
 .nb-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    background: var(--cosmic-void-800);
+    border: var(--border-subtle);
+    border-radius: 16px;
+    box-shadow: var(--elevation-card);
     padding: 1rem 1.2rem;
-    transition: box-shadow .15s;
+    transition: box-shadow 280ms cubic-bezier(0.22,1,0.36,1),
+                border 280ms cubic-bezier(0.22,1,0.36,1);
 }
-.nb-card:hover { box-shadow: var(--shadow-md); }
-.nb-card.yellow { background: #FFFBEB; border-color: #FDE68A; }
-.nb-card.blue   { background: #EFF6FF; border-color: #BFDBFE; }
-.nb-card.green  { background: #ECFDF5; border-color: #A7F3D0; }
-.nb-card.pink   { background: #FFF1F2; border-color: #FECDD3; }
-.nb-card.orange { background: #FFF7ED; border-color: #FED7AA; }
-.nb-card.purple { background: #F5F3FF; border-color: #DDD6FE; }
-.nb-card.black  { background: #0F172A; border-color: #1E293B; }
-.nb-card.black  * { color: #E2E8F0 !important; }
+.nb-card:hover { box-shadow: var(--elevation-hover); }
+/* tinted variants — remapped to dark Cosmic surfaces */
+.nb-card.yellow { background: var(--cosmic-void-800); border: 1px solid rgba(245,184,41,.20); }
+.nb-card.blue   { background: var(--cosmic-void-800); border: 1px solid rgba(94,234,212,.15); }
+.nb-card.green  { background: var(--cosmic-void-800); border: 1px solid rgba(45,212,191,.18); }
+.nb-card.pink   { background: var(--cosmic-void-800); border: 1px solid rgba(244,114,182,.18); }
+.nb-card.orange { background: var(--cosmic-void-800); border: 1px solid rgba(245,200,66,.15); }
+.nb-card.purple { background: var(--cosmic-void-800); border: 1px solid rgba(244,114,182,.15); }
+.nb-card.black  { background: var(--cosmic-void-950); border: var(--border-default); }
+.nb-card.black  * { color: var(--cosmic-ink-300) !important; }
 .nb-card .c-label {
-    font-family: 'Space Mono', monospace;
-    font-size: .58rem;
-    font-weight: 700;
-    letter-spacing: .1em;
+    font-family: var(--font-body);
+    font-size: .62rem;
+    font-weight: 600;
+    letter-spacing: .14em;
     text-transform: uppercase;
-    color: var(--muted) !important;
+    color: var(--cosmic-ink-500) !important;
     margin-bottom: .4rem;
 }
 .nb-card .c-val {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.9rem;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
     line-height: 1;
-    letter-spacing: -.03em;
-    color: var(--text) !important;
+    letter-spacing: .01em;
+    color: var(--cosmic-amber-400) !important;
 }
-.nb-card.black .c-val { color: #F8FAFC !important; }
+.nb-card.black .c-val { color: var(--cosmic-ink-100) !important; }
 .nb-card .c-sub {
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .6rem;
-    color: var(--muted) !important;
+    color: var(--cosmic-ink-500) !important;
     margin-top: .25rem;
 }
 
@@ -209,40 +252,44 @@ html, body,
 .nb-table {
     width: 100%;
     border-collapse: collapse;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    font-family: 'Space Mono', monospace;
+    border: var(--border-subtle);
+    border-radius: 16px;
+    font-family: var(--font-mono);
     font-size: .74rem;
-    background: var(--surface);
+    background: var(--cosmic-void-800);
     overflow: hidden;
 }
-.nb-table thead tr { background: var(--accent); }
+.nb-table thead tr { background: var(--cosmic-void-700); }
 .nb-table th {
-    color: #fff !important;
+    color: var(--cosmic-mint-400) !important;
     text-transform: uppercase;
-    letter-spacing: .07em;
+    letter-spacing: .12em;
     font-size: .58rem;
+    font-family: var(--font-body);
+    font-weight: 600;
     padding: .6rem .85rem;
     text-align: left;
-    border-right: 1px solid rgba(255,255,255,.12);
+    border-right: var(--border-subtle);
     white-space: nowrap;
 }
 .nb-table td {
     padding: .48rem .85rem;
-    color: var(--text) !important;
-    border-bottom: 1px solid var(--border);
-    border-right: 1px solid var(--border);
+    color: var(--cosmic-ink-300) !important;
+    border-bottom: var(--border-subtle);
+    border-right: var(--border-subtle);
     vertical-align: middle;
 }
 .nb-table tr:last-child td { border-bottom: none; }
-.nb-table tr:nth-child(even) td { background: #F7FAFF; }
-.nb-table tr:hover td { background: #EFF6FF; cursor: pointer; }
-.nb-table td:first-child { font-weight: 700; }
+.nb-table tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+.nb-table tr:hover td {
+    background: var(--cosmic-void-700);
+    cursor: pointer;
+}
+.nb-table td:first-child { font-weight: 700; color: var(--cosmic-ink-100) !important; }
 
 /* ── Rating bar ── */
 .rat-bar-bg {
-    background: var(--border);
+    background: rgba(255,255,255,.08);
     border-radius: 99px;
     height: 8px;
     width: 100%;
@@ -252,194 +299,188 @@ html, body,
 
 /* ── Plotly charts ── */
 .stPlotlyChart > div {
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius) !important;
-    box-shadow: var(--shadow-sm) !important;
+    border: var(--border-subtle) !important;
+    border-radius: 16px !important;
     overflow: hidden;
 }
 
 /* ── Streamlit text ── */
 .stMarkdown p, .stMarkdown li, .stMarkdown h1,
 .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
-    color: var(--text) !important;
+    color: var(--cosmic-ink-300) !important;
 }
 
 /* ── Inputs ── */
 .stTextInput > label, .stSelectbox > label,
 .stMultiSelect > label, .stSlider > label,
 .stNumberInput > label, .stDateInput > label {
-    color: var(--muted) !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: .65rem !important;
-    font-weight: 700 !important;
+    color: var(--cosmic-ink-500) !important;
+    font-family: var(--font-body) !important;
+    font-size: .62rem !important;
+    font-weight: 600 !important;
     text-transform: uppercase !important;
-    letter-spacing: .06em !important;
+    letter-spacing: .12em !important;
 }
 .stTextInput input {
-    border: 1px solid var(--border-md) !important;
+    border: var(--border-default) !important;
     border-radius: var(--radius) !important;
-    font-family: 'Space Mono', monospace !important;
-    background: var(--surface) !important;
-    color: var(--text) !important;
-    box-shadow: var(--shadow-sm) !important;
+    font-family: var(--font-mono) !important;
+    background: var(--cosmic-void-700) !important;
+    color: var(--cosmic-ink-300) !important;
 }
 .stTextInput input:focus {
     outline: none !important;
-    border-color: var(--accent2) !important;
-    box-shadow: 0 0 0 3px rgba(58,134,255,.12) !important;
+    border-color: var(--cosmic-mint-500) !important;
+    box-shadow: 0 0 0 2px rgba(45,212,191,.15) !important;
 }
-.stTextInput input::placeholder { color: var(--muted) !important; }
+.stTextInput input::placeholder { color: var(--cosmic-ink-700) !important; }
 
 /* ── Selectbox ── */
 .stSelectbox [data-baseweb="select"] > div,
 [data-testid="stSelectbox"] > div > div {
-    border: 1px solid var(--border-md) !important;
+    border: var(--border-default) !important;
     border-radius: var(--radius) !important;
-    font-family: 'Space Mono', monospace !important;
-    background: var(--surface) !important;
-    color: var(--text) !important;
-    box-shadow: var(--shadow-sm) !important;
+    font-family: var(--font-mono) !important;
+    background: var(--cosmic-void-700) !important;
+    color: var(--cosmic-ink-300) !important;
 }
 .stSelectbox [data-baseweb="select"] span,
-.stSelectbox [data-baseweb="select"] div { color: var(--text) !important; }
+.stSelectbox [data-baseweb="select"] div { color: var(--cosmic-ink-300) !important; }
 
 [data-baseweb="popover"] li, [data-baseweb="menu"] li,
 [role="listbox"] li, [role="option"] {
-    background: var(--surface) !important;
-    color: var(--text) !important;
-    font-family: 'Space Mono', monospace !important;
+    background: var(--cosmic-void-700) !important;
+    color: var(--cosmic-ink-300) !important;
+    font-family: var(--font-mono) !important;
     font-size: .74rem !important;
 }
 [role="option"]:hover, [role="option"][aria-selected="true"] {
-    background: #EFF6FF !important;
-    color: var(--accent) !important;
+    background: var(--cosmic-void-600) !important;
+    color: var(--cosmic-mint-400) !important;
 }
 
 /* ── Multiselect ── */
 [data-testid="stMultiSelect"] > div > div {
-    border: 1px solid var(--border-md) !important;
+    border: var(--border-default) !important;
     border-radius: var(--radius) !important;
-    background: var(--surface) !important;
-    box-shadow: var(--shadow-sm) !important;
+    background: var(--cosmic-void-700) !important;
 }
-[data-testid="stMultiSelect"] span { color: var(--text) !important; }
+[data-testid="stMultiSelect"] span { color: var(--cosmic-ink-300) !important; }
 [data-baseweb="tag"] {
-    background: #EFF6FF !important;
-    border: 1px solid #BFDBFE !important;
-    border-radius: 4px !important;
+    background: rgba(45,212,191,.12) !important;
+    border: 1px solid rgba(45,212,191,.25) !important;
+    border-radius: 6px !important;
 }
-[data-baseweb="tag"] span { color: var(--accent) !important; }
+[data-baseweb="tag"] span { color: var(--cosmic-mint-400) !important; }
 
 /* ── Buttons ── */
 .stButton button {
-    background: var(--accent) !important;
-    color: #fff !important;
+    background: var(--cosmic-amber-500) !important;
+    color: var(--cosmic-void-950) !important;
     border: none !important;
-    box-shadow: var(--shadow-sm) !important;
     border-radius: var(--radius) !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-body) !important;
     font-size: .72rem !important;
     font-weight: 700 !important;
-    letter-spacing: .06em !important;
+    letter-spacing: .12em !important;
     text-transform: uppercase !important;
     padding: .45rem 1.1rem !important;
-    transition: background .15s, box-shadow .15s !important;
+    transition: background 180ms cubic-bezier(0.22,1,0.36,1) !important;
 }
-.stButton button:hover  { background: #1440A0 !important; box-shadow: var(--shadow-md) !important; }
-.stButton button:active { background: #0E338A !important; }
-.stButton button p, .stButton button span { color: #fff !important; }
+.stButton button:hover  { background: var(--cosmic-amber-400) !important; }
+.stButton button:active { background: var(--cosmic-amber-600) !important; }
+.stButton button p, .stButton button span { color: var(--cosmic-void-950) !important; }
 
 /* ── Slider ── */
 .stSlider [data-testid="stThumbValue"] {
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-mono) !important;
     font-size: .7rem !important;
-    background: var(--accent) !important;
-    color: #fff !important;
-    border-radius: 4px !important;
+    background: var(--cosmic-amber-500) !important;
+    color: var(--cosmic-void-950) !important;
+    border-radius: 6px !important;
 }
 
 /* ── Metric overrides ── */
 [data-testid="stMetric"] {
-    background: var(--surface) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius) !important;
-    box-shadow: var(--shadow-sm) !important;
+    background: var(--cosmic-void-800) !important;
+    border: var(--border-subtle) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--elevation-card) !important;
     padding: .8rem 1rem !important;
 }
 [data-testid="stMetricLabel"],
 [data-testid="stMetricLabel"] p,
 [data-testid="stMetricLabel"] span {
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-body) !important;
     font-size: .6rem !important;
-    letter-spacing: .08em !important;
+    letter-spacing: .14em !important;
     text-transform: uppercase !important;
-    color: var(--muted) !important;
+    color: var(--cosmic-ink-500) !important;
 }
 [data-testid="stMetricValue"],
 [data-testid="stMetricValue"] div {
-    font-family: 'Space Grotesk', sans-serif !important;
-    font-weight: 800 !important;
-    color: var(--text) !important;
+    font-family: var(--font-display) !important;
+    font-weight: 700 !important;
+    color: var(--cosmic-amber-400) !important;
 }
 [data-testid="stMetricDelta"] svg { display: none; }
 
 /* ── Dataframes ── */
 [data-testid="stDataFrame"] {
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius) !important;
-    box-shadow: var(--shadow-sm) !important;
+    border: var(--border-subtle) !important;
+    border-radius: 16px !important;
     overflow: hidden;
 }
 [data-testid="stDataFrame"] th {
-    background: var(--accent) !important;
-    color: #fff !important;
-    font-family: 'Space Mono', monospace !important;
+    background: var(--cosmic-void-700) !important;
+    color: var(--cosmic-mint-400) !important;
+    font-family: var(--font-body) !important;
     font-size: .62rem !important;
     text-transform: uppercase !important;
-    letter-spacing: .05em !important;
+    letter-spacing: .12em !important;
 }
 [data-testid="stDataFrame"] td {
-    color: var(--text) !important;
-    font-family: 'Space Mono', monospace !important;
+    color: var(--cosmic-ink-300) !important;
+    font-family: var(--font-mono) !important;
     font-size: .72rem !important;
-    background: var(--surface) !important;
+    background: var(--cosmic-void-800) !important;
 }
 
 /* ── Expander ── */
 [data-testid="stExpander"] {
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius) !important;
-    box-shadow: var(--shadow-sm) !important;
-    background: var(--surface) !important;
+    border: var(--border-subtle) !important;
+    border-radius: 16px !important;
+    background: var(--cosmic-void-800) !important;
 }
 [data-testid="stExpander"] summary {
-    font-family: 'Space Mono', monospace !important;
-    font-weight: 700 !important;
-    color: var(--text) !important;
-    background: #F1F5F9 !important;
+    font-family: var(--font-body) !important;
+    font-weight: 600 !important;
+    color: var(--cosmic-ink-300) !important;
+    background: var(--cosmic-void-700) !important;
     padding: .45rem .85rem !important;
-    border-radius: var(--radius) !important;
+    border-radius: 12px !important;
 }
 
 /* ── Tabs ── */
 [data-testid="stTabs"] [role="tab"] {
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-body) !important;
     font-size: .65rem !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     text-transform: uppercase !important;
-    letter-spacing: .06em !important;
+    letter-spacing: .12em !important;
     border: none !important;
     border-radius: 0 !important;
-    color: var(--muted) !important;
+    color: var(--cosmic-ink-500) !important;
     padding: .5rem .8rem !important;
+    transition: color 180ms !important;
 }
 [data-testid="stTabs"] [role="tab"][aria-selected="true"] {
     background: transparent !important;
-    color: var(--accent) !important;
-    border-bottom: 2px solid var(--accent) !important;
+    color: var(--cosmic-mint-400) !important;
+    border-bottom: 2px solid var(--cosmic-mint-500) !important;
 }
 [data-testid="stTabs"] [role="tablist"] {
-    border-bottom: 1px solid var(--border) !important;
+    border-bottom: var(--border-subtle) !important;
     gap: 0 !important;
 }
 [data-testid="stTabs"] [role="tabpanel"] {
@@ -449,83 +490,85 @@ html, body,
 
 /* ── Alerts ── */
 [data-testid="stAlert"] {
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius) !important;
-    box-shadow: none !important;
+    border: var(--border-default) !important;
+    border-radius: 16px !important;
+    background: var(--cosmic-void-800) !important;
 }
-[data-testid="stAlert"] p { color: var(--text) !important; }
+[data-testid="stAlert"] p { color: var(--cosmic-ink-300) !important; }
 
 /* ── H2H comparison panel ── */
 .h2h-name {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1rem;
-    font-weight: 800;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
     padding: .5rem 1rem;
     border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--elevation-card);
     margin-bottom: 1rem;
     text-align: center;
-    color: #fff !important;
+    color: var(--cosmic-void-950) !important;
 }
-.h2h-name.a { background: var(--accent2); }
-.h2h-name.b { background: var(--red); }
+.h2h-name.a { background: var(--cosmic-mint-500); }
+.h2h-name.b { background: var(--cosmic-magenta-500); }
 
 /* ── Pill ── */
 .pill {
     display: inline-block;
     padding: 2px 8px;
-    border-radius: 99px;
-    font-family: 'Space Mono', monospace;
+    border-radius: 9999px;
+    font-family: var(--font-body);
     font-size: .58rem;
-    font-weight: 700;
-    letter-spacing: .05em;
+    font-weight: 600;
+    letter-spacing: .1em;
     text-transform: uppercase;
 }
-.pill.blue   { background: #EFF6FF; color: var(--accent) !important; }
-.pill.yellow { background: #FFFBEB; color: #92400E !important; }
-.pill.green  { background: #ECFDF5; color: var(--green) !important; }
-.pill.pink   { background: #FFF1F2; color: var(--red) !important; }
+.pill.blue   { background: rgba(94,234,212,.12); color: var(--cosmic-mint-400) !important; }
+.pill.yellow { background: rgba(245,184,41,.12); color: var(--cosmic-amber-400) !important; }
+.pill.green  { background: rgba(45,212,191,.12); color: var(--cosmic-mint-400) !important; }
+.pill.pink   { background: rgba(244,114,182,.12); color: var(--cosmic-magenta-400) !important; }
 
 /* ── Number input ── */
 [data-testid="stNumberInput"] input {
-    border: 1px solid var(--border-md) !important;
+    border: var(--border-default) !important;
     border-radius: var(--radius) !important;
-    background: var(--surface) !important;
-    color: var(--text) !important;
-    font-family: 'Space Mono', monospace !important;
+    background: var(--cosmic-void-700) !important;
+    color: var(--cosmic-ink-300) !important;
+    font-family: var(--font-mono) !important;
 }
 
 /* ── Code blocks ── */
 code, pre {
-    background: #1E293B !important;
-    color: #7DD3FC !important;
+    background: var(--cosmic-void-950) !important;
+    color: var(--cosmic-mint-400) !important;
     border-radius: var(--radius) !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-mono) !important;
 }
 
 /* ── Nav pills ── */
 [data-testid="stPills"] button {
     border-radius: var(--radius) !important;
-    font-family: 'Space Mono', monospace !important;
+    font-family: var(--font-body) !important;
     font-size: .65rem !important;
-    font-weight: 700 !important;
-    letter-spacing: .05em !important;
+    font-weight: 600 !important;
+    letter-spacing: .1em !important;
     text-transform: uppercase !important;
-    border: 1px solid var(--border) !important;
-    color: var(--muted) !important;
-    background: var(--surface) !important;
-    transition: all .12s !important;
+    border: var(--border-default) !important;
+    color: var(--cosmic-ink-500) !important;
+    background: var(--cosmic-void-800) !important;
+    transition: all 180ms cubic-bezier(0.22,1,0.36,1) !important;
 }
 [data-testid="stPills"] button[aria-selected="true"],
 [data-testid="stPills"] button[data-active="true"] {
-    background: var(--accent) !important;
-    color: #fff !important;
-    border-color: var(--accent) !important;
+    background: var(--cosmic-amber-500) !important;
+    color: var(--cosmic-void-950) !important;
+    border-color: var(--cosmic-amber-500) !important;
 }
 [data-testid="stPills"] button:hover:not([aria-selected="true"]) {
-    background: #EFF6FF !important;
-    border-color: var(--accent2) !important;
-    color: var(--accent) !important;
+    background: var(--cosmic-void-700) !important;
+    border-color: rgba(94,234,212,.25) !important;
+    color: var(--cosmic-mint-400) !important;
 }
 </style>
 """, unsafe_allow_html=True)
