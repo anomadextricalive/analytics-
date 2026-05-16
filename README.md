@@ -1,6 +1,22 @@
-# 🏏 Cricket Analytics
+# Cricket Analytics
 
-A comprehensive T20 cricket analytics and player rating system covering international and domestic leagues from 2004–2026. Built on ball-by-ball data from [cricsheet.org](https://cricsheet.org), with a full data pipeline, pitch regression engine, machine learning prediction models, and two interactive neobrutalist-themed dashboards.
+> T20 player rating system · 5,811 matches · 1,335,728 deliveries · 5,128 players · 248 venues · 2004–2026
+
+Built on ball-by-ball data from [cricsheet.org](https://cricsheet.org) with a full data pipeline, Bayesian pitch regression, bowling style matchup analysis, machine learning prediction models, player similarity engine, and a natural language insight interface.
+
+---
+
+## Version History
+
+| Version | Date | Highlights |
+|---|---|---|
+| **v0.5** | 2026-05-16 | Cosmic dark UI theme (void/mint/amber/magenta palette) |
+| **v0.4** | 2026-04-12 | Player similarity (cosine), rolling form scoring, Cricket GPT chat |
+| **v0.3** | 2026-04-03 | Matchup Lab, XI vs XI Match Predictor, bowling style coverage 99.8% |
+| **v0.2** | 2026-03-31 | 7 leagues, position-stratified GBM models, Optuna tuning, venue metadata |
+| **v0.1** | 2026-03-29 | Initial system: ingest pipeline, 26-table schema, ratings, dashboard |
+
+Full per-commit changelog: [UPDATES.md](UPDATES.md)
 
 ---
 
@@ -20,7 +36,11 @@ T20 cricket compounds this problem. The format's compressed nature means a singl
 
 A third dimension is almost entirely invisible in published statistics: **bowling style matchups**. A batter with a career T20 strike rate of 138 might be averaging 160 against pace and only 95 against left-arm wrist-spin. A captain who does not know this will use the wrong bowler at the wrong moment. A franchise auction team that does not know this will overpay for a batter whose weakness is exactly what their opponents exploit.
 
-This system is an attempt to build a more honest, more complete picture of T20 player quality — one that accounts for venue, phase, match situation, and bowling style all at once.
+A fourth problem is temporal: career statistics are static. They cannot tell you whether a player is in form right now, whether their recent performances represent a genuine trend or noise, or whether the player they most resemble — the player whose skills and weaknesses mirror their own — is available at auction for a fraction of the price.
+
+This system is an attempt to build a more honest, more complete, and more dynamic picture of T20 player quality — one that accounts for venue, phase, match situation, bowling style, recent form, and player similarity all at once.
+
+---
 
 ### Methodology
 
@@ -44,6 +64,8 @@ The deduplication process operates in four steps:
 4. **Rename canonicals** — stadiums with outdated names are updated to their current official names (Feroz Shah Kotla → Arun Jaitley Stadium; Westpac Stadium → Sky Stadium; Docklands Stadium → Marvel Stadium; Beausejour Stadium → Daren Sammy National Cricket Stadium, etc.).
 
 This reduces the raw venue count from 363 to 248, eliminating split performance histories and producing consistent per-venue statistics across a player's full career.
+
+Beyond deduplication, the venue table stores researched physical metadata for all major grounds: boundary dimensions (straight and square), ground capacity, pitch type (red soil / black soil / drop-in), and surface character (pace-friendly / spin-friendly / neutral).
 
 #### 3. Pitch Regression (Venue Difficulty Factor)
 
@@ -100,7 +122,7 @@ The most granular analytical layer is the batter-vs-bowling-style matchup table.
 | SLA | Slow left-arm orthodox |
 | LWS | Left-arm wrist-spin (chinaman) |
 
-Bowling styles were classified for 414 significant T20 bowlers using authoritative knowledge of their delivery type — covering Jasprit Bumrah (RAFM), Sunil Narine (OB), Rashid Khan (LBG), Kuldeep Yadav (LWS), Shaheen Shah Afridi (LAF), and the full population of international and major franchise regulars. These 414 bowlers account for approximately **54% of all deliveries** in the dataset (roughly 720,000 balls), giving the matchup table meaningful statistical depth.
+Bowling styles are classified for all significant T20 bowlers, covering Jasprit Bumrah (RAFM), Sunil Narine (OB), Rashid Khan (LBG), Kuldeep Yadav (LWS), Shaheen Shah Afridi (LAF), and the full population of international and major franchise regulars. Classification now covers **99.8% of all deliveries** in the dataset.
 
 For each batter-style pair with at least 24 balls faced, the system computes:
 - **Strike rate** — runs per 100 balls against that style
@@ -146,7 +168,27 @@ The sigmoid prevents extreme outliers from dominating and produces a scale where
 
 Beyond the composite rating, specialisation scores are computed for: **opener**, **finisher**, **anchor**, **chase specialist**, **powerplay bowler**, and **death bowler** — enabling nuanced role-based comparisons that a single number cannot capture.
 
-#### 8. Prediction Model
+#### 8. Player Similarity
+
+Each player is represented as a vector of their normalised rating sub-components (adjusted average, adjusted SR, phase SRs, chase split, specialisation scores). Cosine similarity is computed pairwise across all qualifying players and stored in the `player_similarity` table.
+
+The similarity engine answers the question that conventional statistics cannot: *who plays like this player?* A franchise looking for a like-for-like replacement during an auction can find the closest statistical analogue instantly. A team analyst preparing for a new opponent can find the player in their existing knowledge base who most closely mirrors an unfamiliar name.
+
+Similarity is computed in rating-space rather than raw-stat-space — so two players who both perform well at death despite very different raw strike rates (because one plays at easier venues) will be correctly identified as similar, while two players with identical raw averages at opposite extremes of the difficulty spectrum will not.
+
+#### 9. Player Form
+
+The `player_form` table computes rolling-window performance scores that reflect a player's current state rather than their career average. The form score weights recent innings more heavily, with a configurable decay window, and is expressed on the same 0–100 scale as the career rating for direct comparison.
+
+Form scoring separates players into four states:
+- **In form** — recent performances materially above career baseline
+- **Baseline** — consistent with career average
+- **Out of form** — recent performances materially below career baseline
+- **Insufficient data** — too few recent innings for reliable scoring
+
+A player whose career rating is 72 but whose form score is 45 is statistically declining. A player whose career rating is 58 but whose form score is 71 is peaking. Both signals are invisible in career statistics alone.
+
+#### 10. Prediction Model
 
 Four position-stratified `GradientBoostingRegressor` models (scikit-learn) are trained independently per batting group — openers (1–2), top order (3–5), lower order (6–8), and tail (9–11). Training separate models per group eliminates the population-mean bias that causes a single global model to over-predict tail-enders and under-predict openers. Each model is trained only on innings from its group, so it learns position-appropriate baselines.
 
@@ -177,7 +219,13 @@ Four position-stratified `GradientBoostingRegressor` models (scikit-learn) are t
 
 The prediction engine generates 80% confidence intervals via bootstrap sampling (300 iterations), reflecting the inherent randomness of T20 cricket — even the best model cannot predict a specific innings with precision, and the CI makes that uncertainty explicit.
 
-#### 9. Stored Player Metadata
+#### 11. Cricket GPT Insight Engine
+
+The system includes a natural language interface — Cricket GPT — that translates free-text questions into SQL queries against the 26-table schema and returns structured answers. The engine maintains persistent chat history per session and is backed by an LLM with full schema context.
+
+This allows analysts without SQL knowledge to query the full depth of the database: cross-dimensional questions that would normally require joining 4–5 tables and writing window functions can be asked in plain English. The insight engine is not a substitute for the dashboard — it is a complement that handles the long tail of ad-hoc questions the fixed dashboard pages cannot anticipate.
+
+#### 12. Stored Player Metadata
 
 Beyond aggregated statistics, the system stores granular per-player breakdowns modelled on professional cricket statistics databases:
 
@@ -193,19 +241,30 @@ Beyond aggregated statistics, the system stores granular per-player breakdowns m
 - **Partnership data** — ball-by-ball partnership tracking
 - **Bowling style matchups** — SR, average, dot%, and boundary rate vs. each of 8 bowling style categories (minimum 24 balls)
 
-This gives the system the depth of a dedicated cricket statistics platform while remaining entirely derived from open-source ball-by-ball data.
+---
 
 ### What This System Can Answer
 
-The combination of venue adjustment, phase splits, chase/set splits, and bowling style matchups allows the system to answer questions that no traditional cricket database can:
+The combination of venue adjustment, phase splits, chase/set splits, bowling style matchups, similarity, and form allows the system to answer questions that no traditional cricket database can:
 
+**Tactical:**
 - *Who is the best death-overs batter at spin-friendly venues when chasing targets above 180?*
 - *Which bowlers in the IPL have the lowest economy against left-handed openers in the powerplay?*
-- *Does this batter's T20I average overstate or understate their ability — and by how much?*
-- *If this team bats first at this venue, what score range should they target?*
 - *Which batter in this squad has a structural weakness against left-arm wrist-spin — a weakness the opposing attack can exploit?*
 
-Each of these requires crossing at least three analytical dimensions simultaneously. The dashboard makes them answerable in seconds.
+**Valuation:**
+- *Does this batter's T20I average overstate or understate their ability — and by how much?*
+- *Who is the closest statistical twin to this player available at a lower price point?*
+- *Is this player currently in form or regressing toward the mean?*
+
+**Prediction:**
+- *If this team bats first at this venue, what score range should they target?*
+- *Given these two XIs at this ground, what is the predicted win probability?*
+
+**Natural language (Cricket GPT):**
+- Any of the above, phrased as a plain English question, answered directly from the database.
+
+Each of these requires crossing at least three analytical dimensions simultaneously. The dashboard makes them answerable in seconds. Cricket GPT makes them answerable without knowing which dimensions to cross.
 
 ---
 
@@ -217,6 +276,7 @@ cricket_analytics/
 ├── config.py                   # Central config: paths, phases, thresholds
 ├── requirements.txt
 ├── Dockerfile                  # For Railway/Render/Fly.io
+├── UPDATES.md                  # Per-commit changelog
 │
 ├── src/
 │   ├── db/
@@ -224,14 +284,18 @@ cricket_analytics/
 │   ├── ingest/
 │   │   ├── downloader.py       # Cricsheet zip downloader
 │   │   └── parser.py           # Fast bulk parser (~130 matches/sec)
-│   └── analytics/
-│       ├── pitch.py            # Bayesian venue difficulty estimation
-│       ├── metrics.py          # Rebuilds all 12 aggregate tables
-│       ├── rating.py           # Z-score → sigmoid player ratings
-│       └── model.py            # GBM prediction models
+│   ├── analytics/
+│   │   ├── pitch.py            # Bayesian venue difficulty estimation
+│   │   ├── metrics.py          # Rebuilds all 12 aggregate tables
+│   │   ├── rating.py           # Z-score → sigmoid player ratings
+│   │   └── model.py            # GBM prediction models
+│   └── chatbot/
+│       ├── insight_engine.py   # Natural language → SQL → answer (Cricket GPT)
+│       ├── chat_store.py       # Persistent chat history per session
+│       └── auth.py             # Admin authentication for GPT page
 │
 ├── src/dashboard/
-│   ├── app.py                  # Main analytics dashboard (4 pages)
+│   ├── app.py                  # Main analytics dashboard (6 pages, Cosmic theme)
 │   └── health.py               # Backend health monitor dashboard
 │
 ├── scripts/
@@ -240,11 +304,17 @@ cricket_analytics/
 │   ├── inspect_db.py           # Print all 26 tables with row counts
 │   ├── backtest_2024.py        # Leave-one-season-out backtest (train <2024, test 2024)
 │   ├── tune_models.py          # Optuna hyperparameter search — GBM vs XGBoost
+│   ├── add_chat_indexes.py     # Add DB indexes for chat query performance
 │   ├── migrate_to_mongo.py     # Raw SQLite → MongoDB (26 collections)
 │   └── build_mongo_profiles.py # Pre-joined MongoDB profiles (3 collections)
 │
 └── data/
     ├── cricket.db              # SQLite database (not in git — auto-built)
+    ├── cricket.db.gz           # Compressed bundled DB for instant deploy
+    ├── all_players_full.csv    # Player list with roles
+    ├── unclassified_bowlers.csv# Bowlers missing style classification
+    ├── venues_meta.csv         # Venue physical metadata (boundaries, capacity, pitch)
+    ├── venues_full.csv         # Full venues export
     ├── raw/                    # Downloaded JSON files (not in git)
     └── models/                 # Trained GBM models (committed to git)
 ```
@@ -260,6 +330,7 @@ cricket_analytics/
 | Metadata | `player_perf_by_opponent`, `player_perf_by_season`, `player_perf_by_team`, `player_perf_by_result` |
 | Analysis | `player_dismissal_analysis`, `player_bowling_dismissal_analysis`, `player_fielding_stats` |
 | Events | `player_milestones`, `player_of_match_awards` |
+| Enrichment | `player_similarity`, `player_form` |
 | Model output | `venue_difficulty`, `player_ratings` |
 
 ### Data Integrity
@@ -290,15 +361,21 @@ The ingestion pipeline is optimised for bulk loading:
 
 ### Analytics Dashboard (`src/dashboard/app.py`)
 
-Four pages, all neobrutalist-themed (Space Mono + Space Grotesk, #FFE500 yellow, hard box shadows):
+Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswald/Inter/JetBrains Mono fonts):
 
-**Player Explorer** — Searchable, filterable table of all 5,128 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, and venue performance map.
+**Player Explorer** — Searchable, filterable table of all 5,128 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, venue performance map, similar players panel, and current form score.
 
 **Head-to-Head** — Select 2–8 players for a radar chart across 6 dimensions (bat rating, bowl rating, opener score, finisher score, chase score, death bat score), phase SR comparison bars, chase vs. first-innings split, and shared-venue performance comparison.
 
-**Pitch Intelligence** — Scatter plot of all 248 venues (bat_factor vs. boundary_rate, sized by match count). Venue deep-dive with top 15 batters and bowlers at that ground.
+**Matchup Lab** — Ball-by-ball batter vs. bowler matchup analysis. Role-filtered dropdowns, career comparison panel, and model-predicted outcome for any batter vs. any bowler combination.
+
+**XI vs XI Match Predictor** — Select two full XIs and a venue. Generates GBM score predictions for both innings, 80% confidence intervals, per-player predicted contributions, XI strength rating cards, and win probability.
+
+**Pitch Intelligence** — Scatter plot of all 248 venues (bat_factor vs. boundary_rate, sized by match count). Country/city/pitch-type search. Venue deep-dive with top 15 batters and bowlers at that ground plus physical metadata card (boundaries, capacity, soil, pitch character).
 
 **Prediction Engine** — Train/retrain the GBM models with a single button. Feature importance charts. Live prediction: select any player + venue → predicted runs (first innings and chasing), 80% CI, predicted economy, comparison against historical actuals at that venue. Multi-player venue comparison table.
+
+**Cricket GPT** — Natural language insight interface. Ask any question about player performance, matchups, venues, or trends in plain English. Backed by an LLM with full schema context and persistent chat history.
 
 ### Health Dashboard (`src/dashboard/health.py`)
 
@@ -336,7 +413,7 @@ streamlit run src/dashboard/health.py --server.port 8501
 3. Select this repo — Railway auto-detects the Dockerfile
 4. Live URL in ~3 minutes
 
-The app auto-bootstraps the database on first run (downloads T20I data from cricsheet.org, ~2 minutes).
+The app decompresses the bundled `cricket.db.gz` on first run — no pipeline execution needed on cold deploy.
 
 ### Streamlit Cloud
 
