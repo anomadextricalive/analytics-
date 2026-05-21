@@ -2555,60 +2555,61 @@ if "01" in page:
             else:
                 st.info("No innings data for this player.")
 
-    # ── Similar Players + Breakout Alert ────────────────────────────────
-    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
-    _sim_col, _brk_col = st.columns([3, 2])
+    if p:
+        # ── Similar Players + Breakout Alert ────────────────────────────────
+        st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+        _sim_col, _brk_col = st.columns([3, 2])
 
-    with _sim_col:
-        st.markdown('<div class="nb-label">Similar Players (Role Profile)</div>',
-                    unsafe_allow_html=True)
-        _sim_mode = st.selectbox(
-            "Filter",
-            ["All Similar", "Upcoming Talent"],
-            key="sim_mode_sel",
-            label_visibility="collapsed",
-        )
-        if _sim_mode == "Upcoming Talent":
-            _sim_df = player_similar_upcoming(pid)
-            _sim_cols = ["name","country","Similarity","innings","recent_avg","consistency_cv","last_season","bat_rating","overall_rating"]
-            _sim_rename = {"name":"Player","country":"Country","innings":"Inn",
-                           "recent_avg":"Avg (last 10)","consistency_cv":"CV",
-                           "last_season":"Last Season","bat_rating":"Bat","overall_rating":"Overall"}
-        else:
-            _sim_df = player_similar(pid)
-            _sim_cols = ["name","country","Similarity","bat_rating","bowl_rating","overall_rating"]
-            _sim_rename = {"name":"Player","country":"Country",
-                           "bat_rating":"Bat","bowl_rating":"Bowl","overall_rating":"Overall"}
-        if not _sim_df.empty:
-            _sim_df["Similarity"] = (_sim_df["similarity"] * 100).round(1).astype(str) + "%"
-            st.dataframe(
-                _sim_df[_sim_cols].rename(columns=_sim_rename),
-                hide_index=True, height=300,
+        with _sim_col:
+            st.markdown('<div class="nb-label">Similar Players (Role Profile)</div>',
+                        unsafe_allow_html=True)
+            _sim_mode = st.selectbox(
+                "Filter",
+                ["All Similar", "Upcoming Talent"],
+                key="sim_mode_sel",
+                label_visibility="collapsed",
             )
-        else:
-            st.info("Run `python scripts/pipeline.py enrich` to enable similarity.")
-
-    with _brk_col:
-        st.markdown('<div class="nb-label">Form Alert</div>', unsafe_allow_html=True)
-        _fdf = player_form_info(pid)
-        if not _fdf.empty:
-            _f = _fdf.iloc[0]
-            _flag = bool(_f.get("breakout_flag"))
-            _delta = _f.get("breakout_delta")
-            if _flag and _delta:
-                st.success(f"Breakout — last 10 avg **+{_delta:.1f}** above career")
+            if _sim_mode == "Upcoming Talent":
+                _sim_df = player_similar_upcoming(pid)
+                _sim_cols = ["name","country","Similarity","innings","recent_avg","consistency_cv","last_season","bat_rating","overall_rating"]
+                _sim_rename = {"name":"Player","country":"Country","innings":"Inn",
+                               "recent_avg":"Avg (last 10)","consistency_cv":"CV",
+                               "last_season":"Last Season","bat_rating":"Bat","overall_rating":"Overall"}
             else:
-                st.info("No breakout signal (last 10 innings near career average)")
-            _fc1, _fc2 = st.columns(2)
-            _fc1.metric("Avg (5 inn)",  f"{_f.get('avg_5',0) or 0:.1f}")
-            _fc2.metric("Avg (10 inn)", f"{_f.get('avg_10',0) or 0:.1f}")
-            _fc1.metric("SR (5 inn)",   f"{_f.get('sr_5',0) or 0:.1f}")
-            _fc2.metric("SR (10 inn)",  f"{_f.get('sr_10',0) or 0:.1f}")
-            _fc1.metric("Career Avg",   f"{_f.get('career_avg',0) or 0:.1f}")
-            _fc2.metric("CV",           f"{_f.get('cv',0) or 0:.0f}%",
-                         help="Coefficient of variation — lower = more consistent")
-        else:
-            st.info("Run `python scripts/pipeline.py enrich` to enable form stats.")
+                _sim_df = player_similar(pid)
+                _sim_cols = ["name","country","Similarity","bat_rating","bowl_rating","overall_rating"]
+                _sim_rename = {"name":"Player","country":"Country",
+                               "bat_rating":"Bat","bowl_rating":"Bowl","overall_rating":"Overall"}
+            if not _sim_df.empty:
+                _sim_df["Similarity"] = (_sim_df["similarity"] * 100).round(1).astype(str) + "%"
+                st.dataframe(
+                    _sim_df[_sim_cols].rename(columns=_sim_rename),
+                    hide_index=True, height=300,
+                )
+            else:
+                st.info("Run `python scripts/pipeline.py enrich` to enable similarity.")
+
+        with _brk_col:
+            st.markdown('<div class="nb-label">Form Alert</div>', unsafe_allow_html=True)
+            _fdf = player_form_info(pid)
+            if not _fdf.empty:
+                _f = _fdf.iloc[0]
+                _flag = bool(_f.get("breakout_flag"))
+                _delta = _f.get("breakout_delta")
+                if _flag and _delta:
+                    st.success(f"Breakout — last 10 avg **+{_delta:.1f}** above career")
+                else:
+                    st.info("No breakout signal (last 10 innings near career average)")
+                _fc1, _fc2 = st.columns(2)
+                _fc1.metric("Avg (5 inn)",  f"{_f.get('avg_5',0) or 0:.1f}")
+                _fc2.metric("Avg (10 inn)", f"{_f.get('avg_10',0) or 0:.1f}")
+                _fc1.metric("SR (5 inn)",   f"{_f.get('sr_5',0) or 0:.1f}")
+                _fc2.metric("SR (10 inn)",  f"{_f.get('sr_10',0) or 0:.1f}")
+                _fc1.metric("Career Avg",   f"{_f.get('career_avg',0) or 0:.1f}")
+                _fc2.metric("CV",           f"{_f.get('cv',0) or 0:.0f}%",
+                             help="Coefficient of variation — lower = more consistent")
+            else:
+                st.info("Run `python scripts/pipeline.py enrich` to enable form stats.")
 
     # ── full player table (below drill-down) ──
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
