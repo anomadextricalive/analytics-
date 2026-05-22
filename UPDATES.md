@@ -6,6 +6,15 @@ Format: `sha | files changed | +added / -deleted`
 
 ---
 
+## 2026-05-22
+
+### `dee674c` — Fix NameError: guard Similar Players block inside `if p:`
+`1 file | +52 / -51`
+
+- **Fixed** `src/dashboard/app.py` — "Similar Players + Breakout Alert" section (lines 2558–2611) was at same indentation level as `if p:` block, placing it outside the guard. `pid` is only assigned inside `if p:`, so when player lookup returns `None` (initial load or failed lookup), referencing `pid` in `player_similar(pid)` and `player_form_info(pid)` raised `NameError`. Wrapped entire section inside `if p:` to ensure `pid` is always defined before use.
+
+---
+
 ## 2026-05-16
 
 ### `529f4cf` — Cosmic UI theme + UPDATES.md changelog
