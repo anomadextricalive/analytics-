@@ -1,4 +1,5 @@
 """Central configuration for the cricket analytics system."""
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).parent
@@ -48,3 +49,7 @@ MIN_VENUE_INNINGS = 5   # for venue factor estimation
 
 # Bayesian prior for venue shrinkage
 VENUE_PRIOR_WEIGHT = 20  # equivalent innings of prior data
+
+# MongoDB (serving layer — populated by scripts/build_mongo_profiles.py)
+MONGO_URI = os.getenv("MONGODB_URI", "")
+MONGO_DB  = os.getenv("MONGODB_DB", "cricket_analytics")
