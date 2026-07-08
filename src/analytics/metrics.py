@@ -24,7 +24,7 @@ from src.db.schema import (
     Player, PlayerCareerBat, PlayerCareerBowl,
     PlayerPositionBat, PlayerChaseBat,
     PlayerVenueBat, PlayerVenueBowl,
-    VenueDifficulty,
+    VenueDifficulty, Partnership,
     PlayerPerformanceByOpponent, PlayerPerformanceBySeason,
     PlayerPerformanceByTeam, PlayerPerformanceByResult,
     PlayerDismissalAnalysis, PlayerBowlingDismissalAnalysis,
@@ -335,6 +335,74 @@ def _venue_bowl(df: pd.DataFrame) -> pd.DataFrame:
             "average":     round(runs / max(1, wickets), 2),
         })
     return pd.DataFrame(rows)
+
+
+# ---------------------------------------------------------------------------
+# Partnerships (reconstructed from ball-by-ball deliveries)
+# ---------------------------------------------------------------------------
+
+def _partnerships(session: Session) -> list[dict]:
+    """
+    Reconstruct wicket partnerships per innings from ball-by-ball deliveries.
+
+    The pair at the crease is re-read from (batter_id, non_striker_id) on the
+    first ball of each new stand rather than inferred from player_out_id, so
+    it holds for run-outs, mankads, and any other dismissal kind uniformly.
+    """
+    sql = text("""
+        SELECT
+            d.innings_id, i.match_id, d.ball_number,
+            d.wide, d.no_ball,
+            d.batter_id, d.non_striker_id,
+            d.bat_runs, d.total_runs, d.is_wicket
+        FROM deliveries d
+        JOIN innings i ON i.id = d.innings_id
+        ORDER BY d.innings_id, d.ball_number
+    """)
+    df = pd.read_sql(sql, session.bind)
+
+    rows = []
+    for innings_id, g in df.groupby("innings_id", sort=False):
+        match_id = int(g["match_id"].iloc[0])
+        wicket_number = 1
+        b1 = b2 = None
+        runs = balls = b1_runs = b2_runs = 0
+        need_new_pair = True
+
+        for r in g.itertuples(index=False):
+            if need_new_pair:
+                b1, b2 = int(r.batter_id), int(r.non_striker_id)
+                need_new_pair = False
+
+            runs += r.total_runs
+            if r.wide == 0 and r.no_ball == 0:
+                balls += 1
+            if r.batter_id == b1:
+                b1_runs += r.bat_runs
+            elif r.batter_id == b2:
+                b2_runs += r.bat_runs
+
+            if r.is_wicket:
+                rows.append({
+                    "innings_id": int(innings_id), "match_id": match_id,
+                    "wicket_number": wicket_number,
+                    "batter1_id": b1, "batter2_id": b2,
+                    "runs": int(runs), "balls": int(balls),
+                    "batter1_runs": int(b1_runs), "batter2_runs": int(b2_runs),
+                })
+                wicket_number += 1
+                runs = balls = b1_runs = b2_runs = 0
+                need_new_pair = True
+
+        if not need_new_pair and (runs or balls):
+            rows.append({
+                "innings_id": int(innings_id), "match_id": match_id,
+                "wicket_number": wicket_number,
+                "batter1_id": b1, "batter2_id": b2,
+                "runs": int(runs), "balls": int(balls),
+                "batter1_runs": int(b1_runs), "batter2_runs": int(b2_runs),
+            })
+    return rows
 
 
 # ---------------------------------------------------------------------------
@@ -682,6 +750,11 @@ def rebuild_all_metrics(session: Session):
     session.query(PlayerFieldingStats).delete()
     for row in _fielding_stats(session):
         session.add(PlayerFieldingStats(**row))
+
+    print("Computing partnerships…")
+    session.query(Partnership).delete()
+    for row in _partnerships(session):
+        session.add(Partnership(**row))
 
     session.commit()
     print("All metric tables rebuilt.")

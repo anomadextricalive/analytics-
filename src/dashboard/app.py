@@ -5,7 +5,9 @@ Run: streamlit run src/dashboard/app.py
 
 import sys
 import os
+import re
 import difflib
+from datetime import datetime, date
 from pathlib import Path
 
 import numpy as np
@@ -202,6 +204,45 @@ html, body,
     margin-bottom: .85rem;
 }
 .nb-divider { height: 1px; background: rgba(255,255,255,.06); margin: 1.8rem 0; }
+
+/* ── Player Explorer deep-dive hero card ── */
+.pe-hero {
+    background: linear-gradient(135deg, var(--cosmic-void-800) 0%, var(--cosmic-void-700) 100%);
+    border: 1px solid rgba(94,234,212,.18);
+    border-left: 3px solid var(--cosmic-mint-500);
+    border-radius: 12px;
+    padding: 1.1rem 1.35rem;
+    margin: .2rem 0 1.1rem 0;
+}
+.pe-hero-name {
+    font-family: var(--font-display, 'Oswald', sans-serif);
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: .01em;
+    color: var(--cosmic-ink-100) !important;
+    line-height: 1.1;
+}
+.pe-hero-sub {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: .7rem;
+    color: var(--cosmic-ink-500) !important;
+    margin-top: 2px;
+}
+.pe-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .7rem; }
+.pe-chip {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: .68rem;
+    font-weight: 500;
+    color: var(--cosmic-ink-300) !important;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 999px;
+    padding: .22rem .6rem;
+    white-space: nowrap;
+}
+.pe-chip b { color: var(--cosmic-mint-400) !important; font-weight: 600; }
+.pe-chip-role { border-color: rgba(245,200,66,.3); }
+.pe-chip-role b { color: var(--cosmic-amber-400) !important; }
 
 /* ── Stat cards ── */
 .nb-card {
@@ -1005,6 +1046,7 @@ _NAV_PAGES = [
     "Player Comparison",
     "Cricket GPT",
     "Admin",
+    "Career Vault",
 ]
 _nav_sel = st.pills("Navigation", _NAV_PAGES, default="Player Explorer",
                     key="top_nav", label_visibility="collapsed")
@@ -1052,8 +1094,8 @@ def all_players() -> pd.DataFrame:
     if _use_mongo:
         try:
             players_raw = list(_mongo["players"].find(
-                {}, {"_id": 0, "id": 1, "cricsheet_key": 1, "country": 1,
-                     "bowling_style": 1, "player_role": 1}
+                {}, {"_id": 0, "id": 1, "cricsheet_key": 1, "full_name": 1,
+                     "country": 1, "bowling_style": 1, "player_role": 1}
             ))
             if not players_raw:
                 raise ValueError("empty players collection")
@@ -1100,12 +1142,12 @@ def all_players() -> pd.DataFrame:
             # Drop helper merge columns
             for c in [col for col in df.columns if col.endswith("_r") or col.endswith("_bw") or col == "player_id"]:
                 df.drop(columns=c, inplace=True, errors="ignore")
-            return df.reset_index(drop=True)
+            return _add_display_name(df.reset_index(drop=True))
         except Exception:
             pass  # fall through to SQLite
 
     # SQLite path: simple per-table queries merged in Python (avoids JOIN issues)
-    p    = _exec_sql(_db_engine, "SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
+    p    = _exec_sql(_db_engine, "SELECT id, cricsheet_key AS name, full_name, country, bowling_style, player_role FROM players")
     if p.empty:
         return pd.DataFrame()
 
@@ -1129,7 +1171,27 @@ def all_players() -> pd.DataFrame:
     df = df.sort_values("overall_rating", ascending=False, na_position="last")
     for c in [col for col in df.columns if col.endswith("_r") or col.endswith("_bw") or col == "player_id"]:
         df.drop(columns=c, inplace=True, errors="ignore")
-    return df.reset_index(drop=True)
+    return _add_display_name(df.reset_index(drop=True))
+
+
+def _add_display_name(df: pd.DataFrame) -> pd.DataFrame:
+    """display_name = enriched full_name when present, else cricsheet_key.
+    Also builds a lowercase _search blob spanning every known name form."""
+    if df.empty:
+        df["display_name"] = pd.Series(dtype=str)
+        df["_search"] = pd.Series(dtype=str)
+        return df
+    if "full_name" not in df.columns:
+        df["full_name"] = pd.NA
+    fn = df["full_name"].astype("string")
+    has_fn = fn.notna() & (fn.str.strip().str.len() > 0)
+    df["display_name"] = fn.where(has_fn, df["name"])
+    df["_search"] = (
+        df["display_name"].fillna("") + " "
+        + df["name"].fillna("") + " "
+        + df["full_name"].fillna("")
+    ).str.lower()
+    return df
 
 
 @st.cache_data(ttl=120)
@@ -1506,7 +1568,8 @@ def batter_vs_all(batter_id: int, min_balls: int = 6) -> pd.DataFrame:
 
 def _get_player(name: str) -> dict:
     df = sql("""
-        SELECT p.id, p.cricsheet_key AS name, p.country,
+        SELECT p.id, p.cricsheet_key AS name, p.full_name, p.country,
+               p.date_of_birth, p.batting_style, p.bowling_style, p.player_role,
                pcb.adj_average, pcb.adj_strike_rate, pcb.average,
                pcb.strike_rate, pcb.innings, pcb.not_outs, pcb.runs,
                pcb.balls, pcb.hs, pcb.fifties, pcb.hundreds, pcb.ducks,
@@ -1531,6 +1594,45 @@ def _get_player(name: str) -> dict:
     return df.iloc[0].to_dict() if not df.empty else {}
 
 
+_BAT_ABBR = {"Right-hand bat": "RHB", "Left-hand bat": "LHB"}
+
+
+def _fmt_dob(dob) -> str | None:
+    """'1988-11-05' → '5 Nov 1988 · 36y' (age from a fixed ref date)."""
+    if not dob:
+        return None
+    try:
+        d = datetime.strptime(str(dob)[:10], "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return None
+    ref = date.today()
+    age = ref.year - d.year - ((ref.month, ref.day) < (d.month, d.day))
+    return f"{d.day} {d.strftime('%b %Y')} · {age}y"
+
+
+def _player_hero(p: dict, display_name: str) -> str:
+    """Build the deep-dive hero card HTML from enriched bio fields."""
+    chips = []
+    if p.get("country"):
+        chips.append(f'<span class="pe-chip">🏏 {p["country"]}</span>')
+    if p.get("player_role"):
+        chips.append(f'<span class="pe-chip pe-chip-role"><b>{p["player_role"]}</b></span>')
+    bat = p.get("batting_style")
+    if bat:
+        chips.append(f'<span class="pe-chip">{_BAT_ABBR.get(bat, bat)}</span>')
+    bowl = p.get("bowling_style")
+    if bowl:
+        chips.append(f'<span class="pe-chip">{bowl}</span>')
+    dob = _fmt_dob(p.get("date_of_birth"))
+    if dob:
+        chips.append(f'<span class="pe-chip">b. {dob}</span>')
+    # secondary line: cricsheet key shown only when it differs from display name
+    key = p.get("name", "")
+    sub = f'<div class="pe-hero-sub">{key}</div>' if key and key != display_name else ""
+    return (f'<div class="pe-hero"><div class="pe-hero-name">{display_name}</div>'
+            f'{sub}<div class="pe-chips">{"".join(chips)}</div></div>')
+
+
 def _get_bowl(pid: int) -> dict:
     df = sql("""
         SELECT adj_economy, economy, wickets, dot_pct, average AS bowl_avg,
@@ -1539,6 +1641,24 @@ def _get_bowl(pid: int) -> dict:
         FROM player_career_bowl WHERE player_id = :pid AND tournament = 'ALL'
     """, pid=pid)
     return df.iloc[0].to_dict() if not df.empty else {}
+
+
+_FMT_ORDER = {"t20i": 0, "odi": 1, "test": 2, "fc": 3, "lista": 4, "t20": 5}
+_FMT_LABEL = {"t20i": "T20I", "odi": "ODI", "test": "Test",
+              "fc": "First-class", "lista": "List A", "t20": "T20 (dom)"}
+
+
+def _career_intl(pid: int, stat_type: str) -> pd.DataFrame:
+    """Cross-format international career lines for a player (batting|bowling)."""
+    df = sql("""
+        SELECT fmt, span, mat, inns, runs, ave, sr, bf, hs, hundreds, fifties,
+               ducks, fours, sixes, no, wkts, econ, bbi, overs, mdns, four_w, five_w
+        FROM player_career_intl
+        WHERE player_id = :pid AND stat_type = :stype AND mat > 0
+    """, pid=pid, stype=stat_type)
+    if not df.empty:
+        df = df.sort_values("fmt", key=lambda s: s.map(lambda x: _FMT_ORDER.get(x, 9)))
+    return df
 
 
 def _rating_bar(val, colour="#FFE500"):
@@ -2040,7 +2160,8 @@ if "01" in page:
     # ── filters row 1 ──
     fc1, fc2, fc3, fc4 = st.columns([2, 1, 1, 1])
     with fc1:
-        search = st.text_input("Search player", placeholder="e.g. Kohli, Warner…")
+        search = st.text_input("Search player",
+                                placeholder="e.g. Virat Kohli, Kohli, Warner…")
     with fc2:
         countries = ["All"] + sorted(df["country"].dropna().unique().tolist())
         country   = st.selectbox("Country", countries)
@@ -2087,7 +2208,10 @@ if "01" in page:
 
     filt = df.copy()
     if search:
-        filt = filt[filt["name"].str.contains(search, case=False, na=False)]
+        # token match: every whitespace-separated term must appear somewhere
+        # across full name / cricsheet key / short name (any order, partial ok)
+        for term in search.lower().split():
+            filt = filt[filt["_search"].str.contains(re.escape(term), na=False)]
     if country != "All":
         filt = filt[filt["country"] == country]
 
@@ -2126,52 +2250,91 @@ if "01" in page:
     st.markdown(f'<div class="nb-label">Showing {len(filt):,} players</div>',
                 unsafe_allow_html=True)
 
-    # ── table ──
+    # ── interactive table — click a row to open its deep dive below ──
     def _r(v): return f"{v:.1f}" if pd.notna(v) else "—"
 
-    rows_html = ""
-    for rank, (_, r) in enumerate(filt.head(200).iterrows(), 1):
-        bat_bar  = _rating_bar(r.get("bat_rating"),  "#3A86FF")
-        bowl_bar = _rating_bar(r.get("bowl_rating"), "#06D6A0")
-        rows_html += f"""
-        <tr>
-          <td style='text-align:right;opacity:.4;font-size:.65rem'>{rank}</td>
-          <td><strong>{r['name']}</strong></td>
-          <td style='opacity:.6'>{r.get('country') or '—'}</td>
-          <td style='text-align:right'>{int(r.get('innings') or 0)}</td>
-          <td style='text-align:right'>{int(r.get('runs') or 0):,}</td>
-          <td style='text-align:right'>{_r(r.get('average'))}</td>
-          <td style='text-align:right'>{_r(r.get('adj_average'))}</td>
-          <td style='text-align:right'>{_r(r.get('strike_rate'))}</td>
-          <td style='text-align:right'>{_r(r.get('pp_sr'))}</td>
-          <td style='text-align:right'>{_r(r.get('death_sr'))}</td>
-          <td style='min-width:80px'>{bat_bar}<div style='font-size:.6rem;text-align:right'>{_r(r.get("bat_rating"))}</div></td>
-          <td style='min-width:80px'>{bowl_bar}<div style='font-size:.6rem;text-align:right'>{_r(r.get("bowl_rating"))}</div></td>
-          <td style='text-align:right;font-weight:700'>{_r(r.get('overall_rating'))}</td>
-          <td style='text-align:right'>{_r(r.get('opener_score'))}</td>
-          <td style='text-align:right'>{_r(r.get('finisher_score'))}</td>
-          <td style='text-align:right'>{_r(r.get('chase_score'))}</td>
-        </tr>"""
+    if filt.empty:
+        st.info("No players match these filters. Try widening the search or lowering Min innings.")
+        st.stop()
 
-    # ── player drill-down (above table so it's immediately visible) ──
+    top = filt.head(200).reset_index(drop=True)
+    st.markdown(f'<div class="nb-label">All Players — {len(filt):,} results'
+                f'{" (top 200 shown)" if len(filt) > 200 else ""} · '
+                f'click any row to open its deep dive</div>',
+                unsafe_allow_html=True)
+
+    _tbl = pd.DataFrame({
+        "Player":   top["display_name"],
+        "Country":  top["country"].fillna("—"),
+        "Inn":      top["innings"].fillna(0).astype(int),
+        "Runs":     top["runs"].fillna(0).astype(int),
+        "Avg":      top["average"],
+        "Adj Avg":  top["adj_average"],
+        "SR":       top["strike_rate"],
+        "PP SR":    top["pp_sr"],
+        "Death SR": top["death_sr"],
+        "Bat":      top["bat_rating"],
+        "Bowl":     top["bowl_rating"],
+        "Overall":  top["overall_rating"],
+        "Opener":   top["opener_score"],
+        "Finisher": top["finisher_score"],
+        "Chase":    top["chase_score"],
+    })
+    _event = st.dataframe(
+        _tbl, hide_index=True, use_container_width=True, height=440,
+        on_select="rerun", selection_mode="single-row",
+        column_config={
+            "Bat":     st.column_config.ProgressColumn("Bat", min_value=0, max_value=100, format="%.0f"),
+            "Bowl":    st.column_config.ProgressColumn("Bowl", min_value=0, max_value=100, format="%.0f"),
+            "Overall": st.column_config.ProgressColumn("Overall", min_value=0, max_value=100, format="%.0f"),
+        },
+    )
+
+    _rows = _event.selection.rows if (_event and _event.selection) else []
+    # guard against a stale selection index after the filter shrinks the table
+    _idx  = _rows[0] if (_rows and _rows[0] < len(top)) else 0
+    _selrow     = top.iloc[_idx]
+    sel         = _selrow["name"]                          # cricsheet_key — _get_player keys on it
+    sel_display = _selrow.get("display_name") or sel
+
+    # ── player deep dive ──
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+    if not _rows:
+        st.caption("Showing the top-ranked player — click any row above to switch.")
     st.markdown('<div class="nb-label">Player Deep Dive</div>', unsafe_allow_html=True)
-    sel = st.selectbox("Select player", filt["name"].head(200).tolist(),
-                       key="pe_player_sel",
-                       help="Pick any player to see their detailed breakdown below")
     p   = _get_player(sel)
     if p:
         pid = int(p["id"])
+        # ── hero card (enriched bio) ──
+        st.markdown(_player_hero(p, sel_display), unsafe_allow_html=True)
+
+        # ── headline metrics: batting + role ratings ──
         mc1, mc2, mc3, mc4, mc5, mc6 = st.columns(6)
         mc1.metric("Innings",    int(p.get("innings", 0)))
         mc2.metric("Runs",       f"{int(p.get('runs', 0)):,}")
         mc3.metric("Average",    _r(p.get("average")))
         mc4.metric("Adj Avg",    _r(p.get("adj_average")))
-        mc5.metric("SR",         _r(p.get("strike_rate")))
-        mc6.metric("Bat Rating", _r(p.get("bat_rating")))
+        mc5.metric("Strike Rate", _r(p.get("strike_rate")))
+        mc6.metric("Overall",    _r(p.get("overall_rating")))
 
-        t1, t2, t3, t4, t5, t6, t7, t8 = st.tabs(
+        # ── secondary metrics: ratings + bowling (when a bowler) ──
+        _bowl = _get_bowl(pid)
+        sc1, sc2, sc3, sc4, sc5, sc6 = st.columns(6)
+        sc1.metric("Bat Rating",  _r(p.get("bat_rating")))
+        sc2.metric("Bowl Rating", _r(p.get("bowl_rating")))
+        sc3.metric("PP SR",       _r(p.get("pp_sr")))
+        sc4.metric("Death SR",    _r(p.get("death_sr")))
+        if _bowl and int(_bowl.get("bowl_inn", 0) or 0) > 0:
+            sc5.metric("Wickets", int(_bowl.get("wickets", 0) or 0))
+            sc6.metric("Economy", _r(_bowl.get("economy")))
+        else:
+            sc5.metric("Chase Avg",  _r(p.get("chase_avg")))
+            sc6.metric("Finisher",   _r(p.get("finisher_score")))
+
+        t1, t2, t3, t4, t5, t6, t7, t8, t9 = st.tabs(
             ["Season Trend", "By Position", "By Opponent", "Milestones",
-             "Venues", "vs Bowl Style", "Dismissal Analysis", "Form & Consistency"])
+             "Venues", "vs Bowl Style", "Dismissal Analysis", "Form & Consistency",
+             "🌐 All Formats"])
 
         with t1:
             seas = player_seasons(pid)
@@ -2555,6 +2718,63 @@ if "01" in page:
             else:
                 st.info("No innings data for this player.")
 
+        with t9:
+            st.markdown(
+                '<div class="nb-label">International career — all formats</div>',
+                unsafe_allow_html=True)
+            st.caption("Statsguru-backed cumulative career (ESPNcricinfo). "
+                       "The analytical DB is T20-only; this panel is cross-format "
+                       "*context* alongside that focus — T20I highlighted.")
+
+            _bat = _career_intl(pid, "batting")
+            _bowl = _career_intl(pid, "bowling")
+
+            if _bat.empty and _bowl.empty:
+                st.info("No international career data cached for this player. "
+                        "Run `scripts/crawl_career_intl.py` to populate it.")
+            else:
+                def _fmt_label(f):
+                    return _FMT_LABEL.get(f, f.upper())
+
+                if not _bat.empty:
+                    st.markdown("**Batting**")
+                    _b = _bat.copy()
+                    _b["Format"] = _b["fmt"].map(_fmt_label)
+                    _bat_view = _b[["Format", "span", "mat", "inns", "runs", "ave",
+                                    "sr", "hs", "hundreds", "fifties", "sixes"]].rename(
+                        columns={"span": "Span", "mat": "Mat", "inns": "Inns",
+                                 "runs": "Runs", "ave": "Ave", "sr": "SR", "hs": "HS",
+                                 "hundreds": "100s", "fifties": "50s", "sixes": "6s"})
+                    st.dataframe(_bat_view, hide_index=True, width="stretch")
+
+                    # cross-format Ave / SR comparison
+                    _cfig = go.Figure()
+                    _cfig.add_trace(go.Bar(
+                        x=_b["Format"], y=_b["ave"], name="Average",
+                        marker=dict(color="#3A86FF", line=dict(color="#0D0D0D", width=1.5)),
+                    ))
+                    _cfig.add_trace(go.Bar(
+                        x=_b["Format"], y=_b["sr"], name="Strike Rate",
+                        marker=dict(color="#FFE500", line=dict(color="#0D0D0D", width=1.5)),
+                    ))
+                    _cfig.update_layout(
+                        barmode="group", title="Batting — Average vs Strike Rate by format",
+                        legend=dict(orientation="h", y=1.12),
+                    )
+                    st.plotly_chart(_plotly_defaults(_cfig, 300), width="stretch",
+                                    config={"displayModeBar": False})
+
+                if not _bowl.empty:
+                    st.markdown("**Bowling**")
+                    _w = _bowl.copy()
+                    _w["Format"] = _w["fmt"].map(_fmt_label)
+                    _bowl_view = _w[["Format", "span", "mat", "inns", "wkts", "ave",
+                                     "econ", "sr", "bbi", "five_w"]].rename(
+                        columns={"span": "Span", "mat": "Mat", "inns": "Inns",
+                                 "wkts": "Wkts", "ave": "Ave", "econ": "Econ",
+                                 "sr": "SR", "bbi": "BBI", "five_w": "5W"})
+                    st.dataframe(_bowl_view, hide_index=True, width="stretch")
+
     if p:
         # ── Similar Players + Breakout Alert ────────────────────────────────
         st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
@@ -2611,21 +2831,7 @@ if "01" in page:
             else:
                 st.info("Run `python scripts/pipeline.py enrich` to enable form stats.")
 
-    # ── full player table (below drill-down) ──
-    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="nb-label">All Players — {len(filt):,} results</div>',
-                unsafe_allow_html=True)
-    st.markdown(f"""
-    <table class="nb-table">
-      <thead><tr>
-        <th>#</th><th>Player</th><th>Country</th>
-        <th>Inn</th><th>Runs</th><th>Avg</th><th>Adj Avg</th><th>SR</th>
-        <th>PP SR</th><th>Death SR</th>
-        <th>Bat Rating</th><th>Bowl Rating</th><th>Overall</th>
-        <th>Opener</th><th>Finisher</th><th>Chase</th>
-      </tr></thead>
-      <tbody>{rows_html}</tbody>
-    </table>""", unsafe_allow_html=True)
+    # (full player table now rendered interactively above the deep dive)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -5000,3 +5206,96 @@ elif "Admin" in page:
                 if st.button("Delete", key=f"del_{_cv['id']}", type="secondary"):
                     _del_conv(_cv["id"], _CHAT_DB_A)
                     st.rerun()
+
+
+# ═════════════════════════════════════════════════════════
+# 11  CAREER VAULT — cross-format international leaderboard
+# ═════════════════════════════════════════════════════════
+elif "Career Vault" in page:
+    st.markdown('<div class="nb-label">Career Vault — cross-format international leaderboard</div>',
+                unsafe_allow_html=True)
+    st.caption("Statsguru-backed cumulative career (ESPNcricinfo), pulled per player "
+               "for T20I / ODI / Test. Independent of the T20-only analytical ratings — "
+               "this is career *context*, ranked however you like.")
+
+    # Batting/bowling metric catalogue: (label, column, ascending?)
+    _BAT_METRICS = {
+        "Runs":         ("runs", False),
+        "Average":      ("ave", False),
+        "Strike Rate":  ("sr", False),
+        "Hundreds":     ("hundreds", False),
+        "Fifties":      ("fifties", False),
+        "Sixes":        ("sixes", False),
+    }
+    _BOWL_METRICS = {
+        "Wickets":      ("wkts", False),
+        "Average":      ("ave", True),
+        "Economy":      ("econ", True),
+        "Strike Rate":  ("sr", True),
+        "5-wkt hauls":  ("five_w", False),
+    }
+
+    _cv1, _cv2, _cv3, _cv4 = st.columns([1, 1, 1, 1])
+    with _cv1:
+        _cv_fmt = st.selectbox("Format", ["t20i", "odi", "test"],
+                               format_func=lambda f: _FMT_LABEL.get(f, f.upper()),
+                               key="cv_fmt")
+    with _cv2:
+        _cv_stat = st.selectbox("Discipline", ["batting", "bowling"], key="cv_stat")
+    with _cv3:
+        _metrics = _BAT_METRICS if _cv_stat == "batting" else _BOWL_METRICS
+        _cv_metric = st.selectbox("Rank by", list(_metrics.keys()), key="cv_metric")
+    with _cv4:
+        _cv_minmat = st.slider("Min matches", 0, 100, 20, key="cv_minmat")
+
+    _col, _asc = _metrics[_cv_metric]
+
+    _lead = sql("""
+        SELECT COALESCE(p.full_name, p.cricsheet_key) AS name, p.country,
+               ci.mat, ci.inns, ci.runs, ci.ave, ci.sr, ci.hundreds, ci.fifties,
+               ci.sixes, ci.hs, ci.wkts, ci.econ, ci.bbi, ci.five_w, ci.span
+        FROM player_career_intl ci
+        JOIN players p ON p.id = ci.player_id
+        WHERE ci.fmt = :fmt AND ci.stat_type = :stype AND ci.mat >= :minmat
+    """, fmt=_cv_fmt, stype=_cv_stat, minmat=_cv_minmat)
+
+    if _lead.empty:
+        st.info("No career data cached for this filter yet. "
+                "Run `python scripts/crawl_career_intl.py` to populate the Career Vault.")
+    else:
+        _lead = _lead.dropna(subset=[_col])
+        _lead = _lead.sort_values(_col, ascending=_asc).reset_index(drop=True)
+        _lead.insert(0, "Rank", _lead.index + 1)
+
+        if _cv_stat == "batting":
+            _show = _lead[["Rank", "name", "country", "span", "mat", "inns",
+                           "runs", "ave", "sr", "hundreds", "fifties", "sixes", "hs"]].rename(
+                columns={"name": "Player", "country": "Country", "span": "Span",
+                         "mat": "Mat", "inns": "Inns", "runs": "Runs", "ave": "Ave",
+                         "sr": "SR", "hundreds": "100s", "fifties": "50s",
+                         "sixes": "6s", "hs": "HS"})
+        else:
+            _show = _lead[["Rank", "name", "country", "span", "mat", "inns",
+                           "wkts", "ave", "econ", "sr", "bbi", "five_w"]].rename(
+                columns={"name": "Player", "country": "Country", "span": "Span",
+                         "mat": "Mat", "inns": "Inns", "wkts": "Wkts", "ave": "Ave",
+                         "econ": "Econ", "sr": "SR", "bbi": "BBI", "five_w": "5W"})
+
+        _top = _lead.head(15)
+        _fig = go.Figure()
+        _fig.add_trace(go.Bar(
+            x=_top[_col], y=_top["name"], orientation="h",
+            marker=dict(color="#FFE500", line=dict(color="#0D0D0D", width=1.5)),
+            hovertemplate="<b>%{y}</b><br>" + _cv_metric + ": %{x}<extra></extra>",
+        ))
+        _fig.update_layout(
+            title=f"Top 15 — {_FMT_LABEL.get(_cv_fmt, _cv_fmt.upper())} "
+                  f"{_cv_stat} by {_cv_metric}",
+            xaxis_title=_cv_metric, yaxis=dict(autorange="reversed"),
+            height=460,
+        )
+        st.plotly_chart(_plotly_defaults(_fig), width="stretch",
+                        config={"displayModeBar": False})
+
+        st.caption(f"{len(_lead)} players match (min {_cv_minmat} matches).")
+        st.dataframe(_show, hide_index=True, width="stretch")

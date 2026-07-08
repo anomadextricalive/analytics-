@@ -39,7 +39,7 @@ PHASES = {
 
 # Year range filter
 YEAR_FROM = 2000
-YEAR_TO   = 2025
+YEAR_TO   = 2026
 
 # Minimum innings thresholds for rating calculations
 MIN_BAT_INNINGS   = 10
