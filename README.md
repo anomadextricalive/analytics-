@@ -1,6 +1,6 @@
 # Cricket Analytics
 
-> T20 player rating system · 5,811 matches · 1,335,728 deliveries · 5,128 players · 248 venues · 2004–2026
+> T20 player rating system · 6,288 matches · 1,444,100 deliveries · 5,437 players · 277 venues · 2004–2026
 
 Built on ball-by-ball data from [cricsheet.org](https://cricsheet.org) with a full data pipeline, Bayesian pitch regression, bowling style matchup analysis, machine learning prediction models, player similarity engine, and a natural language insight interface.
 
@@ -10,6 +10,7 @@ Built on ball-by-ball data from [cricsheet.org](https://cricsheet.org) with a fu
 
 | Version | Date | Highlights |
 |---|---|---|
+| **v0.6** | 2026-07-08 | Cross-format international career stats (T20I/ODI/Test) via ESPN Statsguru, Career Vault leaderboard page, tournament metadata table, 2026 season backfill (+477 matches) |
 | **v0.5** | 2026-05-16 | Cosmic dark UI theme (void/mint/amber/magenta palette) |
 | **v0.4** | 2026-04-12 | Player similarity (cosine), rolling form scoring, Cricket GPT chat |
 | **v0.3** | 2026-04-03 | Matchup Lab, XI vs XI Match Predictor, bowling style coverage 99.8% |
@@ -48,7 +49,9 @@ This system is an attempt to build a more honest, more complete, and more dynami
 
 All data is sourced from cricsheet.org, which publishes free, open, ball-by-ball JSON scorecards for T20 matches dating back to 2004. Every delivery in the database contains: runs scored, extras, wicket type, fielders involved, the over and ball number, batting and bowling team, and the match situation at that point (required run rate, current run rate).
 
-The current dataset covers **5,811 matches**, **1,335,728 deliveries**, **5,128 players**, and **248 unique venues** across 8 tournaments: T20 Internationals, ICC Men's T20 World Cup, IPL, PSL, BBL, CPL, LPL, and MSL.
+The current dataset covers **6,288 matches**, **1,444,100 deliveries**, **5,437 players**, and **277 unique venues** across 8 tournaments: T20 Internationals, ICC Men's T20 World Cup, IPL, PSL, BBL, CPL, LPL, and MSL. Coverage runs through the 2026 season (latest match: 2026-07-02).
+
+**4,348 players** (~85% of the roster) are additionally enriched with cross-format international career stats — T20I, ODI, and Test batting/bowling lines pulled from ESPN Cricinfo's Statsguru via the `cricdata` SDK, stored in `player_career_intl` (11,546 rows) and surfaced on the player card's "All Formats" tab and the standalone Career Vault leaderboard page.
 
 Player identity uses cricsheet UUIDs as canonical keys rather than display names, preventing duplicate records when the same player appears under different name spellings across tournaments (e.g. "V Kohli" vs "Virat Kohli"). The parser rejects any file where `match_type != "T20"` before touching the database.
 
@@ -63,7 +66,7 @@ The deduplication process operates in four steps:
 3. **Purge and rebuild aggregates** — tables with unique constraints on `venue_id` (`venue_difficulty`, `player_venue_bat`, `player_venue_bowl`) are cleared; the pipeline rebuilds them from the cleaned matches table.
 4. **Rename canonicals** — stadiums with outdated names are updated to their current official names (Feroz Shah Kotla → Arun Jaitley Stadium; Westpac Stadium → Sky Stadium; Docklands Stadium → Marvel Stadium; Beausejour Stadium → Daren Sammy National Cricket Stadium, etc.).
 
-This reduces the raw venue count from 363 to 248, eliminating split performance histories and producing consistent per-venue statistics across a player's full career.
+This reduces the raw venue count from 363 to 277, eliminating split performance histories and producing consistent per-venue statistics across a player's full career.
 
 Beyond deduplication, the venue table stores researched physical metadata for all major grounds: boundary dimensions (straight and square), ground capacity, pitch type (red soil / black soil / drop-in), and surface character (pace-friendly / spin-friendly / neutral).
 
@@ -301,7 +304,7 @@ cricket_analytics/
 ├── scripts/
 │   ├── pipeline.py             # CLI: download / ingest / venue / metrics / ratings / all
 │   ├── query.py                # CLI: search / profile / compare / leaderboard
-│   ├── inspect_db.py           # Print all 26 tables with row counts
+│   ├── inspect_db.py           # Print all 34 tables with row counts
 │   ├── backtest_2024.py        # Leave-one-season-out backtest (train <2024, test 2024)
 │   ├── tune_models.py          # Optuna hyperparameter search — GBM vs XGBoost
 │   ├── add_chat_indexes.py     # Add DB indexes for chat query performance
@@ -319,7 +322,7 @@ cricket_analytics/
     └── models/                 # Trained GBM models (committed to git)
 ```
 
-### Database Schema (26 tables)
+### Database Schema (34 tables)
 
 | Layer | Tables |
 |---|---|
@@ -332,6 +335,7 @@ cricket_analytics/
 | Events | `player_milestones`, `player_of_match_awards` |
 | Enrichment | `player_similarity`, `player_form` |
 | Model output | `venue_difficulty`, `player_ratings` |
+| ESPN cross-format (v0.6) | `player_espn_map`, `player_career_intl`, `player_career_status`, `tournaments` |
 
 ### Data Integrity
 
@@ -363,7 +367,7 @@ The ingestion pipeline is optimised for bulk loading:
 
 Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswald/Inter/JetBrains Mono fonts):
 
-**Player Explorer** — Searchable, filterable table of all 5,128 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, venue performance map, similar players panel, and current form score.
+**Player Explorer** — Searchable, filterable table of all 5,437 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, venue performance map, similar players panel, and current form score.
 
 **Head-to-Head** — Select 2–8 players for a radar chart across 6 dimensions (bat rating, bowl rating, opener score, finisher score, chase score, death bat score), phase SR comparison bars, chase vs. first-innings split, and shared-venue performance comparison.
 
@@ -371,7 +375,7 @@ Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswal
 
 **XI vs XI Match Predictor** — Select two full XIs and a venue. Generates GBM score predictions for both innings, 80% confidence intervals, per-player predicted contributions, XI strength rating cards, and win probability.
 
-**Pitch Intelligence** — Scatter plot of all 248 venues (bat_factor vs. boundary_rate, sized by match count). Country/city/pitch-type search. Venue deep-dive with top 15 batters and bowlers at that ground plus physical metadata card (boundaries, capacity, soil, pitch character).
+**Pitch Intelligence** — Scatter plot of all 277 venues (bat_factor vs. boundary_rate, sized by match count). Country/city/pitch-type search. Venue deep-dive with top 15 batters and bowlers at that ground plus physical metadata card (boundaries, capacity, soil, pitch character).
 
 **Prediction Engine** — Train/retrain the GBM models with a single button. Feature importance charts. Live prediction: select any player + venue → predicted runs (first innings and chasing), 80% CI, predicted economy, comparison against historical actuals at that venue. Multi-player venue comparison table.
 
@@ -379,7 +383,7 @@ Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswal
 
 ### Health Dashboard (`src/dashboard/health.py`)
 
-Backend monitoring dashboard showing: 8 overview stat cards (players, matches, deliveries, venues, ratings, model status), fill-bar audit of all 26 tables, tournament coverage, matches-per-year bar chart, pipeline stage checklist, and command reference.
+Backend monitoring dashboard showing: 8 overview stat cards (players, matches, deliveries, venues, ratings, model status), fill-bar audit of all 34 tables, tournament coverage, matches-per-year bar chart, pipeline stage checklist, and command reference.
 
 ---
 
