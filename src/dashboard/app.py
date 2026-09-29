@@ -1023,6 +1023,8 @@ with st.sidebar:
     tournament = st.selectbox("Tournament", [
         "ALL", "t20i_male", "t20_wc_male", "ipl", "psl",
         "bbl", "cpl", "t20_blast", "sa20", "lpl", "ilt20", "hundred_male",
+        "msl", "etpl", "sma", "bpl", "csa_t20c", "super_smash", "mct", "ipt",
+        "mlc", "npl", "eca_euro_cup",
     ])
 
     st.markdown("""
@@ -1463,6 +1465,59 @@ def player_recent_innings(pid: int) -> pd.DataFrame:
         LEFT JOIN teams t ON t.id = i.bowling_team_id
         WHERE pi.batter_id = :pid AND pi.balls_faced > 0
         ORDER BY m.match_date ASC
+    """, pid=pid)
+
+
+TOURNAMENT_LABELS = {
+    "ipl": "IPL", "etpl": "ETPL", "psl": "PSL", "bbl": "BBL", "cpl": "CPL",
+    "lpl": "LPL", "msl": "MSL", "t20i_male": "T20 Internationals",
+    "t20_wc_male": "T20 World Cup", "t20_blast": "T20 Blast", "sa20": "SA20",
+    "ilt20": "ILT20", "hundred_male": "The Hundred",
+    "sma": "Syed Mushtaq Ali", "bpl": "BPL", "csa_t20c": "CSA T20 Challenge",
+    "super_smash": "Super Smash", "mct": "Major Clubs T20", "ipt": "Inter-Provincial T20",
+    "mlc": "Major League Cricket", "npl": "NPL", "eca_euro_cup": "ECA European Cup",
+}
+
+
+def _tourney_label(code: str) -> str:
+    return TOURNAMENT_LABELS.get(code, str(code).upper())
+
+
+@st.cache_data(ttl=120)
+def player_batting_log(pid: int) -> pd.DataFrame:
+    """Every batting innings for a player, with tournament / season / venue context."""
+    return sql("""
+        SELECT m.match_date, m.tournament, m.season,
+               pi.batting_position AS pos, pi.runs, pi.balls_faced AS balls,
+               pi.fours, pi.sixes, pi.not_out, pi.dismissal_kind AS dismissal,
+               pi.is_chase, tb.name AS team, tw.name AS opposition, v.name AS venue
+        FROM player_innings pi
+        JOIN matches m ON m.id = pi.match_id
+        JOIN innings i ON i.id = pi.innings_id
+        LEFT JOIN teams tb ON tb.id = i.batting_team_id
+        LEFT JOIN teams tw ON tw.id = i.bowling_team_id
+        LEFT JOIN venues v ON v.id = m.venue_id
+        WHERE pi.batter_id = :pid AND pi.balls_faced > 0
+        ORDER BY m.match_date DESC
+    """, pid=pid)
+
+
+@st.cache_data(ttl=120)
+def player_bowling_log(pid: int) -> pd.DataFrame:
+    """Every bowling innings for a player, with tournament / season / venue context."""
+    return sql("""
+        SELECT m.match_date, m.tournament, m.season,
+               pb.balls_bowled AS balls, pb.runs_conceded AS runs, pb.wickets,
+               pb.dot_balls AS dots, pb.wides, pb.no_balls,
+               tb.name AS team, tw.name AS opposition, v.name AS venue
+        FROM player_bowling_innings pb
+        JOIN matches m ON m.id = pb.match_id
+        JOIN innings i ON i.id = pb.innings_id
+        LEFT JOIN teams tb ON tb.id = i.bowling_team_id
+        LEFT JOIN teams tw ON tw.id = i.batting_team_id
+        LEFT JOIN venues v ON v.id = m.venue_id
+        WHERE pb.bowler_id = :pid AND pb.balls_bowled > 0
+        ORDER BY m.match_date DESC
     """, pid=pid)
 
 
@@ -2331,10 +2386,10 @@ if "01" in page:
             sc5.metric("Chase Avg",  _r(p.get("chase_avg")))
             sc6.metric("Finisher",   _r(p.get("finisher_score")))
 
-        t1, t2, t3, t4, t5, t6, t7, t8, t9 = st.tabs(
+        t1, t2, t3, t4, t5, t6, t7, t8, t9, t10 = st.tabs(
             ["Season Trend", "By Position", "By Opponent", "Milestones",
              "Venues", "vs Bowl Style", "Dismissal Analysis", "Form & Consistency",
-             "🌐 All Formats"])
+             "🌐 All Formats", "📋 Innings Log"])
 
         with t1:
             seas = player_seasons(pid)
@@ -2774,6 +2829,138 @@ if "01" in page:
                                  "wkts": "Wkts", "ave": "Ave", "econ": "Econ",
                                  "sr": "SR", "bbi": "BBI", "five_w": "5W"})
                     st.dataframe(_bowl_view, hide_index=True, width="stretch")
+
+        with t10:
+            st.markdown('<div class="nb-label">Innings log — filter by tournament</div>',
+                        unsafe_allow_html=True)
+            _bl = player_batting_log(pid)
+            _wl = player_bowling_log(pid)
+            if _bl.empty and _wl.empty:
+                st.info("No innings recorded for this player.")
+            else:
+                _codes = sorted(set(_bl["tournament"]) | set(_wl["tournament"]))
+                _lab2code = {_tourney_label(c): c for c in _codes}
+                lc1, lc2, lc3 = st.columns([3, 2, 2])
+                with lc1:
+                    _pick = st.multiselect(
+                        "Tournament", list(_lab2code), default=list(_lab2code),
+                        key=f"il_tour_{pid}",
+                        help="Pick one or more competitions, e.g. only IPL, or IPL + ETPL.")
+                _sel = [_lab2code[x] for x in _pick]
+                _seasons = sorted(
+                    set(_bl[_bl["tournament"].isin(_sel)]["season"].astype(str))
+                    | set(_wl[_wl["tournament"].isin(_sel)]["season"].astype(str)),
+                    reverse=True)
+                with lc2:
+                    _sea = st.multiselect("Season", _seasons, key=f"il_sea_{pid}",
+                                          help="Leave empty for all seasons.")
+                with lc3:
+                    _disc = st.radio("Discipline", ["Batting", "Bowling"],
+                                     horizontal=True, key=f"il_disc_{pid}")
+
+                def _flt(df):
+                    df = df[df["tournament"].isin(_sel)]
+                    if _sea:
+                        df = df[df["season"].astype(str).isin(_sea)]
+                    return df.copy()
+
+                if _disc == "Batting":
+                    d = _flt(_bl)
+                    if d.empty:
+                        st.info("No batting innings for this selection.")
+                    else:
+                        d["match_date"] = pd.to_datetime(d["match_date"]).dt.date
+                        d["Tournament"] = d["tournament"].map(_tourney_label)
+                        d["out"] = ~d["not_out"].astype(bool)
+                        n, runs = len(d), int(d["runs"].sum())
+                        dis = int(d["out"].sum())
+                        balls = int(d["balls"].sum())
+                        m1, m2, m3, m4, m5, m6 = st.columns(6)
+                        m1.metric("Innings", n)
+                        m2.metric("Runs", f"{runs:,}")
+                        m3.metric("Average", f"{runs / dis:.1f}" if dis else "—")
+                        m4.metric("Strike Rate", f"{runs / balls * 100:.1f}" if balls else "—")
+                        m5.metric("High Score", int(d["runs"].max()))
+                        m6.metric("50s / 100s",
+                                  f"{int((d['runs'] >= 50).sum() - (d['runs'] >= 100).sum())}"
+                                  f" / {int((d['runs'] >= 100).sum())}")
+
+                        g = d.groupby("Tournament").agg(
+                            Inns=("runs", "size"), Runs=("runs", "sum"),
+                            Balls=("balls", "sum"), Outs=("out", "sum"),
+                            HS=("runs", "max"), Fours=("fours", "sum"), Sixes=("sixes", "sum"),
+                        ).reset_index()
+                        g["Avg"] = (g["Runs"] / g["Outs"].replace(0, np.nan)).round(1)
+                        g["SR"] = (g["Runs"] / g["Balls"].replace(0, np.nan) * 100).round(1)
+                        st.markdown("**By tournament**")
+                        st.dataframe(g[["Tournament", "Inns", "Runs", "Avg", "SR", "HS",
+                                        "Fours", "Sixes"]].sort_values("Runs", ascending=False),
+                                     hide_index=True, width="stretch")
+
+                        fig = px.bar(d.sort_values("match_date"), x="match_date", y="runs",
+                                     color="Tournament", hover_data=["opposition", "venue", "balls"])
+                        fig.update_layout(xaxis_title=None, yaxis_title="Runs",
+                                          legend=dict(orientation="h", y=1.15))
+                        st.plotly_chart(_plotly_defaults(fig, 280), width="stretch",
+                                        config={"displayModeBar": False})
+
+                        view = d.assign(
+                            Runs=d["runs"].astype(int).astype(str) + np.where(d["out"], "", "*"),
+                            SR=(d["runs"] / d["balls"].replace(0, np.nan) * 100).round(1),
+                            Phase=np.where(d["is_chase"].astype(bool), "Chase", "Set"),
+                        ).rename(columns={"match_date": "Date", "season": "Season", "pos": "Pos",
+                                          "balls": "B", "fours": "4s", "sixes": "6s",
+                                          "dismissal": "How out", "team": "For",
+                                          "opposition": "Vs", "venue": "Venue"})
+                        cols = ["Date", "Tournament", "Season", "For", "Vs", "Pos", "Runs", "B",
+                                "SR", "4s", "6s", "How out", "Phase", "Venue"]
+                        st.markdown("**Innings**")
+                        st.dataframe(view[cols], hide_index=True, width="stretch")
+                        st.download_button("Download CSV", view[cols].to_csv(index=False),
+                                           file_name=f"{sel}_batting_innings.csv",
+                                           mime="text/csv", key=f"il_dl_bat_{pid}")
+                else:
+                    d = _flt(_wl)
+                    if d.empty:
+                        st.info("No bowling innings for this selection.")
+                    else:
+                        d["match_date"] = pd.to_datetime(d["match_date"]).dt.date
+                        d["Tournament"] = d["tournament"].map(_tourney_label)
+                        balls, runs, wk = int(d["balls"].sum()), int(d["runs"].sum()), int(d["wickets"].sum())
+                        m1, m2, m3, m4, m5, m6 = st.columns(6)
+                        m1.metric("Innings", len(d))
+                        m2.metric("Wickets", wk)
+                        m3.metric("Economy", f"{runs / balls * 6:.2f}" if balls else "—")
+                        m4.metric("Average", f"{runs / wk:.1f}" if wk else "—")
+                        m5.metric("Strike Rate", f"{balls / wk:.1f}" if wk else "—")
+                        _bb = d.sort_values(["wickets", "runs"], ascending=[False, True]).iloc[0]
+                        m6.metric("Best", f"{int(_bb['wickets'])}/{int(_bb['runs'])}")
+
+                        g = d.groupby("Tournament").agg(
+                            Inns=("wickets", "size"), Balls=("balls", "sum"),
+                            Runs=("runs", "sum"), Wkts=("wickets", "sum"),
+                        ).reset_index()
+                        g["Econ"] = (g["Runs"] / g["Balls"].replace(0, np.nan) * 6).round(2)
+                        g["Avg"] = (g["Runs"] / g["Wkts"].replace(0, np.nan)).round(1)
+                        st.markdown("**By tournament**")
+                        st.dataframe(g[["Tournament", "Inns", "Wkts", "Econ", "Avg"]]
+                                     .sort_values("Wkts", ascending=False),
+                                     hide_index=True, width="stretch")
+
+                        view = d.assign(
+                            Overs=(d["balls"] // 6).astype(str) + "." + (d["balls"] % 6).astype(str),
+                            Econ=(d["runs"] / d["balls"].replace(0, np.nan) * 6).round(2),
+                            Fig=d["wickets"].astype(int).astype(str) + "/" + d["runs"].astype(int).astype(str),
+                        ).rename(columns={"match_date": "Date", "season": "Season", "team": "For",
+                                          "opposition": "Vs", "venue": "Venue", "dots": "Dots",
+                                          "wides": "Wd", "no_balls": "NB"})
+                        cols = ["Date", "Tournament", "Season", "For", "Vs", "Overs", "Fig",
+                                "Econ", "Dots", "Wd", "NB", "Venue"]
+                        st.markdown("**Innings**")
+                        st.dataframe(view[cols], hide_index=True, width="stretch")
+                        st.download_button("Download CSV", view[cols].to_csv(index=False),
+                                           file_name=f"{sel}_bowling_innings.csv",
+                                           mime="text/csv", key=f"il_dl_bowl_{pid}")
 
     if p:
         # ── Similar Players + Breakout Alert ────────────────────────────────

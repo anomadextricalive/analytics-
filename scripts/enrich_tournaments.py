@@ -40,6 +40,20 @@ CURATED = {
     "psl":       ("Pakistan Super League",     "Pakistan",      "Asia"),
     "lpl":       ("Lanka Premier League",      "Sri Lanka",     "Asia"),
     "msl":       ("Mzansi Super League",       "South Africa",  "Africa"),
+    "etpl":      ("European T20 Premier League", "Europe",      "Europe"),
+    "t20_blast": ("Vitality T20 Blast",        "England",       "Europe"),
+    "sma":       ("Syed Mushtaq Ali Trophy",   "India",         "Asia"),
+    "bpl":       ("Bangladesh Premier League", "Bangladesh",    "Asia"),
+    "csa_t20c":  ("CSA T20 Challenge",         "South Africa",  "Africa"),
+    "super_smash": ("Super Smash",             "New Zealand",   "Oceania"),
+    "hundred_male": ("The Hundred (Men)",      "England",       "Europe"),
+    "ilt20":     ("International League T20",  "UAE",           "Asia"),
+    "sa20":      ("SA20",                      "South Africa",  "Africa"),
+    "mct":       ("Major Clubs T20 Tournament", "Sri Lanka",    "Asia"),
+    "ipt":       ("Inter-Provincial T20 Trophy", "Ireland",     "Europe"),
+    "mlc":       ("Major League Cricket",      "USA",           "Americas"),
+    "npl":       ("Nepal Premier League",      "Nepal",         "Asia"),
+    "eca_euro_cup": ("ECA European Cup",       "Europe",        "Europe"),
 }
 
 FORMAT = "T20"   # this DB is T20-only

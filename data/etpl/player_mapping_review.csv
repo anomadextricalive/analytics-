@@ -1,0 +1,94 @@
+team,cricbuzz_name,db_key,db_full,status,note
+Amsterdam Flames,Aryan Dutt,A Dutt,Aryan Dutt,full_name,
+Amsterdam Flames,Bas de Leede,BFW de Leede,,surname+initial,last_played=2026-09-16
+Amsterdam Flames,Curtis Campher,C Campher,Curtis Campher,full_name,
+Amsterdam Flames,David Payne,DA Payne,David Alan Payne,surname+initial,last_played=2026-09-16
+Amsterdam Flames,David Rushmere,David Rushmere,,new,
+Amsterdam Flames,Jordan Neill,J Neill,,surname+initial,last_played=2026-09-13
+Amsterdam Flames,Kyle Klein,K Klein,Kyle Klein,full_name,
+Amsterdam Flames,Max O'Dowd,MP O'Dowd,Maxwell Patrick O'Dowd,surname+initial,last_played=2026-08-26
+Amsterdam Flames,Michael Bracewell,MG Bracewell,Michael Gordon Bracewell,surname+initial,last_played=2026-09-16
+Amsterdam Flames,Richard Gleeson,RJ Gleeson,Richard James Gleeson,surname+initial,last_played=2026-09-06
+Amsterdam Flames,Scott Edwards,SA Edwards,Scott Andrew Edwards,surname+initial,last_played=2026-09-16
+Amsterdam Flames,Tim David,TH David,Timothy Hays David,surname+initial,last_played=2026-09-16
+Amsterdam Flames,Tim Pringle,TJG Pringle,Timothy James Gerard Pringle,surname+initial,last_played=2026-09-16
+Amsterdam Flames,Yuvraj Samra,YS Samra,Yuvraj Singh Samra,surname+initial,last_played=2026-09-16
+Belfast Wolves,Chris Jordan,CJ Jordan,Christopher James Jordan,surname+initial,last_played=2026-09-17
+Belfast Wolves,David Miller,DA Miller,David Andrew Miller,surname+initial,last_played=2026-09-17
+Belfast Wolves,Devon Conway,DP Conway,Devon Philip Conway,surname+initial,last_played=2026-09-09
+Belfast Wolves,Fred Klaassen,FJ Klaassen,Frederick Jack Klaassen,surname+initial,last_played=2026-09-17
+Belfast Wolves,Gavin Hoey,G Hoey,,surname+initial,last_played=2026-09-17
+Belfast Wolves,Glenn Maxwell,GJ Maxwell,Glenn James Maxwell,surname+initial,last_played=2026-09-17
+Belfast Wolves,Harry Manenti,HJ Manenti,Harry John Manenti,surname+initial,last_played=2026-09-17
+Belfast Wolves,Lorcan Tucker,L Tucker,Lorcan John Tucker,surname+initial,last_played=2026-09-17
+Belfast Wolves,Mark Adair,MR Adair,Mark Richard Adair,surname+initial,last_played=2026-09-17
+Belfast Wolves,Mark Chapman,MS Chapman,Mark Sinclair Chapman,surname+initial,last_played=2026-09-17
+Belfast Wolves,Matthew Humphreys,MJ Humphreys,Matthew James Humphreys,surname+initial,last_played=2026-09-17
+Belfast Wolves,Paul Stirling,PR Stirling,Paul Robert Stirling,surname+initial,last_played=2026-09-17
+Belfast Wolves,Saurabh Netravalkar,SN Netravalkar,Saurabh Naresh Netravalkar,surname+initial,last_played=2026-09-12
+Belfast Wolves,Tim Tector,TH Tector,Tim Heatley Tector,surname+initial,last_played=2026-09-04
+Dublin Guardians,Benjamin Calitz,BF Calitz,Benjamin Fredeman Calitz,surname+initial,last_played=2026-09-17
+Dublin Guardians,Chris Greaves,CN Greaves,Christopher Nicholas Greaves,surname+initial,last_played=2026-09-15
+Dublin Guardians,Chris Wood,CP Wood,,surname+initial,last_played=2026-08-30
+Dublin Guardians,Craig Young,CA Young,Craig Alexander Young,surname+initial,last_played=2026-09-15
+Dublin Guardians,Daryl Mitchell,DJ Mitchell,Daryl Joseph Mitchell,ambiguous-recent,2 cands
+Dublin Guardians,David Willey,DJ Willey,David Jonathan Willey,surname+initial,last_played=2026-09-17
+Dublin Guardians,George Dockrell,GH Dockrell,George Henry Dockrell,surname+initial,last_played=2026-09-17
+Dublin Guardians,Harmeet Singh,Harmeet Singh,,ambiguous,"H Singh(Germany,2026-06-20); Harprit Singh(Mexico,2024-10-13); Harmeet Singh(United States of America,2026-09-02); Hardeep Singh(Cyprus,2025-08-08); Harbhajan Singh(India,2021-04-18); Harpreet Singh(India,2026-04-21); Himmat Singh(None,2026-05-10); Harry Singh(None,2026-06-09); Harsh Vikram Singh(None,2022-10-22)"
+Dublin Guardians,Harry Tector,HT Tector,Harry Tom Tector,surname+initial,last_played=2026-09-17
+Dublin Guardians,James Vince,JM Vince,James Michael Vince,surname+initial,last_played=2026-09-17
+Dublin Guardians,Joshua Little,J Little,Joshua Brian Little,surname+initial,last_played=2026-09-17
+Dublin Guardians,Matthew Hollard,MK Hollard,,surname+initial,last_played=2026-09-17
+Dublin Guardians,Muhammad Waseem,Muhammad Waseem,,new,
+Dublin Guardians,Noah Croes,NRJ Croes,Noah Roderick Joseph Croes,surname+initial,last_played=2026-09-17
+Dublin Guardians,Peter Hatzoglou,P Hatzoglou,Peter Hatzoglou,full_name,
+Dublin Guardians,Ravichandran Ashwin,R Ashwin,Ravichandran Ashwin,full_name,
+Dublin Guardians,Sanjay Krishnamurthi,SP Krishnamurthi,Sanjay Prasad Krishnamurthi,surname+initial,last_played=2026-09-17
+Dublin Guardians,Vijay Shankar,V Shankar,Vijay Shankar,full_name,
+Edinburgh Castle Rockers,Andrew Tye,AJ Tye,Andrew James Tye,surname+initial,last_played=2026-09-13
+Edinburgh Castle Rockers,Andries Gous,AGS Gous,Andries Gustav Stephanus Gous,surname+initial,last_played=2026-09-17
+Edinburgh Castle Rockers,Brandon McMullen,BJ McMullen,Brandon McMullen,full_name,
+Edinburgh Castle Rockers,Finlay McCreath,FDW McCreath,Finlay David William McCreath,surname+initial,last_played=2026-04-18
+Edinburgh Castle Rockers,Gareth Delany,GJ Delany,Gareth James Delany,surname+initial,last_played=2026-09-17
+Edinburgh Castle Rockers,JJ Smuts,JT Smuts,,surname+initial,last_played=2026-09-17
+Edinburgh Castle Rockers,Jack Jarvis,J Jarvis,Jack Jarvis,full_name,
+Edinburgh Castle Rockers,Laurie Evans,LJ Evans,Laurie John Evans,surname+initial,last_played=2026-09-17
+Edinburgh Castle Rockers,Mark Watt,MRJ Watt,Mark Robert James Watt,surname+initial,last_played=2026-09-17
+Edinburgh Castle Rockers,Mitchell Santner,MJ Santner,Mitchell Josef Santner,surname+initial,last_played=2026-09-17
+Edinburgh Castle Rockers,Reece Topley,RJW Topley,Reece James William Topley,surname+initial,last_played=2026-09-15
+Edinburgh Castle Rockers,Tom Curran,TK Curran,Thomas Kevin Curran,surname+initial,last_played=2026-09-17
+Edinburgh Castle Rockers,Trent Boult,TA Boult,Trent Alexander Boult,surname+initial,last_played=2026-09-17
+Glasgow Cosmic,Ali Khan,Ali Khan,,ambiguous,"Aizaz Khan(Hong Kong,2026-06-22); Abraash Khan(Canada,2019-10-25); Anasim Khan(Bahrain,2021-10-28); Azam Khan(Pakistan,2026-04-23); Aswad Khan(Bulgaria,2021-06-26); Ayan Khan(Oman,2024-10-02); Avesh Khan(India,2026-05-10); Aaftab Alam Khan(Malta,2025-02-03); Ahsan Khan(Bulgaria,2022-06-26); A Khan(Denmark,2022-05-08); Absar Khan(Denmark,2021-10-21); Ali Khan(United States of America,2026-09-16); Aayan Afzal Khan(United Arab Emirates,2025-12-28); Aslam Khan(Malaysia,2026-06-08); Asif Khan(United Arab Emirates,2025-12-23); Anas Khan(Hong Kong,2026-06-01); Akbar Khan(Hong Kong,2023-10-03); Adil Khan(Germany,2026-05-03); Amir Khan(Malaysia,2026-06-07); Abdul Salman Khan(Saudi Arabia,2025-07-23); Aman Hakim Khan(India,2023-05-20); Arshad Khan(India,2026-05-31); Aimal Khan(Pakistan,2024-03-11); Abraar Khan(None,2026-03-15); Asghar Ali Khan(None,2026-06-28); Asfan Khan(None,2019-11-17); Aaqib Khan(None,2021-01-16); Arslan Khan(None,2024-12-09); Asjath Khan(None,2024-05-16)"
+Glasgow Cosmic,Finn Allen,Finn Allen,,ambiguous,"FA Allen(West Indies,2026-09-08); FH Allen(New Zealand,2026-09-16)"
+Glasgow Cosmic,George Munsey,George Munsey,,new,
+Glasgow Cosmic,James Neesham,JDS Neesham,James Douglas Sheahan Neesham,surname+initial,last_played=2026-09-13
+Glasgow Cosmic,Jason Roy,JJ Roy,Jason Jonathan Roy,surname+initial,last_played=2026-09-16
+Glasgow Cosmic,Keshav Maharaj,KA Maharaj,Keshav Athmanand Maharaj,surname+initial,last_played=2026-09-03
+Glasgow Cosmic,Liam Livingstone,LS Livingstone,Liam Stephen Livingstone,surname+initial,last_played=2026-09-16
+Glasgow Cosmic,Liam Naylor,LR Naylor,Liam Robert Naylor,surname+initial,last_played=2026-09-16
+Glasgow Cosmic,Lungi Ngidi,L Ngidi,Lungisani True-man Ngidi,surname+initial,last_played=2026-09-06
+Glasgow Cosmic,Matthew Cross,MH Cross,Matthew Henry Cross,surname+initial,last_played=2026-09-16
+Glasgow Cosmic,Michael Leask,MA Leask,Michael Alexander Leask,surname+initial,last_played=2026-09-16
+Glasgow Cosmic,Moises Henriques,MC Henriques,Moises Constantino Henriques,surname+initial,last_played=2026-09-13
+Glasgow Cosmic,Oliver Davidson,O Davidson,,surname+initial,last_played=2026-09-13
+Glasgow Cosmic,Paul van Meekeren,PA van Meekeren,Paul Adriaan van Meekeren,surname+initial,last_played=2026-09-13
+Glasgow Cosmic,Reuben Wilson,R Wilson,,surname+initial,last_played=2026-09-16
+Glasgow Cosmic,Richie Berrington,RD Berrington,Richard Douglas Berrington,surname+initial,last_played=2026-09-16
+Glasgow Cosmic,Tymal Mills,TS Mills,Tymal Solomon Mills,surname+initial,last_played=2026-09-16
+Rotterdam Dockers,Anrich Nortje,A Nortje,Anrich Arno Nortje,surname+initial,last_played=2026-09-17
+Rotterdam Dockers,Ben Manenti,BAD Manenti,Benjamin Andrew Davey Manenti,surname+initial,last_played=2026-09-06
+Rotterdam Dockers,Ben McDermott,BR McDermott,Benjamin Reginald McDermott,surname+initial,last_played=2026-09-06
+Rotterdam Dockers,Colin Munro,C Munro,Colin Munro,full_name,
+Rotterdam Dockers,David Wiese,D Wiese,,surname+initial,last_played=2026-09-17
+Rotterdam Dockers,Faf du Plessis,F du Plessis,Francois du Plessis,surname+initial,last_played=2026-09-17
+Rotterdam Dockers,Heinrich Klaasen,H Klaasen,Heinrich Klaasen,full_name,
+Rotterdam Dockers,Jai Moondra,J Moondra,,surname+initial,last_played=2026-09-12
+Rotterdam Dockers,Jasper Davidson,JJ Davidson,Jasper John Davidson,surname+initial,last_played=2026-09-17
+Rotterdam Dockers,Logan van Beek,LV van Beek,Logan Verjus van Beek,surname+initial,last_played=2026-09-17
+Rotterdam Dockers,Michael Levitt,M Levitt,Michael Levitt,full_name,
+Rotterdam Dockers,Rassie van der Dussen,Rassie van der Dussen,,new,
+Rotterdam Dockers,Roelof van der Merwe,RE van der Merwe,,surname+initial,last_played=2026-09-17
+Rotterdam Dockers,Ryan Klein,R Klein,Ryan Klein,full_name,
+Rotterdam Dockers,Saqib Zulfiqar,Saqib Zulfiqar,,ambiguous,"Saqib Zulfiqar(Netherlands,2026-09-17); Sikander Zulfiqar(Netherlands,2025-09-01)"
+Rotterdam Dockers,Shubham Ranjane,Shubham Ranjane,,surname+initial,last_played=2026-09-17
+Rotterdam Dockers,Vikramjit Singh,Vikramjit Singh,Vikramjit Singh,full_name,
