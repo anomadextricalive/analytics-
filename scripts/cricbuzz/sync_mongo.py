@@ -18,8 +18,8 @@ mdb = MongoClient(uri, serverSelectionTimeoutMS=15000, tlsCAFile=certifi.where()
 eng = get_engine(DB_PATH)
 PROFILES = {'player_profiles', 'venue_profiles', 'match_profiles'}
 sqlite_tables = set(inspect(eng).get_table_names())
-existing = set(mdb.list_collection_names()) - PROFILES
-EXTRA = {'player_career_intl', 'player_career_status', 'player_vs_bowler_style', 'tournaments', 'player_phase_bat', 'player_phase_bowl'}
+existing = {c for c in mdb.list_collection_names() if not c.endswith(('__prev', '__new', '__staging'))} - PROFILES
+EXTRA = {'player_aliases', 'player_career_intl', 'player_career_status', 'player_vs_bowler_style', 'tournaments', 'player_phase_bat', 'player_phase_bowl'}
 tables = sorted((existing | EXTRA) & sqlite_tables)
 if a.only: tables = [t for t in tables if t in a.only]
 tables = [t for t in tables if t not in a.skip]
@@ -30,29 +30,49 @@ def coerce(v):
     return v
 
 def swap(stg, name):
+    # keep the previous version as <name>__prev instead of dropping it
     if name in mdb.list_collection_names():
-        mdb[stg].rename(name, dropTarget=True)
-    else:
-        mdb[stg].rename(name)
+        mdb[name].rename(f'{name}__prev', dropTarget=True)
+    mdb[stg].rename(name)
 
-CH = 10000
+CH = 5000
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from pymongo.errors import BulkWriteError, AutoReconnect, NetworkTimeout
+
+
+def insert_with_retry(coll, docs, tries=6):
+    """Docs carry a fixed _id (SQLite rowid), so a retried batch can't create duplicates."""
+    for attempt in range(tries):
+        try:
+            coll.insert_many(docs, ordered=False)
+            return
+        except BulkWriteError as e:
+            if all(err.get('code') == 11000 for err in e.details.get('writeErrors', [])):
+                return                                   # rows already written by an earlier attempt
+            raise
+        except Exception:                                # dropped / cancelled connection: back off and retry
+            if attempt == tries - 1:
+                raise
+            time.sleep(5 * (attempt + 1))
+
+
 for t in tables:
     t0 = time.time(); stg = f'{t}__new'; mdb[stg].drop(); n = 0
-    with eng.connect().execution_options(stream_results=True) as conn, ThreadPoolExecutor(6) as ex:
-        res = conn.execute(text(f'SELECT * FROM {t}')); cols = list(res.keys())
+    with eng.connect().execution_options(stream_results=True) as conn, ThreadPoolExecutor(3) as ex:
+        res = conn.execute(text(f'SELECT rowid AS _id, * FROM {t}')); cols = list(res.keys())
         pending = set()
         while True:
             rows = res.fetchmany(CH)
             if not rows: break
             docs = [{c: coerce(v) for c, v in zip(cols, r)} for r in rows]; n += len(docs)
-            pending.add(ex.submit(mdb[stg].insert_many, docs, ordered=False))
-            if len(pending) >= 12:                     # bound memory: at most 12 batches in flight
+            pending.add(ex.submit(insert_with_retry, mdb[stg], docs))
+            if len(pending) >= 6:                      # bound memory: at most 6 batches in flight
                 done, pending = wait(pending, return_when=FIRST_COMPLETED)
                 for fut in done: fut.result()
         for fut in pending: fut.result()
-    if mdb[stg].estimated_document_count() != n:
-        raise SystemExit(f'{t}: count mismatch {mdb[stg].estimated_document_count()} vs {n}, live collection untouched')
+    got = mdb[stg].count_documents({})
+    if got != n:
+        raise SystemExit(f'{t}: count mismatch {got} vs {n}, live collection untouched')
     swap(stg, t)
     print(f'{t}: {n} rows ({round(time.time()-t0)}s)', flush=True)
 
