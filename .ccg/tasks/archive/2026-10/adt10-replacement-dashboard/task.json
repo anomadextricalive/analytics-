@@ -1,0 +1,12 @@
+{
+  "id": "adt10-replacement-dashboard",
+  "title": "Build an ADT10 replacement player scouting dashboard",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "frontend",
+  "currentPhase": "completed",
+  "nextAction": "Task archived",
+  "createdAt": "2026-10-01T15:30:00Z",
+  "branch": "add-all-t20-leagues"
+}
