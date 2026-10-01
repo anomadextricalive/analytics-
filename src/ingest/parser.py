@@ -327,6 +327,9 @@ class MatchParser:
                     is_wicket = len(wickets) > 0
                     player_out = wickets[0].get("player_out") if is_wicket else None
                     wkt_kind   = wickets[0].get("kind")       if is_wicket else None
+                    # substitute fielders count too: the catch belongs to whoever took it
+                    fielders   = [f.get("name") for f in (wickets[0].get("fielders") or [])
+                                  if f.get("name")] if is_wicket else []
                     bowler_wkt = is_wicket and wkt_kind not in (
                         "run out", "obstructing the field", "retired hurt",
                         "retired out", "timed out", "handled the ball",
@@ -350,6 +353,11 @@ class MatchParser:
                     non_s_id    = reg.player_id(non_s_name,   people_uuids.get(non_s_name))
                     bowler_id   = reg.player_id(bowler_name,  people_uuids.get(bowler_name))
                     out_pid     = reg.player_id(player_out,   people_uuids.get(player_out)) if player_out else None
+                    if wkt_kind == "caught and bowled":
+                        f1_id, f2_id = bowler_id, None
+                    else:
+                        f1_id = reg.player_id(fielders[0], people_uuids.get(fielders[0])) if fielders else None
+                        f2_id = reg.player_id(fielders[1], people_uuids.get(fielders[1])) if len(fielders) > 1 else None
 
                     self._buf_deliveries.append({
                         "innings_id":       innings.id,
@@ -374,6 +382,8 @@ class MatchParser:
                         "is_wicket":        is_wicket,
                         "wicket_kind":      wkt_kind,
                         "player_out_id":    out_pid,
+                        "fielder_id":       f1_id,
+                        "fielder2_id":      f2_id,
                         "req_rate_at_ball": req_r,
                         "crr_at_ball":      crr,
                     })

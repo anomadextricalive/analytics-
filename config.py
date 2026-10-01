@@ -57,3 +57,13 @@ MIN_VENUE_INNINGS = 5   # for venue factor estimation
 
 # Bayesian prior for venue shrinkage
 VENUE_PRIOR_WEIGHT = 20  # equivalent innings of prior data
+
+# Tournament codes kept out of career-wide ("ALL") aggregates, venue factors and form:
+# T10 and veterans' leagues would skew T20 ratings. They keep their own per-tournament rows.
+NON_CORE_PREFIXES = ("t10_", "legends_")
+CORE_TOURNAMENT_SQL = ("m.tournament NOT LIKE 't10\\_%' ESCAPE '\\' "
+                       "AND m.tournament NOT LIKE 'legends\\_%' ESCAPE '\\'")
+
+
+def is_core_tournament(code) -> bool:
+    return not str(code).startswith(NON_CORE_PREFIXES)

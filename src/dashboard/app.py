@@ -1020,12 +1020,11 @@ with st.sidebar:
     </div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
-    tournament = st.selectbox("Tournament", [
-        "ALL", "t20i_male", "t20_wc_male", "ipl", "psl",
-        "bbl", "cpl", "t20_blast", "sa20", "lpl", "ilt20", "hundred_male",
-        "msl", "etpl", "sma", "bpl", "csa_t20c", "super_smash", "mct", "ipt",
-        "mlc", "npl", "eca_euro_cup",
-    ])
+    _tour_codes = sql("SELECT code FROM tournaments ORDER BY num_matches DESC")
+    tournament = st.selectbox("Tournament", ["ALL"] + (
+        _tour_codes["code"].tolist() if not _tour_codes.empty else [
+            "t20i_male", "ipl", "psl", "bbl", "cpl", "t20_blast", "sa20", "lpl",
+            "ilt20", "hundred_male", "msl", "etpl"]))
 
     st.markdown("""
     <div style='margin-top:auto;padding-top:2rem;
@@ -1176,6 +1175,46 @@ def all_players() -> pd.DataFrame:
     return _add_display_name(df.reset_index(drop=True))
 
 
+@st.cache_data(ttl=600)
+def player_alias_blob() -> pd.DataFrame:
+    """player_id -> space-joined normalised aliases (initials, full names, Cricbuzz names)."""
+    a = sql("SELECT player_id, alias_norm FROM player_aliases")
+    if a.empty:
+        return pd.DataFrame(columns=["player_id", "aliases"])
+    return (a.groupby("player_id")["alias_norm"].apply(lambda x: " ".join(sorted(set(x))))
+             .reset_index().rename(columns={"alias_norm": "aliases"}))
+
+
+def _search_mask(blob: pd.Series, query: str) -> pd.Series:
+    """Every query word must match a player's names, either as a substring or as an
+    initial ("b" matches "bradley"). Only when that finds nobody do close spellings
+    count too ("b curry" -> BJ Currie)."""
+    terms = re.sub(r"[^a-z ]", " ", query.lower()).split()
+
+    def exact(term):
+        if len(term) == 1:
+            return blob.str.contains(rf"\b{term}", regex=True, na=False)
+        return blob.str.contains(re.escape(term), regex=True, na=False)
+
+    mask = pd.Series(True, index=blob.index)
+    for term in terms:
+        mask &= exact(term)
+    if mask.any() or not terms:
+        return mask
+
+    vocab = sorted({w for b in blob.dropna() for w in b.split() if len(w) >= 3})
+    mask = pd.Series(True, index=blob.index)
+    for term in terms:
+        m = exact(term)
+        if len(term) >= 4:
+            close = difflib.get_close_matches(term, vocab, n=8, cutoff=0.7)
+            if close:
+                m |= blob.str.contains(r"\b(?:" + "|".join(map(re.escape, close)) + r")\b",
+                                       regex=True, na=False)
+        mask &= m
+    return mask
+
+
 def _add_display_name(df: pd.DataFrame) -> pd.DataFrame:
     """display_name = enriched full_name when present, else cricsheet_key.
     Also builds a lowercase _search blob spanning every known name form."""
@@ -1193,6 +1232,10 @@ def _add_display_name(df: pd.DataFrame) -> pd.DataFrame:
         + df["name"].fillna("") + " "
         + df["full_name"].fillna("")
     ).str.lower()
+    _al = player_alias_blob()
+    if not _al.empty and "id" in df.columns:
+        extra = df["id"].map(_al.set_index("player_id")["aliases"]).fillna("")
+        df["_search"] = df["_search"] + " " + extra
     return df
 
 
@@ -1476,11 +1519,23 @@ TOURNAMENT_LABELS = {
     "sma": "Syed Mushtaq Ali", "bpl": "BPL", "csa_t20c": "CSA T20 Challenge",
     "super_smash": "Super Smash", "mct": "Major Clubs T20", "ipt": "Inter-Provincial T20",
     "mlc": "Major League Cricket", "npl": "NPL", "eca_euro_cup": "ECA European Cup",
+    "tnpl": "Tamil Nadu PL", "kpl": "Karnataka PL", "dpl": "Delhi PL", "mppl": "Madhya Pradesh PL",
+    "uppl": "UP T20 League", "mpl": "Maharashtra PL", "apl_andhra": "Andhra PL",
+    "apl_afg": "Afghanistan PL", "maharaja_trophy": "Maharaja Trophy", "gt20_canada": "Global T20 Canada",
+    "hk_t20_blitz": "Hong Kong T20 Blitz", "slpl": "Sri Lanka PL (2012)", "legends_llc": "Legends League Cricket",
+    "legends_wcl": "World Championship of Legends", "legends_road_safety": "Road Safety World Series",
+    "t10_abu_dhabi": "Abu Dhabi T10",
 }
 
 
 def _tourney_label(code: str) -> str:
-    return TOURNAMENT_LABELS.get(code, str(code).upper())
+    code = str(code)
+    if code in TOURNAMENT_LABELS:
+        return TOURNAMENT_LABELS[code]
+    for prefix, tag in (("t10_", "T10"), ("legends_", "Legends")):
+        if code.startswith(prefix):
+            return f"{tag} · {code[len(prefix):].replace('_', ' ').title()}"
+    return code.replace("_", " ").upper() if len(code) <= 5 else code.replace("_", " ").title()
 
 
 @st.cache_data(ttl=120)
@@ -2216,7 +2271,7 @@ if "01" in page:
     fc1, fc2, fc3, fc4 = st.columns([2, 1, 1, 1])
     with fc1:
         search = st.text_input("Search player",
-                                placeholder="e.g. Virat Kohli, Kohli, Warner…")
+                                placeholder="e.g. Virat Kohli, V Kohli, kohli, b curry…")
     with fc2:
         countries = ["All"] + sorted(df["country"].dropna().unique().tolist())
         country   = st.selectbox("Country", countries)
@@ -2265,8 +2320,8 @@ if "01" in page:
     if search:
         # token match: every whitespace-separated term must appear somewhere
         # across full name / cricsheet key / short name (any order, partial ok)
-        for term in search.lower().split():
-            filt = filt[filt["_search"].str.contains(re.escape(term), na=False)]
+        # initials, full names, Cricbuzz names and close spellings all match ("b curry" -> BJ Currie)
+        filt = filt[_search_mask(filt["_search"], search)]
     if country != "All":
         filt = filt[filt["country"] == country]
 

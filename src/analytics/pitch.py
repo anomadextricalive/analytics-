@@ -27,7 +27,7 @@ from sqlalchemy.orm import Session
 from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).parents[2]))
-from config import VENUE_PRIOR_WEIGHT, MIN_VENUE_INNINGS
+from config import VENUE_PRIOR_WEIGHT, MIN_VENUE_INNINGS, CORE_TOURNAMENT_SQL
 from src.db.schema import VenueDifficulty, Venue
 
 
@@ -46,7 +46,7 @@ def _load_innings_data(session: Session) -> pd.DataFrame:
             m.venue_id
         FROM innings i
         JOIN matches m ON m.id = i.match_id
-        WHERE i.total_balls > 0
+        WHERE i.total_balls > 0 AND """ + CORE_TOURNAMENT_SQL + """
     """)
     return pd.read_sql(sql, session.bind)
 
@@ -64,6 +64,7 @@ def _load_delivery_data(session: Session) -> pd.DataFrame:
         FROM deliveries d
         JOIN innings i  ON i.id  = d.innings_id
         JOIN matches m  ON m.id  = i.match_id
+        WHERE """ + CORE_TOURNAMENT_SQL + """
         GROUP BY m.venue_id
     """)
     return pd.read_sql(sql, session.bind)

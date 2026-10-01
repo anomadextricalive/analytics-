@@ -1,0 +1,127 @@
+series_id,code,name,cb_matches
+2117,bpl,Bangladesh Premier League 2012,33
+2172,bpl,Bangladesh Premier League 2013,47
+2108,bbl,Big Bash League 2011,31
+2215,bbl,Big Bash League 2013-14,35
+2727,bbl,Big Bash League 2018-19,59
+8535,bbl,Big Bash League 2024-25,44
+12731,bbl,Big Bash League 2026-27,44
+2471,bbl,"Big Bash League, 2016-17",35
+2600,bbl,"Big Bash League, 2017-18",43
+2753,csa_t20c,CSA T20 Challenge 2019,33
+7663,csa_t20c,CSA T20 Challenge 2024,59
+11032,csa_t20c,CSA T20 Challenge 2025,32
+13180,csa_t20c,CSA T20 Challenge 2026,83
+2453,csa_t20c,"CSA T20 Challenge, 2016",32
+2641,csa_t20c,"CSA T20 Challenge, 2017",33
+12123,cpl,Caribbean Premier League 2026,39
+2442,cpl,"Caribbean Premier League, 2016",34
+2383,super_smash,"Georgie Pie Super Smash, 2015",33
+2515,super_smash,"McDonalds Super Smash, 2016-17",32
+2908,msl,Mzansi Super League 2019,32
+3148,psl,Pakistan Super League 2020,36
+2346,csa_t20c,"Ram Slam T20 Challenge, 2015",32
+12791,sa20,"SA20, 2027",34
+2138,lpl,Sri Lanka Premier League 2012,24
+2758,super_smash,Super Smash 2018-19,32
+3290,super_smash,Super Smash 2020-21,32
+4651,super_smash,Super Smash 2022-23,32
+7151,super_smash,Super Smash 2023-24,32
+8979,super_smash,Super Smash 2024-25,32
+2605,super_smash,"Super Smash, 2017-18",32
+2566,sma,"Syed Mushtaq Ali Inter Zonal Trophy, 2017",10
+4527,sma,Syed Mushtaq Ali Trophy 2022,136
+6718,sma,Syed Mushtaq Ali Trophy 2023,135
+8364,sma,Syed Mushtaq Ali Trophy 2024,135
+10493,sma,Syed Mushtaq Ali Trophy Elite 2025,125
+12420,sma,Syed Mushtaq Ali Trophy Elite 2026,125
+10487,sma,Syed Mushtaq Ali Trophy Plate 2025,16
+12431,sma,Syed Mushtaq Ali Trophy Plate 2026,16
+2331,sma,"Syed Mushtaq Ali Trophy, 2015",2
+2782,t20_blast,T20 Blast 2019,133
+2987,t20_blast,T20 Blast 2020,99
+2767,apl_afg,Afghanistan Premier League 2018,23
+10592,apl_andhra,Andhra Premier League 2025,25
+3348,bangabandhu_t20_cup,Bangabandhu T20 Cup 2020,24
+3698,csa_provincial_t20,CSA Provincial T20 Cup 2021,31
+4742,csa_provincial_t20,CSA Provincial T20 Cup 2022,15
+7658,csa_provincial_t20,CSA Provincial T20 Cup 2024,24
+10069,chhattisgarh_cricket_premier_league,Chhattisgarh Cricket Premier League 2025,18
+10581,dpl,Delhi Premier League 2025,44
+12851,dpl,Delhi Premier League 2026,44
+12751,eca_euro_cup,"ECA Men's European Cup, 2026",13
+2575,emirates_t20_trophy,"Emirates T20 Trophy, 2017",7
+12012,global_super_league,Global Super League 2026,12
+9196,global_super_league,"Global Super League, 2024",11
+9884,global_super_league,"Global Super League, 2025",11
+2861,gt20_canada,Global T20 Canada 2019,22
+6829,gt20_canada,Global T20 Canada 2023,25
+8518,gt20_canada,Global T20 Canada 2024,25
+2715,gt20_canada,"Global T20 Canada, 2018",22
+2558,haryana_premier_league,"Haryana Premier League, 2017",18
+2570,hk_t20_blitz,"Hong Kong T20 Blitz, 2017",11
+2458,hk_t20_blitz,"Hong Kong Twenty20 Blitz, 2016",7
+2657,hk_t20_blitz,"Hong Kong Twenty20 Blitz, 2018",11
+2876,kpl,Karnataka Premier League 2019,25
+1626,kpl,"Karnataka Premier League, 2010",1
+2367,kpl,"Karnataka Premier League, 2015",32
+2506,kpl,"Karnataka Premier League, 2016",31
+2606,kpl,"Karnataka Premier League, 2017",24
+2743,kpl,"Karnataka Premier League, 2018",26
+10620,kerala_cricket_league,Kerala Cricket League 2025,33
+10014,mppl,Madhya Pradesh Premier League 2025,24
+12530,mppl,Madhya Pradesh Premier League 2026,48
+4485,maharaja_trophy,Maharaja Trophy KSCA T20 2022,34
+6941,maharaja_trophy,Maharaja Trophy KSCA T20 2023,33
+8652,maharaja_trophy,Maharaja Trophy KSCA T20 2024,33
+10515,maharaja_trophy,Maharaja Trophy KSCA T20 2025,34
+12541,maharaja_trophy,Maharaja Trophy KSCA T20 2026,34
+9944,mpl,"Maharashtra Premier League, 2025",34
+10350,pondicherry_premier_league,Pondicherry Premier League 2025,34
+7088,rajasthan_premier_league,Rajasthan Premier League 2023,19
+2596,rajputana_premier_league,"Rajputana Premier League, 2017",19
+2833,saurashtra_premier_league,Saurashtra Premier League 2019,11
+7058,saurashtra_premier_league,Saurashtra Premier League 2023,11
+13073,sher_e_punjab_t20_league,"Sher-E-Punjab T20 League, 2026",27
+2747,super_provincial_t20_tournament,"Super Provincial T20 Tournament, 2018",13
+2832,t20_mumbai,T20 Mumbai 2019,23
+9875,t20_mumbai,T20 Mumbai 2025,23
+12299,t20_mumbai,T20 Mumbai 2026,23
+12664,tg20,TG20 2026,32
+2864,tnpl,Tamil Nadu Premier League 2019,32
+3517,tnpl,Tamil Nadu Premier League 2021,32
+4184,tnpl,Tamil Nadu Premier League 2022,32
+6158,tnpl,Tamil Nadu Premier League 2023,32
+7862,tnpl,Tamil Nadu Premier League 2024,32
+9866,tnpl,Tamil Nadu Premier League 2025,32
+12620,tnpl,Tamil Nadu Premier League 2026,32
+2499,tnpl,"Tamil Nadu Premier League, 2016",31
+2594,tnpl,"Tamil Nadu Premier League, 2017",32
+2716,tnpl,"Tamil Nadu Premier League, 2018",33
+9677,the_north_american_t20_cup,"The North American T20 Cup, 2025",13
+3677,uae_summer_t20_bash,UAE Summer T20 Bash 2021,7
+10735,uppl,Uttar Pradesh Premier League 2025,34
+9442,legends_asian_legends_league,Asian Legends League 2025,14
+9435,legends_international_masters_league_t20,"International Masters League T20, 2025",18
+7651,legends_legends_cricket_trophy,"Legends Cricket Trophy, 2024",22
+3956,legends_llc,Legends League Cricket 2022,7
+4574,legends_llc,Legends League Cricket 2022,16
+5969,legends_llc,Legends League Cricket 2023,8
+7243,legends_llc,Legends League Cricket 2023,19
+8913,legends_llc,Legends League Cricket 2024,25
+11671,legends_llc,Legends League Cricket 2026,23
+3177,legends_road_safety,Road Safety World Series T20 2020-21,19
+4667,legends_road_safety,Road Safety World Series T20 2022,24
+11471,legends_world_legends_pro_t20_league,World Legends Pro T20 League 2026,18
+9188,t10_abu_dhabi,Abu Dhabi T10 League 2024,40
+11119,t10_abu_dhabi,Abu Dhabi T10 League 2025,32
+9225,t10_lanka,"Lanka T10 Super League, 2024",25
+2934,t10_qatar,Qatar T10 League 2019,19
+2774,t10_abu_dhabi,T10 League 2018,29
+2917,t10_abu_dhabi,T10 League 2019,29
+3403,t10_abu_dhabi,T10 League 2021,29
+3871,t10_abu_dhabi,T10 League 2021-22,35
+4933,t10_abu_dhabi,T10 League 2022,33
+7350,t10_abu_dhabi,T10 League 2023,32
+6843,t10_zim_afro,Zim Afro T10 2023,25
+8897,t10_zim_afro,Zim Afro T10 2024,25

@@ -15,6 +15,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 sys.path.insert(0, str(Path(__file__).parents[2]))
+from config import CORE_TOURNAMENT_SQL
 from src.db.schema import PlayerSimilarity, PlayerForm
 
 
@@ -83,7 +84,7 @@ def build_form(session: Session):
                m.match_date
         FROM player_innings pi
         JOIN matches m ON m.id = pi.match_id
-        WHERE pi.balls_faced > 0
+        WHERE pi.balls_faced > 0 AND """ + CORE_TOURNAMENT_SQL + """
         ORDER BY pi.batter_id, m.match_date ASC
     """)
     raw = pd.read_sql(sql, session.bind)

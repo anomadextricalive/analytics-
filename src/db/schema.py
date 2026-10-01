@@ -246,6 +246,8 @@ class Delivery(Base):
     is_wicket       = Column(Boolean, default=False)
     wicket_kind     = Column(String)   # caught, bowled, lbw, run out, ...
     player_out_id   = Column(Integer, ForeignKey("players.id"))
+    fielder_id      = Column(Integer, ForeignKey("players.id"))   # catcher / stumper / run-out thrower
+    fielder2_id     = Column(Integer, ForeignKey("players.id"))   # second fielder on a run out
 
     # chase pressure context
     req_rate_at_ball = Column(Float)   # required run rate at THIS ball

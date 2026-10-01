@@ -19,7 +19,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 sys.path.insert(0, str(Path(__file__).parents[2]))
-from config import MIN_BAT_INNINGS, MIN_BOWL_INNINGS
+from config import MIN_BAT_INNINGS, MIN_BOWL_INNINGS, is_core_tournament
 from src.db.schema import (
     Player, PlayerCareerBat, PlayerCareerBowl,
     PlayerPositionBat, PlayerChaseBat,
@@ -130,7 +130,8 @@ def _career_bat(df: pd.DataFrame, venue_factors: dict) -> pd.DataFrame:
     Returns rows ready for PlayerCareerBat.
     """
     frames = []
-    for key, grp in [("ALL", df)] + list(df.groupby("tournament")):
+    core = df[df["tournament"].map(is_core_tournament)]
+    for key, grp in [("ALL", core)] + list(df.groupby("tournament")):
         if isinstance(key, tuple):
             key = key[0]
         g = grp.copy()
@@ -185,7 +186,8 @@ def _career_bat(df: pd.DataFrame, venue_factors: dict) -> pd.DataFrame:
 
 def _career_bowl(df: pd.DataFrame, venue_factors: dict) -> pd.DataFrame:
     frames = []
-    for key, grp in [("ALL", df)] + list(df.groupby("tournament")):
+    core = df[df["tournament"].map(is_core_tournament)]
+    for key, grp in [("ALL", core)] + list(df.groupby("tournament")):
         if isinstance(key, tuple):
             key = key[0]
         g = grp.copy()
@@ -565,40 +567,51 @@ def _dismissal_analysis_bowl(session: Session) -> list[dict]:
 
 def _fielding_stats(session: Session) -> list[dict]:
     """
-    Count fielding catches from deliveries.
-    A catch is a wicket where wicket_kind = 'caught' or 'caught and bowled'
-    and the player_out is NOT the bowler (caught) or IS the bowler (c&b).
-    We approximate by crediting any fielder listed in the raw JSON, but since
-    cricsheet JSON doesn't always name fielders in a dedicated column, we count
-    all 'caught' dismissals per innings and attribute them to fielders via
-    a separate fielder query.
+    Catches, stumpings and run-outs per fielder, per tournament and for core
+    T20 tournaments combined ("ALL"), from deliveries.fielder_id / fielder2_id.
+    A caught-and-bowled is a catch for the bowler. A run-out with one fielder is
+    "direct"; with two, both fielders get an "assisted" run-out.
     """
     sql = text("""
-        SELECT
-            d.player_out_id,
-            d.innings_id,
-            d.wicket_kind,
-            d.bowler_id
+        SELECT d.wicket_kind, d.fielder_id, d.fielder2_id, d.innings_id, m.tournament
         FROM deliveries d
-        WHERE d.is_wicket = 1
-          AND d.wicket_kind IN ('caught', 'caught and bowled', 'stumped')
+        JOIN innings i ON i.id = d.innings_id
+        JOIN matches m ON m.id = i.match_id
+        WHERE d.is_wicket = 1 AND d.fielder_id IS NOT NULL
+          AND d.wicket_kind IN ('caught', 'caught and bowled', 'stumped', 'run out')
     """)
     df = pd.read_sql(sql, session.bind)
-    # For 'caught and bowled', the bowler is the fielder
-    # For 'caught', we don't yet have the fielder name from the parser
-    # We count these as team catches (can be improved with fielder parsing)
-    # For now: count bowler catches from 'caught and bowled'
-    cb = df[df["wicket_kind"] == "caught and bowled"]
+    if df.empty:
+        return []
+    ro = df["wicket_kind"] == "run out"
+    two = df["fielder2_id"].notna()
+    credits = pd.concat([
+        df.loc[df["wicket_kind"].isin(["caught", "caught and bowled"]), ["fielder_id", "innings_id", "tournament"]]
+          .assign(kind="catches"),
+        df.loc[df["wicket_kind"] == "stumped", ["fielder_id", "innings_id", "tournament"]].assign(kind="stumpings"),
+        df.loc[ro & ~two, ["fielder_id", "innings_id", "tournament"]].assign(kind="run_outs_direct"),
+        df.loc[ro & two, ["fielder_id", "innings_id", "tournament"]].assign(kind="run_outs_assisted"),
+        df.loc[ro & two, ["fielder2_id", "innings_id", "tournament"]]
+          .rename(columns={"fielder2_id": "fielder_id"}).assign(kind="run_outs_assisted"),
+    ])
+    credits["fielder_id"] = credits["fielder_id"].astype(int)
+    core = credits[credits["tournament"].map(is_core_tournament)].assign(tournament="ALL")
+    allc = pd.concat([credits, core])
+
+    counts = allc.pivot_table(index=["fielder_id", "tournament"], columns="kind",
+                              values="innings_id", aggfunc="count", fill_value=0)
+    best = (allc[allc["kind"] == "catches"].groupby(["fielder_id", "tournament", "innings_id"]).size()
+            .groupby(["fielder_id", "tournament"]).max())
     rows = []
-    for pid, g in cb.groupby("bowler_id"):
-        total = len(g)
-        # max catches in a single innings
-        max_inn = g.groupby("innings_id").size().max() if total > 0 else 0
+    for (pid, tourn), r in counts.iterrows():
         rows.append({
             "player_id": int(pid),
-            "tournament": "ALL",
-            "catches": int(total),
-            "most_catches_inn": int(max_inn),
+            "tournament": tourn,
+            "catches": int(r.get("catches", 0)),
+            "stumpings": int(r.get("stumpings", 0)),
+            "run_outs_direct": int(r.get("run_outs_direct", 0)),
+            "run_outs_assisted": int(r.get("run_outs_assisted", 0)),
+            "most_catches_inn": int(best.get((pid, tourn), 0)),
         })
     return rows
 
@@ -622,6 +635,9 @@ def rebuild_all_metrics(session: Session):
     print(f"  {len(bat_df)} batting innings, {len(bowl_df)} bowling innings")
 
     venue_factors = _load_venue_factors(session)
+    # career-wide (non per-tournament) tables use core T20 tournaments only
+    bat_core  = bat_df[bat_df["tournament"].map(is_core_tournament)]
+    bowl_core = bowl_df[bowl_df["tournament"].map(is_core_tournament)]
 
     print("Computing career batting…")
     career_bat_df = _career_bat(bat_df, venue_factors)
@@ -634,6 +650,8 @@ def rebuild_all_metrics(session: Session):
         subset = bat_df[bat_df["batter_id"] == pid]
         if tourn != "ALL":
             subset = subset[subset["tournament"] == tourn]
+        else:
+            subset = subset[subset["tournament"].map(is_core_tournament)]
         median_s = _compute_median(subset["runs"])
         ducks    = int(((subset["runs"] == 0) & (~subset["not_out"])).sum())
         thirties = int(((subset["runs"] >= 30) & (subset["runs"] < 50)).sum())
@@ -688,7 +706,7 @@ def rebuild_all_metrics(session: Session):
         ))
 
     print("Computing chase splits…")
-    chase_df = _chase_bat(bat_df)
+    chase_df = _chase_bat(bat_core)
     session.query(PlayerChaseBat).delete()
     for _, row in chase_df.iterrows():
         r = row.to_dict()
@@ -696,21 +714,21 @@ def rebuild_all_metrics(session: Session):
                                       for k, v in r.items()}))
 
     print("Computing position splits…")
-    pos_df = _position_bat(bat_df)
+    pos_df = _position_bat(bat_core)
     session.query(PlayerPositionBat).delete()
     for _, row in pos_df.iterrows():
         r = row.to_dict()
         session.add(PlayerPositionBat(**r))
 
     print("Computing venue batting splits…")
-    vb_df = _venue_bat(bat_df)
+    vb_df = _venue_bat(bat_core)
     session.query(PlayerVenueBat).delete()
     for _, row in vb_df.iterrows():
         r = row.to_dict()
         session.add(PlayerVenueBat(**r))
 
     print("Computing venue bowling splits…")
-    vbowl_df = _venue_bowl(bowl_df)
+    vbowl_df = _venue_bowl(bowl_core)
     session.query(PlayerVenueBowl).delete()
     for _, row in vbowl_df.iterrows():
         r = row.to_dict()
@@ -718,7 +736,7 @@ def rebuild_all_metrics(session: Session):
 
     print("Computing performance by opponent…")
     session.query(PlayerPerformanceByOpponent).delete()
-    for row in _perf_by_opponent(bat_df, bowl_df):
+    for row in _perf_by_opponent(bat_core, bowl_core):
         session.add(PlayerPerformanceByOpponent(**_safe_kwargs(PlayerPerformanceByOpponent, row)))
 
     print("Computing performance by season…")
@@ -728,17 +746,17 @@ def rebuild_all_metrics(session: Session):
 
     print("Computing performance by team…")
     session.query(PlayerPerformanceByTeam).delete()
-    for row in _perf_by_team(bat_df, bowl_df):
+    for row in _perf_by_team(bat_core, bowl_core):
         session.add(PlayerPerformanceByTeam(**_safe_kwargs(PlayerPerformanceByTeam, row)))
 
     print("Computing performance by match result…")
     session.query(PlayerPerformanceByResult).delete()
-    for row in _perf_by_result(bat_df, bowl_df):
+    for row in _perf_by_result(bat_core, bowl_core):
         session.add(PlayerPerformanceByResult(**_safe_kwargs(PlayerPerformanceByResult, row)))
 
     print("Computing batting dismissal analysis…")
     session.query(PlayerDismissalAnalysis).delete()
-    for row in _dismissal_analysis_bat(bat_df):
+    for row in _dismissal_analysis_bat(bat_core):
         session.add(PlayerDismissalAnalysis(**row))
 
     print("Computing bowling dismissal analysis…")
