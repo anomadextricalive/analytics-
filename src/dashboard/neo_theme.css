@@ -1,0 +1,140 @@
+/* Neo-brutalist theme: cream page, black ink, yellow accent, thick borders, hard offset shadows.
+   Same tokens as the ADT10 Replacement Scout. Overrides the older dark "cosmic" theme. */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
+:root{
+  --nb-page:#fff7d6; --nb-surface:#ffffff; --nb-surface2:#fff1b8; --nb-ink:#0b0b0b; --nb-muted:#5f5d57;
+  --nb-accent:#ffe500; --nb-blue:#2a78d6; --nb-good:#0a7a2f; --nb-bad:#d03b3b; --nb-b:2.5px; --nb-sh:5px;
+  /* re-point the old cosmic tokens so existing components follow the new palette */
+  --cosmic-void-950:var(--nb-page); --cosmic-void-900:var(--nb-page); --cosmic-void-800:var(--nb-surface);
+  --cosmic-void-700:var(--nb-surface2); --cosmic-void-600:#ffe99a;
+  --cosmic-ink-100:var(--nb-ink); --cosmic-ink-300:#1d1d1b; --cosmic-ink-500:var(--nb-muted); --cosmic-ink-700:#77746b;
+  --cosmic-mint-400:var(--nb-blue); --cosmic-mint-500:var(--nb-blue); --cosmic-mint-600:#1c5cab;
+  --cosmic-amber-400:var(--nb-accent); --cosmic-amber-500:var(--nb-accent); --cosmic-amber-600:#d9bd00;
+  --cosmic-magenta-400:var(--nb-bad); --cosmic-magenta-500:var(--nb-bad); --cosmic-magenta-600:#a82d2d;
+  --border-subtle:1px solid var(--nb-ink); --border-default:var(--nb-b) solid var(--nb-ink); --border-strong:var(--nb-b) solid var(--nb-ink);
+  --elevation-card:var(--nb-sh) var(--nb-sh) 0 var(--nb-ink); --elevation-hover:7px 7px 0 var(--nb-ink);
+  --bg:var(--nb-page); --surface:var(--nb-surface); --text:var(--nb-ink); --muted:var(--nb-muted);
+  --accent:var(--nb-blue); --accent2:var(--nb-blue); --red:var(--nb-bad); --green:var(--nb-good); --yellow:var(--nb-accent); --radius:0px;
+}
+html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stMain"]{background:var(--nb-page) !important;color:var(--nb-ink) !important;
+  font-family:'Space Grotesk',system-ui,sans-serif !important}
+.stApp{background-image:linear-gradient(var(--nb-page),var(--nb-page)) !important}
+[data-testid="stHeader"]{background:transparent !important}
+[data-testid="stSidebar"]{background:var(--nb-surface) !important;border-right:var(--nb-b) solid var(--nb-ink) !important}
+[data-testid="stSidebar"] *{color:var(--nb-ink) !important}
+h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif !important;font-weight:700 !important;color:var(--nb-ink) !important;letter-spacing:-.01em !important;text-transform:none !important}
+p, li, label, span, div{color:inherit}
+code, pre, .stCode, [data-testid="stMetricValue"], [data-testid="stTable"], .mono{font-family:'Space Mono',monospace !important}
+code{background:var(--nb-accent) !important;color:var(--nb-ink) !important;border:1.5px solid var(--nb-ink);border-radius:0 !important;padding:0 .3rem !important}
+/* inputs */
+div[data-baseweb="select"] > div, div[data-baseweb="input"], div[data-baseweb="base-input"], .stTextInput input, .stNumberInput input, textarea{
+  background:var(--nb-surface) !important;color:var(--nb-ink) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;
+  box-shadow:3px 3px 0 var(--nb-ink) !important;font-family:'Space Mono',monospace !important}
+div[data-baseweb="select"] *{color:var(--nb-ink) !important}
+div[data-baseweb="popover"] ul, [role="listbox"]{background:var(--nb-surface) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important}
+[role="option"]:hover{background:var(--nb-accent) !important}
+.stTextInput label, .stSelectbox label, .stSlider label, .stRadio label, .stMultiSelect label, .stNumberInput label, [data-testid="stWidgetLabel"] *{
+  font-family:'Space Mono',monospace !important;font-size:.72rem !important;font-weight:700 !important;text-transform:uppercase !important;letter-spacing:.07em !important;color:var(--nb-ink) !important}
+/* buttons */
+.stButton > button, .stDownloadButton > button, [data-testid="stBaseButton-secondary"], [data-testid="stBaseButton-primary"]{
+  background:var(--nb-accent) !important;color:var(--nb-ink) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;
+  box-shadow:4px 4px 0 var(--nb-ink) !important;font-family:'Space Mono',monospace !important;font-weight:700 !important;text-transform:uppercase !important;letter-spacing:.04em !important}
+.stButton > button:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--nb-ink) !important}
+.stButton > button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--nb-ink) !important}
+/* tabs */
+[data-baseweb="tab-list"]{gap:.4rem !important;border-bottom:var(--nb-b) solid var(--nb-ink) !important;flex-wrap:wrap}
+[data-baseweb="tab"]{font-family:'Space Mono',monospace !important;font-size:.72rem !important;font-weight:700 !important;text-transform:uppercase !important;
+  border:var(--nb-b) solid var(--nb-ink) !important;border-bottom:none !important;border-radius:0 !important;background:var(--nb-surface) !important;color:var(--nb-ink) !important;padding:.4rem .8rem !important}
+[data-baseweb="tab"][aria-selected="true"]{background:var(--nb-accent) !important}
+[data-baseweb="tab-highlight"], [data-baseweb="tab-border"]{display:none !important}
+/* cards, expanders, metrics, tables */
+[data-testid="stExpander"]{background:var(--nb-surface) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;box-shadow:var(--nb-sh) var(--nb-sh) 0 var(--nb-ink)}
+[data-testid="stExpander"] summary{font-family:'Space Mono',monospace !important;font-weight:700 !important}
+[data-testid="stMetric"]{background:var(--nb-surface);border:var(--nb-b) solid var(--nb-ink);box-shadow:4px 4px 0 var(--nb-ink);padding:.7rem .9rem}
+[data-testid="stMetricLabel"] *{font-family:'Space Mono',monospace !important;text-transform:uppercase;font-size:.7rem !important;color:var(--nb-muted) !important}
+[data-testid="stMetricValue"]{color:var(--nb-ink) !important;font-weight:700 !important}
+[data-testid="stDataFrame"]{border:var(--nb-b) solid var(--nb-ink);box-shadow:var(--nb-sh) var(--nb-sh) 0 var(--nb-ink);background:var(--nb-surface)}
+[data-testid="stAlert"]{background:var(--nb-surface2) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;color:var(--nb-ink) !important}
+hr{border-color:var(--nb-ink) !important;opacity:1 !important}
+/* nav pills: keep neo look, readable group row */
+[data-testid="stPills"] button{background:var(--nb-surface) !important;color:var(--nb-ink) !important;border:var(--nb-b) solid var(--nb-ink) !important}
+[data-testid="stPills"] button[aria-pressed="true"]{background:var(--nb-accent) !important}
+.block-container{padding-top:2rem !important}
+/* nav pills: Streamlit 1.5x renders them as stBaseButton-pills(Active); force ink-on-cream / ink-on-yellow */
+[data-testid="stBaseButton-pills"], [data-testid="stBaseButton-pillsActive"]{
+  border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;box-shadow:3px 3px 0 var(--nb-ink) !important;
+  font-family:'Space Mono',monospace !important;font-weight:700 !important;text-transform:uppercase !important;letter-spacing:.05em !important;background:var(--nb-surface) !important}
+[data-testid="stBaseButton-pillsActive"]{background:var(--nb-accent) !important}
+[data-testid="stBaseButton-pills"] *, [data-testid="stBaseButton-pillsActive"] *, [data-testid="stPills"] button *{color:var(--nb-ink) !important}
+[data-testid="stBaseButton-pills"]:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--nb-ink) !important;background:var(--nb-surface2) !important}
+/* sliders */
+[data-testid="stSlider"] [role="slider"]{background:var(--nb-ink) !important;border:2px solid var(--nb-ink) !important;border-radius:0 !important}
+[data-testid="stSliderThumbValue"], [data-testid="stSlider"] *{color:var(--nb-ink) !important}
+[data-testid="stSlider"] div[data-baseweb="slider"] div[style*="linear-gradient"]{background:var(--nb-ink) !important}
+[data-testid="stTickBarMin"], [data-testid="stTickBarMax"]{color:var(--nb-muted) !important}
+/* radios + checkboxes */
+[data-baseweb="radio"] > div:first-child{border:2px solid var(--nb-ink) !important;background:var(--nb-surface) !important}
+[data-baseweb="checkbox"] > span:first-child{border:2px solid var(--nb-ink) !important;border-radius:0 !important}
+/* captions + small text readable */
+[data-testid="stCaptionContainer"], .stCaption{color:var(--nb-muted) !important;font-size:.82rem !important}
+/* pills in this Streamlit build: button[data-variant=pills] inside stButtonGroup, selected via aria-checked */
+[data-testid="stButtonGroup"] button[data-variant="pills"]{
+  background:var(--nb-surface) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;
+  box-shadow:3px 3px 0 var(--nb-ink) !important;font-family:'Space Mono',monospace !important;font-weight:700 !important;
+  text-transform:uppercase !important;letter-spacing:.05em !important;color:var(--nb-ink) !important;margin:0 .25rem .4rem 0 !important}
+[data-testid="stButtonGroup"] button[data-variant="pills"] *{color:var(--nb-ink) !important}
+[data-testid="stButtonGroup"] button[data-variant="pills"][aria-checked="true"]{background:var(--nb-accent) !important;box-shadow:3px 3px 0 var(--nb-ink) !important}
+[data-testid="stButtonGroup"] button[data-variant="pills"]:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--nb-ink) !important;background:var(--nb-surface2) !important}
+[data-testid="stButtonGroup"] button[data-variant="pills"][aria-checked="true"]:hover{background:var(--nb-accent) !important}
+/* slider */
+[data-testid="stSlider"] div[data-rac][style*="position: absolute"]{background:var(--nb-accent) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;width:18px !important;height:18px !important;box-shadow:2px 2px 0 var(--nb-ink)}
+/* fonts for legacy components that read these vars */
+:root{--font-display:'Space Grotesk',sans-serif; --font-body:'Space Grotesk',sans-serif; --font-mono:'Space Mono',monospace}
+/* stat cards */
+.nb-card{background:var(--nb-surface) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;box-shadow:var(--nb-sh) var(--nb-sh) 0 var(--nb-ink) !important;transition:transform .08s, box-shadow .08s !important}
+.nb-card:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--nb-ink) !important}
+.nb-card.yellow{background:#fff1b8 !important}.nb-card.blue{background:#dbe9fb !important}.nb-card.green{background:#d9f2de !important}
+.nb-card.pink{background:#fbe0e0 !important}.nb-card.orange{background:#ffe0c7 !important}.nb-card.purple{background:#e8defa !important}.nb-card.black{background:var(--nb-ink) !important}
+.nb-card .c-label{color:var(--nb-ink) !important;font-family:'Space Mono',monospace !important;letter-spacing:.08em !important}
+.nb-card .c-val{color:var(--nb-ink) !important;font-family:'Space Grotesk',sans-serif !important;font-weight:700 !important}
+.nb-card .c-sub{color:var(--nb-muted) !important}
+.nb-card.black *{color:#fff7d6 !important}
+/* player hero */
+.pe-hero{background:var(--nb-surface) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-left:10px solid var(--nb-accent) !important;border-radius:0 !important;box-shadow:var(--nb-sh) var(--nb-sh) 0 var(--nb-ink)}
+.pe-hero-name{font-family:'Space Grotesk',sans-serif !important;color:var(--nb-ink) !important;font-size:2.1rem !important;letter-spacing:-.02em !important}
+.pe-hero-sub{color:var(--nb-muted) !important}
+.pe-chip{background:var(--nb-surface) !important;color:var(--nb-ink) !important;border:2px solid var(--nb-ink) !important;border-radius:0 !important;font-weight:700 !important}
+.pe-chip b{color:var(--nb-ink) !important}.pe-chip-role{background:var(--nb-accent) !important}
+/* legacy tables + section labels */
+.nb-table{border-radius:0 !important;border:var(--nb-b) solid var(--nb-ink) !important}
+.nb-label{color:var(--nb-ink) !important;font-family:'Space Mono',monospace !important;font-weight:700 !important}
+/* tabs: wrap onto rows instead of a hidden horizontal scroll, button-style */
+.stTabs [data-baseweb="tab-list"]{flex-wrap:wrap !important;overflow:visible !important;gap:.45rem !important;border-bottom:var(--nb-b) solid var(--nb-ink) !important;padding-bottom:.6rem !important}
+.stTabs button[role="tab"]{background:var(--nb-surface) !important;color:var(--nb-ink) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;
+  box-shadow:3px 3px 0 var(--nb-ink) !important;font-family:'Space Mono',monospace !important;font-weight:700 !important;text-transform:uppercase !important;font-size:.7rem !important;padding:.4rem .75rem !important;height:auto !important}
+.stTabs button[role="tab"][aria-selected="true"]{background:var(--nb-accent) !important}
+.stTabs button[role="tab"] *{color:var(--nb-ink) !important}
+.stTabs [data-baseweb="tab-highlight"], .stTabs [data-baseweb="tab-border"]{display:none !important}
+.stTabs [data-testid="stTabScrollButton"], .stTabs button[aria-label*="croll"]{display:none !important}
+/* stronger overrides: legacy cosmic rules use !important, so match with .stApp prefix */
+.stApp [data-testid="stMetric"]{background:var(--nb-surface) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;box-shadow:var(--nb-sh) var(--nb-sh) 0 var(--nb-ink) !important;padding:.8rem 1rem !important}
+.stApp [data-testid="stMetricLabel"], .stApp [data-testid="stMetricLabel"] p, .stApp [data-testid="stMetricLabel"] span{color:var(--nb-ink) !important;font-family:'Space Mono',monospace !important;letter-spacing:.08em !important;font-size:.66rem !important}
+.stApp [data-testid="stMetricValue"], .stApp [data-testid="stMetricValue"] div{color:var(--nb-ink) !important;font-family:'Space Grotesk',sans-serif !important;font-weight:700 !important}
+.stApp [data-testid="stDataFrame"]{border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important}
+.stApp .stTabs [data-baseweb="tab-list"]{flex-wrap:wrap !important;overflow:visible !important;gap:.45rem !important}
+.stApp .stTabs button[role="tab"]{background:var(--nb-surface) !important;color:var(--nb-ink) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;box-shadow:3px 3px 0 var(--nb-ink) !important;height:auto !important;padding:.4rem .75rem !important}
+.stApp .stTabs button[role="tab"][aria-selected="true"]{background:var(--nb-accent) !important}
+.stApp .stTabs button[role="tab"] p, .stApp .stTabs button[role="tab"] div, .stApp .stTabs button[role="tab"] span{color:var(--nb-ink) !important;font-family:'Space Mono',monospace !important;font-weight:700 !important;text-transform:uppercase !important;font-size:.7rem !important}
+.stApp .stTabs [data-baseweb="tab-highlight"], .stApp .stTabs [data-baseweb="tab-border"]{display:none !important}
+/* tabs matched by role (Streamlit's wrapper classes differ across versions) */
+.stApp [role="tablist"]{display:flex !important;flex-wrap:wrap !important;overflow:visible !important;gap:.45rem !important;border-bottom:var(--nb-b) solid var(--nb-ink) !important;padding-bottom:.6rem !important;background:transparent !important}
+.stApp [role="tablist"] > div, .stApp [data-baseweb="tab-list"] > div{overflow:visible !important}
+.stApp [role="tab"]{background:var(--nb-surface) !important;border:var(--nb-b) solid var(--nb-ink) !important;border-radius:0 !important;box-shadow:3px 3px 0 var(--nb-ink) !important;height:auto !important;padding:.4rem .75rem !important;margin:0 !important}
+.stApp [role="tab"][aria-selected="true"]{background:var(--nb-accent) !important}
+.stApp [role="tab"], .stApp [role="tab"] *{color:var(--nb-ink) !important;font-family:'Space Mono',monospace !important;font-weight:700 !important;text-transform:uppercase !important;font-size:.7rem !important}
+.stApp [data-baseweb="tab-highlight"], .stApp [data-baseweb="tab-border"]{display:none !important}
+.stApp [role="tablist"] ~ button, .stApp [data-testid="stTabs"] button[aria-label*="croll"], .stApp [data-testid="stTabs"] [data-testid*="croll"]{display:none !important}
+/* button labels: Streamlit wraps the text in <p>/<div>; force ink so it never inherits the accent colour */
+.stApp .stButton button, .stApp .stButton button *, .stApp .stDownloadButton button, .stApp .stDownloadButton button *,
+.stApp [data-testid="stBaseButton-secondary"] *, .stApp [data-testid="stBaseButton-primary"] *{color:var(--nb-ink) !important;font-family:'Space Mono',monospace !important;font-weight:700 !important}
+.stApp [data-testid="stMetricValue"] div, .stApp [data-testid="stMetricValue"]{overflow:visible !important;text-overflow:clip !important;white-space:normal !important}
