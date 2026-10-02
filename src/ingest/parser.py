@@ -36,12 +36,30 @@ BATCH = 500   # commit every N matches
 # Phase helper
 # ---------------------------------------------------------------------------
 
-def _phase(over_1: int) -> int:
-    pp_lo, pp_hi   = PHASES["powerplay"]
-    mid_lo, mid_hi = PHASES["middle"]
-    if pp_lo <= over_1 <= pp_hi:
+def _phase_grid(tournament: str) -> tuple:
+    """(powerplay_last_over, middle_last_over). over_number is 1-based; for The
+    Hundred it is the 5-ball set. T10 = 2/6/2 overs, Hundred = 25/50/25 balls."""
+    if tournament == "hundred_male":
+        return 5, 15
+    if tournament.startswith("t10"):
+        return 2, 8
+    return PHASES["powerplay"][1], PHASES["middle"][1]
+
+
+def _balls_limit(tournament: str, info: dict) -> int:
+    """Legal balls available to one innings (full length, not rain-reduced)."""
+    if tournament == "hundred_male":
+        return 100
+    if tournament.startswith("t10"):
+        return 60
+    return min(int(info.get("overs") or 20), 20) * 6
+
+
+def _phase(over_1: int, grid: tuple = None) -> int:
+    pp_hi, mid_hi = grid or (PHASES["powerplay"][1], PHASES["middle"][1])
+    if over_1 <= pp_hi:
         return 0
-    if mid_lo <= over_1 <= mid_hi:
+    if over_1 <= mid_hi:
         return 1
     return 2
 
@@ -257,6 +275,8 @@ class MatchParser:
     def _parse_innings(self, innings_data, match, teams_raw,
                        match_date, tournament, vid, people_uuids: dict):
         reg = self.reg
+        grid = _phase_grid(tournament)
+        balls_limit = _balls_limit(tournament, json.loads(match.raw_meta or "{}"))
 
         for inn_idx, inn_data in enumerate(innings_data):
             inn_number   = inn_idx + 1
@@ -270,7 +290,7 @@ class MatchParser:
 
             target_obj = inn_data.get("target", {})
             target_val = target_obj.get("runs") if isinstance(target_obj, dict) else None
-            req_rr_start = (target_val / 20.0) if target_val else None
+            req_rr_start = (target_val * 6.0 / balls_limit) if target_val else None
 
             innings = Innings(
                 match_id        = match.id,
@@ -292,7 +312,7 @@ class MatchParser:
             for over_obj in inn_data.get("overs", []):
                 over_0 = over_obj["over"]
                 over_1 = over_0 + 1
-                ph = _phase(over_1)
+                ph = _phase(over_1, grid)
                 legal_in_over = 0
 
                 for d in over_obj.get("deliveries", []):
@@ -341,7 +361,7 @@ class MatchParser:
                         total_wickets += 1
 
                     if inn_number == 2 and target_val:
-                        balls_rem = max(1, 120 - total_balls)
+                        balls_rem = max(1, balls_limit - total_balls)
                         runs_need = max(0, target_val - total_runs)
                         req_r = round((runs_need / balls_rem) * 6, 2)
                         crr   = round((total_runs / max(1, total_balls)) * 6, 2)
@@ -401,7 +421,7 @@ class MatchParser:
                     ba["runs"] += bat_r
                     if is_4: ba["fours"] += 1
                     if is_6: ba["sixes"] += 1
-                    if is_legal:
+                    if wide_r == 0:   # no-balls are faced; wides are not
                         ba["balls"] += 1
                         if ph == 0:   ba["pp_r"]    += bat_r; ba["pp_b"]    += 1
                         elif ph == 1: ba["mid_r"]   += bat_r; ba["mid_b"]   += 1
@@ -422,16 +442,19 @@ class MatchParser:
                             "death_b": 0, "death_r": 0, "death_w": 0,
                         }
                     bo = bowl_acc[bowler_name]
+                    bowl_r = bat_r + wide_r + nb_r   # byes/leg byes/penalty are not the bowler's
+                    bo["runs"] += bowl_r
                     if is_legal:
                         bo["balls"] += 1
-                        bowl_r = total_r - bye_r - lb_r
-                        bo["runs"]  += bowl_r
-                        if ph == 0:
-                            bo["pp_b"] += 1; bo["pp_r"] += bowl_r
-                        elif ph == 1:
-                            bo["mid_b"] += 1; bo["mid_r"] += bowl_r
-                        else:
-                            bo["death_b"] += 1; bo["death_r"] += bowl_r
+                    if ph == 0:
+                        bo["pp_r"] += bowl_r
+                        if is_legal: bo["pp_b"] += 1
+                    elif ph == 1:
+                        bo["mid_r"] += bowl_r
+                        if is_legal: bo["mid_b"] += 1
+                    else:
+                        bo["death_r"] += bowl_r
+                        if is_legal: bo["death_b"] += 1
                     bo["wides"] += wide_r
                     bo["nbs"]   += nb_r
                     if is_dot:        bo["dots"]       += 1
