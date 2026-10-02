@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT))
 from config import DB_PATH
 from src.db.schema import get_engine
 from src.dashboard.replacement_players import render_replacement_scout
+from src.dashboard.player_profile import render_profile
 from src.dashboard import league_scope as _ls
 
 # DB_PATH comes from config which always resolves correctly.
@@ -215,6 +216,17 @@ html, body,
     padding: 1.1rem 1.35rem;
     margin: .2rem 0 1.1rem 0;
 }
+.pe-hero-flex { display: flex; gap: 1.2rem; align-items: center; }
+.pe-hero-body { min-width: 0; }
+.pe-avatar { width: 96px; height: 96px; border-radius: 12px; object-fit: cover; object-position: top;
+    border: 1px solid rgba(94,234,212,.35); background: var(--cosmic-void-700); flex: 0 0 96px; }
+.pe-avatar-fallback { display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display, 'Oswald', sans-serif); font-size: 2rem; font-weight: 700; color: var(--cosmic-mint-500); }
+.pe-link { display: inline-block; margin-top: .7rem; font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: .72rem; color: var(--cosmic-mint-500) !important; text-decoration: none; border-bottom: 1px dotted var(--cosmic-mint-500); }
+.pp-facts { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.pp-facts td { padding: .38rem .5rem; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: top; }
+.pp-facts .pp-k { width: 38%; color: var(--cosmic-ink-500) !important; font-family: var(--font-mono, 'JetBrains Mono', monospace); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
 .pe-hero-name {
     font-family: var(--font-display, 'Oswald', sans-serif);
     font-size: 1.85rem;
@@ -2469,8 +2481,8 @@ if "01" in page:
                 p[_k] = _selrow[_k]
     if p:
         pid = int(p["id"])
-        # ── hero card (enriched bio) ──
-        st.markdown(_player_hero(p, sel_display), unsafe_allow_html=True)
+        # ── profile: photo, bio, ESPN Cricinfo career ──
+        render_profile(sql, p, sel_display)
 
         # ── headline metrics: batting + role ratings ──
         mc1, mc2, mc3, mc4, mc5, mc6 = st.columns(6)
