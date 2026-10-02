@@ -12,6 +12,10 @@ Collections:
   tournaments    one doc per competition
   leaderboards   top batters / bowlers / fielders per tournament (and ALL core)
   innings_balls  one doc per innings with every delivery (compact arrays)
+  people         one doc per ESPN Cricinfo id (_id = id string): headline career lines per format from Statsguru,
+                 incl. players with no match data here. `player_id` links to players._id when we hold their matches.
+players docs also carry `espn_id` and `career_espn` ({t20|t20i: {bat, bowl}}), the ESPN Cricinfo reference numbers
+next to our own per-tournament `career_bat`/`career_bowl` (which only cover matches we hold).
 
 Usage:
   python scripts/build_mongo_serving.py --dry-run          # build + report sizes only
@@ -20,6 +24,7 @@ URI is read from ~/.cricket_mongo_uri.
 """
 import argparse
 import datetime
+import json
 import math
 import sqlite3
 import sys
@@ -89,6 +94,18 @@ def build(con):
         r["venue"] = venue.get(r.pop("venue_id"), {}).get("name")
         bowl_log[pid].append(r)
 
+    # ---------- ESPN Cricinfo career lines (reference numbers) ----------
+    BAT = ("span", "mat", "inns", "nos", "runs", "hs", "ave", "bf", "sr", "hundreds", "fifties", "ducks", "fours", "sixes")
+    BOWL = ("span", "mat", "inns", "balls", "runs", "wkts", "bbi", "ave", "econ", "sr", "four_w", "five_w", "mdns")
+    espn = defaultdict(lambda: defaultdict(dict))   # espn_id -> fmt -> {bat|bowl: {...}}
+    for r in rows(con, "SELECT * FROM espn_career WHERE status = 'ok'"):
+        keep = BAT if r["stat_type"] == "batting" else BOWL
+        espn[r["espn_id"]][r["fmt"]]["bat" if r["stat_type"] == "batting" else "bowl"] = {k: r[k] for k in keep if k in r}
+        espn[r["espn_id"]].setdefault("_raws", []).append(r.get("raw_json"))
+    pid_espn = {pid: str(eid) for pid, eid in con.execute("SELECT player_id, espn_id FROM player_espn_map WHERE status = 'matched' AND espn_id IS NOT NULL")}
+    espn_pid = {e: pid for pid, e in pid_espn.items()}
+    pcountry = dict(con.execute("SELECT id, country FROM players WHERE country IS NOT NULL"))
+
     players = []
     for p in rows(con, "SELECT * FROM players"):
         pid = p["id"]
@@ -100,11 +117,25 @@ def build(con):
                "dob": clean(datetime.date.fromisoformat(p["date_of_birth"])) if p.get("date_of_birth") else None,
                "aliases": sorted(set(aliases.get(pid, []) + [p.get("cricsheet_key")])),
                "tournaments": sorted({x["tournament"] for x in bat_log.get(pid, []) + bowl_log.get(pid, [])}),
-               "player_of_match": pom.get(pid, 0),
+               "player_of_match": pom.get(pid, 0), "espn_id": int(pid_espn[pid]) if pid in pid_espn else None,
+               "career_espn": {f: v for f, v in espn.get(pid_espn.get(pid), {}).items() if f != "_raws"},
                "career_bat": _by_tour(bat.get(pid)), "career_bowl": _by_tour(bowl.get(pid)),
                "ratings": _by_tour(rat.get(pid)), "fielding": _by_tour(fld.get(pid)),
                "batting_innings": bat_log.get(pid, []), "bowling_innings": bowl_log.get(pid, [])}
         players.append({k: v for k, v in doc.items() if v not in (None, [], {})})
+
+    people = []
+    for eid, fm in espn.items():
+        nm = None
+        for raw in fm.pop("_raws", []):   # the name lives in the Statsguru cells only; t20i copies from player_career_intl lack it
+            try: j = json.loads(raw) if raw else {}
+            except ValueError: continue
+            nm = (j.get("default") or j).get("Player") or nm
+            if nm: break
+        pid = espn_pid.get(eid)
+        doc = {"_id": eid, "espn_id": int(eid), "name": nm, "country": pcountry.get(pid), "player_id": pid,
+               **{f: v for f, v in fm.items()}}
+        people.append({k: v for k, v in doc.items() if v not in (None, [], {})})
 
     # ---------- matches with scorecards ----------
     bat_by_inn, bowl_by_inn = defaultdict(list), defaultdict(list)
@@ -168,7 +199,7 @@ def build(con):
             yield {"_id": cur_id, "cols": cols, "balls": balls}
 
     print(f"built documents in {time.time() - t0:.0f}s", flush=True)
-    return {"players": players, "matches": matches, "venues": venues, "tournaments": tournaments,
+    return {"players": players, "people": people, "matches": matches, "venues": venues, "tournaments": tournaments,
             "leaderboards": lb}, innings_balls
 
 
@@ -230,6 +261,9 @@ def main():
         publish(mdb, name, iter(docs), batch=200 if name == "players" else 1000)
     publish(mdb, "innings_balls", balls_gen(), batch=500)
     mdb["players"].create_index("key")
+    mdb["players"].create_index("espn_id")
+    mdb["people"].create_index("player_id")
+    mdb["people"].create_index("country")
     mdb["players"].create_index("tournaments")
     mdb["matches"].create_index([("tournament", 1), ("date", -1)])
     mdb["matches"].create_index("teams")
