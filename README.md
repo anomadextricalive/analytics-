@@ -1,6 +1,6 @@
 # Cricket Analytics
 
-> T20 player rating system · 6,288 matches · 1,444,100 deliveries · 5,437 players · 277 venues · 2004–2026
+> T20 player rating system · 12,491 matches · 2,817,722 deliveries · 11,065 players · 472 venues · 60 tournaments · 2005–2026
 
 Built on ball-by-ball data from [cricsheet.org](https://cricsheet.org) with a full data pipeline, Bayesian pitch regression, bowling style matchup analysis, machine learning prediction models, player similarity engine, and a natural language insight interface.
 
@@ -10,6 +10,7 @@ Built on ball-by-ball data from [cricsheet.org](https://cricsheet.org) with a fu
 
 | Version | Date | Highlights |
 |---|---|---|
+| **v0.7** | 2026-10-03 | Men's T20 coverage doubled (12,491 matches, 60 tournaments), wides/no-ball accuracy fix, exact player identity via the Cricsheet register, ESPN Cricinfo career lines for 13,908 players (Statsguru), `people` collection in the Mongo serving layer, prediction model v2, architecture doc |
 | **v0.6** | 2026-07-08 | Cross-format international career stats (T20I/ODI/Test) via ESPN Statsguru, Career Vault leaderboard page, tournament metadata table, 2026 season backfill (+477 matches) |
 | **v0.5** | 2026-05-16 | Cosmic dark UI theme (void/mint/amber/magenta palette) |
 | **v0.4** | 2026-04-12 | Player similarity (cosine), rolling form scoring, Cricket GPT chat |
@@ -49,9 +50,9 @@ This system is an attempt to build a more honest, more complete, and more dynami
 
 All data is sourced from cricsheet.org, which publishes free, open, ball-by-ball JSON scorecards for T20 matches dating back to 2004. Every delivery in the database contains: runs scored, extras, wicket type, fielders involved, the over and ball number, batting and bowling team, and the match situation at that point (required run rate, current run rate).
 
-The current dataset covers **6,288 matches**, **1,444,100 deliveries**, **5,437 players**, and **277 unique venues** across 8 tournaments: T20 Internationals, ICC Men's T20 World Cup, IPL, PSL, BBL, CPL, LPL, and MSL. Coverage runs through the 2026 season (latest match: 2026-07-02).
+The current dataset covers **12,491 matches**, **2,817,722 deliveries**, **11,065 players** and **472 venues** across **60 tournaments** (T20 Internationals, the ICC Men's T20 World Cup, IPL, PSL, BBL, CPL, LPL, SA20, ILT20, The Hundred, T20 Blast, ETPL and many domestic leagues). Matches run from 2005-02-17 to 2026-09-20. About 6,500 men's T20s that ESPN Cricinfo lists are still missing, mostly domestic, county and associate-team matches, so per-tournament numbers here can sit below ESPN's career totals.
 
-**4,348 players** (~85% of the roster) are additionally enriched with cross-format international career stats — T20I, ODI, and Test batting/bowling lines pulled from ESPN Cricinfo's Statsguru via the `cricdata` SDK, stored in `player_career_intl` (11,546 rows) and surfaced on the player card's "All Formats" tab and the standalone Career Vault leaderboard page.
+**ESPN Cricinfo career lines (Statsguru).** Headline T20 career batting and bowling lines for **13,908 players** (T20 and T20I) are crawled from Statsguru and stored in `espn_career`, keyed by ESPN Cricinfo id. They are reference numbers covering every T20 a player has played, kept apart from our own per-tournament sums. A 50-player spot check against live player pages matched on every field. Cross-format (T20I/ODI/Test) lines for 4,348 players stay in `player_career_intl` and feed the "All Formats" tab and Career Vault page.
 
 Player identity uses cricsheet UUIDs as canonical keys rather than display names, preventing duplicate records when the same player appears under different name spellings across tournaments (e.g. "V Kohli" vs "Virat Kohli"). The parser rejects any file where `match_type != "T20"` before touching the database.
 
@@ -66,7 +67,7 @@ The deduplication process operates in four steps:
 3. **Purge and rebuild aggregates** — tables with unique constraints on `venue_id` (`venue_difficulty`, `player_venue_bat`, `player_venue_bowl`) are cleared; the pipeline rebuilds them from the cleaned matches table.
 4. **Rename canonicals** — stadiums with outdated names are updated to their current official names (Feroz Shah Kotla → Arun Jaitley Stadium; Westpac Stadium → Sky Stadium; Docklands Stadium → Marvel Stadium; Beausejour Stadium → Daren Sammy National Cricket Stadium, etc.).
 
-This reduces the raw venue count from 363 to 277, eliminating split performance histories and producing consistent per-venue statistics across a player's full career.
+This reduced the raw venue count from 363 to 277 in the original 6,288-match build, eliminating split performance histories and producing consistent per-venue statistics across a player's full career.
 
 Beyond deduplication, the venue table stores researched physical metadata for all major grounds: boundary dimensions (straight and square), ground capacity, pitch type (red soil / black soil / drop-in), and surface character (pace-friendly / spin-friendly / neutral).
 
@@ -304,7 +305,7 @@ cricket_analytics/
 ├── scripts/
 │   ├── pipeline.py             # CLI: download / ingest / venue / metrics / ratings / all
 │   ├── query.py                # CLI: search / profile / compare / leaderboard
-│   ├── inspect_db.py           # Print all 34 tables with row counts
+│   ├── inspect_db.py           # Print all 38 tables with row counts
 │   ├── backtest_2024.py        # Leave-one-season-out backtest (train <2024, test 2024)
 │   ├── tune_models.py          # Optuna hyperparameter search — GBM vs XGBoost
 │   ├── add_chat_indexes.py     # Add DB indexes for chat query performance
@@ -322,7 +323,7 @@ cricket_analytics/
     └── models/                 # Trained GBM models (committed to git)
 ```
 
-### Database Schema (34 tables)
+### Database Schema (38 tables)
 
 | Layer | Tables |
 |---|---|
@@ -341,14 +342,18 @@ cricket_analytics/
 
 Player identity uses **cricsheet UUIDs** (`registry.people` in each JSON file) as the canonical key, not display names. This prevents duplicate player records when the same physical player appears under slightly different name spellings across tournaments (e.g. "V Kohli" vs "Virat Kohli"). The parser rejects any file where `match_type != "T20"` before touching the database.
 
-### MongoDB Layer
+### Data architecture
 
-Pre-joined documents are stored in 3 MongoDB collections for API serving:
-- `player_profiles` — one document per player with career stats, ratings, venue splits, tournament splits, dismissal analysis, milestones, and fielding all pre-joined
-- `match_profiles` — one document per match with team and venue names resolved
-- `venue_profiles` — one document per venue with difficulty factors
+SQLite (`data/cricket.db`, WAL mode) is the single source of truth. MongoDB is derived and rebuilt from it; nothing else writes to it. Each collection is built into a staging copy, count-checked, then swapped in, with the previous version kept as `<name>__prev`. Full design: [docs/DATA_ARCHITECTURE.md](docs/DATA_ARCHITECTURE.md).
 
-SQLite remains the computation layer; MongoDB is the serving layer.
+| Mongo database | Role | Built by |
+|---|---|---|
+| `cricket_serving` | Document read model for the web app: `players`, `people`, `matches`, `venues`, `tournaments`, `leaderboards`, `innings_balls` | `scripts/build_mongo_serving.py` |
+| `cricket_analytics` | 1:1 mirror of SQLite tables plus pre-joined `player_profiles`, `match_profiles`, `venue_profiles`, for the hosted Streamlit app | `scripts/cricbuzz/sync_mongo.py` |
+
+- **Identity:** ESPN Cricinfo id is the person key. Cricsheet's people register maps 8,091 of our 8,092 players to it exactly (`player_espn_map`).
+- **`players` vs `people`:** `players` holds the 11,056 players we have match data for, with per-tournament numbers summed from our matches and an ESPN reference block, `career_espn`. `people` holds all 13,908 players Statsguru lists, one small document each, linked to `players` through `player_id` where we hold their matches.
+- **The Mongo URI** is read from `~/.cricket_mongo_uri`, never from the command line or the repo.
 
 ### Parser Performance
 
@@ -367,7 +372,7 @@ The ingestion pipeline is optimised for bulk loading:
 
 Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswald/Inter/JetBrains Mono fonts):
 
-**Player Explorer** — Searchable, filterable table of all 5,437 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, venue performance map, similar players panel, and current form score.
+**Player Explorer** — Searchable, filterable table of all 11,065 players with rating bars. Click any player for a drill-down showing: season-by-season trend chart, phase SR bars, by-opponent breakdown, milestone log, venue performance map, similar players panel, and current form score.
 
 **Head-to-Head** — Select 2–8 players for a radar chart across 6 dimensions (bat rating, bowl rating, opener score, finisher score, chase score, death bat score), phase SR comparison bars, chase vs. first-innings split, and shared-venue performance comparison.
 
@@ -375,7 +380,7 @@ Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswal
 
 **XI vs XI Match Predictor** — Select two full XIs and a venue. Generates GBM score predictions for both innings, 80% confidence intervals, per-player predicted contributions, XI strength rating cards, and win probability.
 
-**Pitch Intelligence** — Scatter plot of all 277 venues (bat_factor vs. boundary_rate, sized by match count). Country/city/pitch-type search. Venue deep-dive with top 15 batters and bowlers at that ground plus physical metadata card (boundaries, capacity, soil, pitch character).
+**Pitch Intelligence** — Scatter plot of all 472 venues (bat_factor vs. boundary_rate, sized by match count). Country/city/pitch-type search. Venue deep-dive with top 15 batters and bowlers at that ground plus physical metadata card (boundaries, capacity, soil, pitch character).
 
 **Prediction Engine** — Train/retrain the GBM models with a single button. Feature importance charts. Live prediction: select any player + venue → predicted runs (first innings and chasing), 80% CI, predicted economy, comparison against historical actuals at that venue. Multi-player venue comparison table.
 
@@ -383,7 +388,7 @@ Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswal
 
 ### Health Dashboard (`src/dashboard/health.py`)
 
-Backend monitoring dashboard showing: 8 overview stat cards (players, matches, deliveries, venues, ratings, model status), fill-bar audit of all 34 tables, tournament coverage, matches-per-year bar chart, pipeline stage checklist, and command reference.
+Backend monitoring dashboard showing: 8 overview stat cards (players, matches, deliveries, venues, ratings, model status), fill-bar audit of all 38 tables, tournament coverage, matches-per-year bar chart, pipeline stage checklist, and command reference.
 
 ---
 
@@ -429,9 +434,11 @@ The app decompresses the bundled `cricket.db.gz` on first run — no pipeline ex
 
 ## Data Sources
 
-All data is sourced from **[cricsheet.org](https://cricsheet.org)** — a free, open-licence ball-by-ball cricket data repository maintained by Stephen Rushe. No scraping is involved; data is downloaded as bulk ZIP archives via their public downloads API.
+- **[Cricsheet](https://cricsheet.org)**: free, open-licence ball-by-ball data, the base of the database. Its people register supplies the exact player id bridge to ESPN Cricinfo.
+- **ESPN Cricinfo**: the reference standard for accuracy. Statsguru gives headline career lines and the ball-by-ball API fills gaps. Crawls are slow, one worker, never in bursts, and every raw page is stored before parsing.
+- **Cricbuzz**: gap-fill only, where ESPN Cricinfo has nothing.
 
-Tournaments currently covered: T20 Internationals (male), ICC Men's T20 World Cup, IPL, PSL, BBL, CPL, LPL, MSL, and others via `python scripts/pipeline.py download`.
+Match coverage against ESPN Cricinfo is audited in `~/etpl2026/audit/` (about 6,500 men's T20s still missing). Women's T20 is out of scope.
 
 ---
 
