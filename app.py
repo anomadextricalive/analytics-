@@ -30,5 +30,6 @@ if DB_GZ.exists() and not is_current(DB_GZ, WORK_DB):
         st.rerun()
 
 # ── Run the full dashboard ──
-_src = (ROOT / "src" / "dashboard" / "app.py").read_text()
-exec(compile(_src, str(ROOT / "src" / "dashboard" / "app.py"), "exec"))
+_dash = ROOT / "src" / "dashboard" / "app.py"
+__file__ = str(_dash)   # the dashboard resolves ROOT and neo_theme.css from its own __file__, not from this wrapper's
+exec(compile(_dash.read_text(), str(_dash), "exec"))

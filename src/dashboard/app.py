@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT))
 from config import DB_PATH
 from src.db.schema import get_engine
 from src.dashboard.replacement_players import render_replacement_scout
+from src.dashboard import league_scope as _ls
 
 # DB_PATH comes from config which always resolves correctly.
 # Use its parent to find the gz — avoids ROOT being wrong in exec() contexts.
@@ -614,6 +615,10 @@ code, pre {
 </style>
 """, unsafe_allow_html=True)
 
+# Neo-brutalist theme layer (loaded after the legacy cosmic CSS so it wins)
+from pathlib import Path as _P
+st.markdown("<style>" + (_P(__file__).parent / "neo_theme.css").read_text() + "</style>", unsafe_allow_html=True)
+
 
 # ─────────────────────────────────────────────────────────
 # SESSION / HELPERS
@@ -1015,15 +1020,19 @@ with st.sidebar:
       <div style='font-family:Space Grotesk;font-size:1.1rem;font-weight:800;
                   color:#FFE500;letter-spacing:-.02em'>🏏 CRICKET ANALYTICS</div>
       <div style='font-family:Space Mono;font-size:.6rem;color:#888;
-                  margin-top:.3rem;letter-spacing:.06em'>T20 · 2001–2025</div>
+                  margin-top:.3rem;letter-spacing:.06em'>Men's T20 · all leagues</div>
     </div>""", unsafe_allow_html=True)
 
     st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
-    _tour_codes = sql("SELECT code FROM tournaments ORDER BY num_matches DESC")
-    tournament = st.selectbox("Tournament", ["ALL"] + (
-        _tour_codes["code"].tolist() if not _tour_codes.empty else [
-            "t20i_male", "ipl", "psl", "bbl", "cpl", "t20_blast", "sa20", "lpl",
-            "ilt20", "hundred_male", "msl", "etpl"]))
+    _tour = sql("SELECT code, display_name, num_matches FROM tournaments ORDER BY num_matches DESC")
+    if not _tour.empty:
+        _tour_names = {r.code: f"{(r.display_name or r.code)}  ({int(r.num_matches or 0):,})" for r in _tour.itertuples()}
+        _tour_codes = ["ALL"] + _tour["code"].tolist()
+    else:
+        _tour_names = {}
+        _tour_codes = ["ALL", "t20i_male", "ipl", "psl", "bbl", "cpl", "t20_blast", "sa20", "lpl", "ilt20", "hundred_male", "msl", "etpl"]
+    tournament = st.selectbox("League / tournament", _tour_codes,
+                              format_func=lambda c: "All leagues" if c == "ALL" else _tour_names.get(c, c))
 
     st.markdown("""
     <div style='margin-top:auto;padding-top:2rem;
@@ -1049,8 +1058,21 @@ _NAV_PAGES = [
     "Career Vault",
     "Replacement Scout",
 ]
-_nav_sel = st.pills("Navigation", _NAV_PAGES, default="Player Explorer",
-                    key="top_nav", label_visibility="collapsed")
+# Two-level navigation: 5 groups, then the page inside the group (page names/numbering unchanged for the dispatcher)
+_NAV_GROUPS = {
+    "Players":            ["Player Explorer", "Player Comparison", "Career Vault"],
+    "Matchups & Venues":  ["Head-to-Head", "Matchup Lab", "Pitch Intelligence"],
+    "Predict":            ["Prediction Engine", "Match Predictor"],
+    "Teams":              ["Squad Manager", "Replacement Scout"],
+    "More":               ["Cricket GPT", "Admin"],
+}
+_grp = st.pills("Section", list(_NAV_GROUPS), default="Players", key="top_nav_group",
+                label_visibility="collapsed") or "Players"
+_subs = _NAV_GROUPS[_grp]
+_nav_sel = _subs[0]
+if len(_subs) > 1:
+    _nav_sel = st.pills("Page", _subs, default=_subs[0], key=f"top_nav_sub_{_grp}",
+                        label_visibility="collapsed") or _subs[0]
 _nav_idx = _NAV_PAGES.index(_nav_sel) + 1
 page = f"{'0' if _nav_idx < 10 else ''}{_nav_idx}  {_nav_sel}"
 
@@ -1090,7 +1112,8 @@ st.markdown("""
 # ─────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=120)
-def all_players() -> pd.DataFrame:
+def all_players(tournament: str = "ALL") -> pd.DataFrame:
+    """Player list. `tournament` filters the career lines (innings, runs, wickets...); ratings are all-T20 only."""
     # Fast MongoDB path: fetch collections independently and merge in Python
     if _use_mongo:
         try:
@@ -1103,7 +1126,7 @@ def all_players() -> pd.DataFrame:
             p = pd.DataFrame(players_raw).rename(columns={"cricsheet_key": "name"})
 
             bat_raw = list(_mongo["player_career_bat"].find(
-                {"tournament": "ALL"},
+                {"tournament": tournament},
                 {"_id": 0, "player_id": 1, "innings": 1, "runs": 1,
                  "average": 1, "strike_rate": 1, "adj_average": 1,
                  "adj_strike_rate": 1, "fifties": 1, "hundreds": 1, "hs": 1,
@@ -1123,7 +1146,7 @@ def all_players() -> pd.DataFrame:
                 columns=["player_id"])
 
             bowl_raw = list(_mongo["player_career_bowl"].find(
-                {"tournament": "ALL"},
+                {"tournament": tournament},
                 {"_id": 0, "player_id": 1, "innings": 1, "wickets": 1,
                  "economy": 1, "average": 1, "strike_rate": 1}
             ))
@@ -1152,9 +1175,9 @@ def all_players() -> pd.DataFrame:
     if p.empty:
         return pd.DataFrame()
 
-    pcb  = _exec_sql(_db_engine, "SELECT player_id, innings, runs, average, strike_rate, adj_average, adj_strike_rate, fifties, hundreds, hs, pp_sr, mid_sr, death_sr FROM player_career_bat WHERE tournament = 'ALL'")
+    pcb  = _exec_sql(_db_engine, "SELECT player_id, innings, runs, average, strike_rate, adj_average, adj_strike_rate, fifties, hundreds, hs, pp_sr, mid_sr, death_sr FROM player_career_bat WHERE tournament = :t", t=tournament)
     pr   = _exec_sql(_db_engine, "SELECT player_id, bat_rating, bowl_rating, overall_rating, opener_score, finisher_score, anchor_score, chase_score, pp_bat_score, death_bat_score, pp_bowl_score, death_bowl_score FROM player_ratings WHERE tournament = 'ALL'")
-    pcbw = _exec_sql(_db_engine, "SELECT player_id, innings AS bowl_innings, wickets, economy, average AS bowl_avg, strike_rate AS bowl_sr FROM player_career_bowl WHERE tournament = 'ALL'")
+    pcbw = _exec_sql(_db_engine, "SELECT player_id, innings AS bowl_innings, wickets, economy, average AS bowl_avg, strike_rate AS bowl_sr FROM player_career_bowl WHERE tournament = :t", t=tournament)
 
     # Cast merge keys to same type — SQLite nullable ints can come back as float64
     p["id"] = p["id"].astype("Int64")
@@ -1240,7 +1263,9 @@ def _add_display_name(df: pd.DataFrame) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_seasons(pid: int) -> pd.DataFrame:
+def player_seasons(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.seasons(sql, pid, tournament)
     return sql("""
         SELECT season, bat_innings AS innings, bat_runs AS runs,
                bat_average AS average, bat_sr AS sr
@@ -1251,8 +1276,8 @@ def player_seasons(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_by_phase(pid: int) -> dict:
-    df = sql("""
+def player_by_phase(pid: int, tournament: str = "ALL") -> dict:
+    df = _ls.phase_row(sql, pid, tournament) if tournament != "ALL" else sql("""
         SELECT pp_sr, mid_sr, death_sr, adj_strike_rate AS overall_sr
         FROM player_career_bat
         WHERE player_id = :pid AND tournament = 'ALL'
@@ -1273,7 +1298,9 @@ def player_chase(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_positions(pid: int) -> pd.DataFrame:
+def player_positions(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.positions(sql, pid, tournament)
     return sql("""
         SELECT position, innings, average, strike_rate, pp_sr, mid_sr, death_sr
         FROM player_position_bat WHERE player_id = :pid ORDER BY position
@@ -1281,8 +1308,10 @@ def player_positions(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_by_opponent(pid: int, team_type: str = "all") -> pd.DataFrame:
+def player_by_opponent(pid: int, team_type: str = "all", tournament: str = "ALL") -> pd.DataFrame:
     """team_type: 'all' | 'clubs' | 'countries'"""
+    if tournament != "ALL":
+        return _ls.by_opponent(sql, pid, tournament, team_type)
     type_filter = ""
     if team_type == "countries":
         type_filter = """
@@ -1310,7 +1339,9 @@ def player_by_opponent(pid: int, team_type: str = "all") -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_vs_bowler(pid: int) -> pd.DataFrame:
+def player_vs_bowler(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.vs_bowler(sql, pid, tournament)
     return sql("""
         SELECT p.cricsheet_key AS bowler, p.country,
                COUNT(*) AS balls,
@@ -1330,7 +1361,9 @@ def player_vs_bowler(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_venues(pid: int) -> pd.DataFrame:
+def player_venues(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.venues(sql, pid, tournament)
     return sql("""
         SELECT v.name AS venue, pvb.innings, pvb.runs,
                pvb.average, pvb.strike_rate,
@@ -1344,7 +1377,9 @@ def player_venues(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_milestones_df(pid: int) -> pd.DataFrame:
+def player_milestones_df(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.milestones(sql, pid, tournament)
     return sql("""
         SELECT pm.milestone_type, pm.value, pm.match_date,
                pm.tournament, v.name AS venue, t.name AS opposition
@@ -1372,7 +1407,9 @@ def all_ratings_df() -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_phase_contribution(pid: int) -> pd.DataFrame:
+def player_phase_contribution(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.phase_row(sql, pid, tournament)
     return sql("""
         SELECT pp_runs, pp_balls, mid_runs, mid_balls, death_runs, death_balls,
                pp_sr, mid_sr, death_sr
@@ -1429,7 +1466,9 @@ def player_similar_upcoming(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_form_info(pid: int) -> pd.DataFrame:
+def player_form_info(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.form(sql, pid, tournament)
     return sql("""
         SELECT pf.avg_5, pf.avg_10, pf.avg_20, pf.sr_5, pf.sr_10, pf.sr_20,
                pf.career_avg, pf.career_sr, pf.cv,
@@ -1457,7 +1496,9 @@ def breakout_players_df() -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def dismissal_phase_heatmap_df(pid: int) -> pd.DataFrame:
+def dismissal_phase_heatmap_df(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.dismissal_heatmap(sql, pid, tournament)
     return sql("""
         SELECT
             d.wicket_kind AS dismissal,
@@ -1477,7 +1518,9 @@ def dismissal_phase_heatmap_df(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_dismissal_bat(pid: int) -> pd.DataFrame:
+def player_dismissal_bat(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.dismissal_bat(sql, pid, tournament)
     return sql("""
         SELECT dismissal_kind, count, pct
         FROM player_dismissal_analysis
@@ -1487,7 +1530,9 @@ def player_dismissal_bat(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_dismissal_bowl(pid: int) -> pd.DataFrame:
+def player_dismissal_bowl(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.dismissal_bowl(sql, pid, tournament)
     return sql("""
         SELECT dismissal_kind, count, pct
         FROM player_bowling_dismissal_analysis
@@ -1497,7 +1542,9 @@ def player_dismissal_bowl(pid: int) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=120)
-def player_recent_innings(pid: int) -> pd.DataFrame:
+def player_recent_innings(pid: int, tournament: str = "ALL") -> pd.DataFrame:
+    if tournament != "ALL":
+        return _ls.recent_innings(sql, pid, tournament)
     return sql("""
         SELECT pi.runs, pi.balls_faced, pi.not_out,
                pi.dismissal_kind, m.match_date, m.season,
@@ -1539,7 +1586,7 @@ def _tourney_label(code: str) -> str:
 
 
 @st.cache_data(ttl=120)
-def player_batting_log(pid: int) -> pd.DataFrame:
+def player_batting_log(pid: int, tournament: str = "ALL") -> pd.DataFrame:
     """Every batting innings for a player, with tournament / season / venue context."""
     return sql("""
         SELECT m.match_date, m.tournament, m.season,
@@ -1552,13 +1599,13 @@ def player_batting_log(pid: int) -> pd.DataFrame:
         LEFT JOIN teams tb ON tb.id = i.batting_team_id
         LEFT JOIN teams tw ON tw.id = i.bowling_team_id
         LEFT JOIN venues v ON v.id = m.venue_id
-        WHERE pi.batter_id = :pid AND pi.balls_faced > 0
+        WHERE pi.batter_id = :pid AND pi.balls_faced > 0 AND (:t = 'ALL' OR m.tournament = :t)
         ORDER BY m.match_date DESC
-    """, pid=pid)
+    """, pid=pid, t=tournament)
 
 
 @st.cache_data(ttl=120)
-def player_bowling_log(pid: int) -> pd.DataFrame:
+def player_bowling_log(pid: int, tournament: str = "ALL") -> pd.DataFrame:
     """Every bowling innings for a player, with tournament / season / venue context."""
     return sql("""
         SELECT m.match_date, m.tournament, m.season,
@@ -1571,9 +1618,9 @@ def player_bowling_log(pid: int) -> pd.DataFrame:
         LEFT JOIN teams tb ON tb.id = i.bowling_team_id
         LEFT JOIN teams tw ON tw.id = i.batting_team_id
         LEFT JOIN venues v ON v.id = m.venue_id
-        WHERE pb.bowler_id = :pid AND pb.balls_bowled > 0
+        WHERE pb.bowler_id = :pid AND pb.balls_bowled > 0 AND (:t = 'ALL' OR m.tournament = :t)
         ORDER BY m.match_date DESC
-    """, pid=pid)
+    """, pid=pid, t=tournament)
 
 
 @st.cache_data(ttl=120)
@@ -1743,13 +1790,13 @@ def _player_hero(p: dict, display_name: str) -> str:
             f'{sub}<div class="pe-chips">{"".join(chips)}</div></div>')
 
 
-def _get_bowl(pid: int) -> dict:
+def _get_bowl(pid: int, tournament: str = "ALL") -> dict:
     df = sql("""
         SELECT adj_economy, economy, wickets, dot_pct, average AS bowl_avg,
                strike_rate AS bowl_sr, pp_economy, mid_economy, death_economy,
-               innings AS bowl_inn, runs
-        FROM player_career_bowl WHERE player_id = :pid AND tournament = 'ALL'
-    """, pid=pid)
+               innings AS bowl_inn, runs, balls AS bowl_balls, dot_balls
+        FROM player_career_bowl WHERE player_id = :pid AND tournament = :t
+    """, pid=pid, t=tournament)
     return df.iloc[0].to_dict() if not df.empty else {}
 
 
@@ -2229,7 +2276,7 @@ if "01" in page:
     </div>""", unsafe_allow_html=True)
 
     # ── DEBUG (remove after fixing hosted deployment) ──
-    with st.expander("🔧 Debug info", expanded=True):
+    with st.expander("🔧 Debug info", expanded=False):
         st.write(f"**MongoDB connected:** `{_use_mongo}`")
         st.write(f"**DB_PATH:** `{DB_PATH}` exists=`{Path(DB_PATH).exists()}`")
         st.write(f"**ROOT:** `{ROOT}`")
@@ -2239,7 +2286,7 @@ if "01" in page:
                 st.write(f"**players collection count:** `{n}`")
             except Exception as e:
                 st.write(f"**players count error:** `{e}`")
-        st.cache_data.clear()
+        pass  # cache is no longer cleared on every rerun (was slowing every page)
         try:
             _p = _exec_sql(_db_engine, "SELECT id, cricsheet_key AS name, country, bowling_style, player_role FROM players")
             st.write(f"**p rows:** `{len(_p)}` cols: `{list(_p.columns)}`")
@@ -2262,9 +2309,11 @@ if "01" in page:
         st.write(f"**all_players() rows:** `{len(all_players())}`")
     # ── END DEBUG ──
 
-    df = all_players()
+    df = all_players(tournament)
+    if tournament != "ALL":
+        st.caption(f"League filter: {_tour_names.get(tournament, tournament)}. Innings, runs and wickets are for this league only; ratings and phase scores stay all-T20.")
     if df.empty:
-        st.warning("No players found. Run the ingestion pipeline first.")
+        st.warning("No players found for this league. Pick another or choose ALL.")
         st.stop()
 
     # ── filters row 1 ──
@@ -2413,6 +2462,11 @@ if "01" in page:
         st.caption("Showing the top-ranked player — click any row above to switch.")
     st.markdown('<div class="nb-label">Player Deep Dive</div>', unsafe_allow_html=True)
     p   = _get_player(sel)
+    if p and tournament != "ALL":
+        # headline numbers for the chosen league only; ratings stay all-T20 (they are not computed per league)
+        for _k in ("innings", "runs", "average", "adj_average", "strike_rate", "adj_strike_rate", "pp_sr", "mid_sr", "death_sr", "fifties", "hundreds", "hs"):
+            if _k in _selrow.index:
+                p[_k] = _selrow[_k]
     if p:
         pid = int(p["id"])
         # ── hero card (enriched bio) ──
@@ -2425,13 +2479,14 @@ if "01" in page:
         mc3.metric("Average",    _r(p.get("average")))
         mc4.metric("Adj Avg",    _r(p.get("adj_average")))
         mc5.metric("Strike Rate", _r(p.get("strike_rate")))
-        mc6.metric("Overall",    _r(p.get("overall_rating")))
+        mc6.metric("Overall" + (" (all T20)" if tournament != "ALL" else ""), _r(p.get("overall_rating")))
 
         # ── secondary metrics: ratings + bowling (when a bowler) ──
-        _bowl = _get_bowl(pid)
+        _bowl = _get_bowl(pid, tournament)
         sc1, sc2, sc3, sc4, sc5, sc6 = st.columns(6)
-        sc1.metric("Bat Rating",  _r(p.get("bat_rating")))
-        sc2.metric("Bowl Rating", _r(p.get("bowl_rating")))
+        _rs = " (all T20)" if tournament != "ALL" else ""
+        sc1.metric("Bat Rating" + _rs,  _r(p.get("bat_rating")))
+        sc2.metric("Bowl Rating" + _rs, _r(p.get("bowl_rating")))
         sc3.metric("PP SR",       _r(p.get("pp_sr")))
         sc4.metric("Death SR",    _r(p.get("death_sr")))
         if _bowl and int(_bowl.get("bowl_inn", 0) or 0) > 0:
@@ -2441,581 +2496,595 @@ if "01" in page:
             sc5.metric("Chase Avg",  _r(p.get("chase_avg")))
             sc6.metric("Finisher",   _r(p.get("finisher_score")))
 
-        t1, t2, t3, t4, t5, t6, t7, t8, t9, t10 = st.tabs(
-            ["Season Trend", "By Position", "By Opponent", "Milestones",
-             "Venues", "vs Bowl Style", "Dismissal Analysis", "Form & Consistency",
-             "🌐 All Formats", "📋 Innings Log"])
+        # Tabs reordered by theme: performance over time, then splits, then dismissals/formats. Variables keep their old meaning.
+        _tab_order = ["Season Trend", "Form & Consistency", "Milestones", "Innings Log",
+                      "By Position", "By Opponent", "Venues", "vs Bowl Style",
+                      "Dismissal Analysis", "All Formats"]
+        _tabs = dict(zip(_tab_order, st.tabs(_tab_order, on_change="rerun")))   # lazy: only the open tab runs
+        t1, t2, t3, t4 = _tabs["Season Trend"], _tabs["By Position"], _tabs["By Opponent"], _tabs["Milestones"]
+        t5, t6, t7, t8 = _tabs["Venues"], _tabs["vs Bowl Style"], _tabs["Dismissal Analysis"], _tabs["Form & Consistency"]
+        t9, t10 = _tabs["All Formats"], _tabs["Innings Log"]
 
         with t1:
-            seas = player_seasons(pid)
-            if not seas.empty:
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=seas["season"], y=seas["average"],
-                                          mode="lines+markers", name="Average",
-                                          line=dict(color="#3A86FF", width=2.5),
-                                          marker=dict(size=7, color="#3A86FF",
-                                                      line=dict(width=2, color="#0D0D0D"))))
-                fig.add_trace(go.Bar(x=seas["season"], y=seas["innings"],
-                                      name="Innings", yaxis="y2",
-                                      marker=dict(color="#FFE500",
-                                                  line=dict(color="#0D0D0D", width=2)),
-                                      opacity=0.6))
-                fig.update_layout(
-                    yaxis2=dict(overlaying="y", side="right",
-                                tickfont=dict(family="Space Mono", size=9)),
-                    title=f"{sel} — Season by Season"
-                )
-                st.plotly_chart(_plotly_defaults(fig), width="stretch",
-                                config={"displayModeBar": False})
+            if t1.open:
+                seas = player_seasons(pid, tournament)
+                if not seas.empty:
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatter(x=seas["season"], y=seas["average"],
+                                              mode="lines+markers", name="Average",
+                                              line=dict(color="#3A86FF", width=2.5),
+                                              marker=dict(size=7, color="#3A86FF",
+                                                          line=dict(width=2, color="#0D0D0D"))))
+                    fig.add_trace(go.Bar(x=seas["season"], y=seas["innings"],
+                                          name="Innings", yaxis="y2",
+                                          marker=dict(color="#FFE500",
+                                                      line=dict(color="#0D0D0D", width=2)),
+                                          opacity=0.6))
+                    fig.update_layout(
+                        yaxis2=dict(overlaying="y", side="right",
+                                    tickfont=dict(family="Space Mono", size=9)),
+                        title=f"{sel} — Season by Season"
+                    )
+                    st.plotly_chart(_plotly_defaults(fig), width="stretch",
+                                    config={"displayModeBar": False})
 
         with t2:
-            pos = player_positions(pid)
-            if not pos.empty:
-                fig = go.Figure()
-                fig.add_trace(go.Bar(x=[f"#{p}" for p in pos["position"]],
-                                      y=pos["strike_rate"],
-                                      name="SR",
-                                      marker=dict(color="#FFE500",
-                                                  line=dict(color="#0D0D0D", width=2))))
-                fig.add_trace(go.Scatter(x=[f"#{p}" for p in pos["position"]],
-                                          y=pos["average"],
-                                          name="Average",
-                                          mode="lines+markers",
-                                          line=dict(color="#FF6B9D", width=2.5),
-                                          yaxis="y2"))
-                fig.update_layout(
-                    yaxis2=dict(overlaying="y", side="right",
-                                tickfont=dict(family="Space Mono", size=9)),
-                    title="Performance by Batting Position"
-                )
-                st.plotly_chart(_plotly_defaults(fig), width="stretch",
-                                config={"displayModeBar": False})
-                st.dataframe(pos, hide_index=True)
+            if t2.open:
+                pos = player_positions(pid, tournament)
+                if not pos.empty:
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(x=[f"#{p}" for p in pos["position"]],
+                                          y=pos["strike_rate"],
+                                          name="SR",
+                                          marker=dict(color="#FFE500",
+                                                      line=dict(color="#0D0D0D", width=2))))
+                    fig.add_trace(go.Scatter(x=[f"#{p}" for p in pos["position"]],
+                                              y=pos["average"],
+                                              name="Average",
+                                              mode="lines+markers",
+                                              line=dict(color="#FF6B9D", width=2.5),
+                                              yaxis="y2"))
+                    fig.update_layout(
+                        yaxis2=dict(overlaying="y", side="right",
+                                    tickfont=dict(family="Space Mono", size=9)),
+                        title="Performance by Batting Position"
+                    )
+                    st.plotly_chart(_plotly_defaults(fig), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(pos, hide_index=True)
 
         with t3:
-            opp_view = st.radio(
-                "View",
-                ["Clubs", "Countries", "vs Players"],
-                horizontal=True,
-                key="opp_view_radio",
-                label_visibility="collapsed",
-            )
-            if opp_view == "Clubs":
-                opp = player_by_opponent(pid, team_type="clubs")
-                chart_title = "Average vs Club Opponents (top 20 by innings)"
-            elif opp_view == "Countries":
-                opp = player_by_opponent(pid, team_type="countries")
-                chart_title = "Average vs National Teams (top 20 by innings)"
-            else:
-                opp = None
-                chart_title = ""
+            if t3.open:
+                opp_view = st.radio(
+                    "View",
+                    ["Clubs", "Countries", "vs Players"],
+                    horizontal=True,
+                    key="opp_view_radio",
+                    label_visibility="collapsed",
+                )
+                if opp_view == "Clubs":
+                    opp = player_by_opponent(pid, team_type="clubs", tournament=tournament)
+                    chart_title = "Average vs Club Opponents (top 20 by innings)"
+                elif opp_view == "Countries":
+                    opp = player_by_opponent(pid, team_type="countries", tournament=tournament)
+                    chart_title = "Average vs National Teams (top 20 by innings)"
+                else:
+                    opp = None
+                    chart_title = ""
 
-            if opp_view in ("Clubs", "Countries"):
-                if not opp.empty:
-                    top = opp.head(20)
-                    fig = px.bar(top, x="opponent", y="avg", color="inn",
-                                  title=chart_title,
-                                  color_continuous_scale=["#E8E4D8", "#3A86FF"])
-                    fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
-                    st.plotly_chart(_plotly_defaults(fig), width="stretch",
-                                    config={"displayModeBar": False})
-                    st.dataframe(opp, hide_index=True)
+                if opp_view in ("Clubs", "Countries"):
+                    if not opp.empty:
+                        top = opp.head(20)
+                        fig = px.bar(top, x="opponent", y="avg", color="inn",
+                                      title=chart_title,
+                                      color_continuous_scale=["#E8E4D8", "#3A86FF"])
+                        fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
+                        st.plotly_chart(_plotly_defaults(fig), width="stretch",
+                                        config={"displayModeBar": False})
+                        st.dataframe(opp, hide_index=True)
+                    else:
+                        st.info("No data for this opponent type.")
                 else:
-                    st.info("No data for this opponent type.")
-            else:
-                vb = player_vs_bowler(pid)
-                if not vb.empty:
-                    top_vb = vb.head(20)
-                    fig = px.bar(top_vb, x="bowler", y="sr", color="balls",
-                                  title="Strike Rate vs Individual Bowlers (top 20 by balls faced)",
-                                  color_continuous_scale=["#E8E4D8", "#3A86FF"])
-                    fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
-                    st.plotly_chart(_plotly_defaults(fig), width="stretch",
-                                    config={"displayModeBar": False})
-                    st.dataframe(vb, hide_index=True)
-                else:
-                    st.info("No individual matchup data available.")
+                    vb = player_vs_bowler(pid, tournament)
+                    if not vb.empty:
+                        top_vb = vb.head(20)
+                        fig = px.bar(top_vb, x="bowler", y="sr", color="balls",
+                                      title="Strike Rate vs Individual Bowlers (top 20 by balls faced)",
+                                      color_continuous_scale=["#E8E4D8", "#3A86FF"])
+                        fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
+                        st.plotly_chart(_plotly_defaults(fig), width="stretch",
+                                        config={"displayModeBar": False})
+                        st.dataframe(vb, hide_index=True)
+                    else:
+                        st.info("No individual matchup data available.")
 
         with t4:
-            mils = player_milestones_df(pid)
-            if not mils.empty:
-                counts = mils["milestone_type"].value_counts()
-                fig = go.Figure(go.Bar(
-                    x=counts.index, y=counts.values,
-                    marker=dict(color="#FFE500", line=dict(color="#0D0D0D", width=2.5)),
-                    text=counts.values, textposition="outside",
-                ))
-                st.plotly_chart(_plotly_defaults(fig, 260), width="stretch",
-                                config={"displayModeBar": False})
-                st.dataframe(mils, hide_index=True)
+            if t4.open:
+                mils = player_milestones_df(pid, tournament)
+                if not mils.empty:
+                    counts = mils["milestone_type"].value_counts()
+                    fig = go.Figure(go.Bar(
+                        x=counts.index, y=counts.values,
+                        marker=dict(color="#FFE500", line=dict(color="#0D0D0D", width=2.5)),
+                        text=counts.values, textposition="outside",
+                    ))
+                    st.plotly_chart(_plotly_defaults(fig, 260), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(mils, hide_index=True)
 
         with t6:
-            _mq = sql("""
+            if t6.open:
+                _mq = sql("""
                     SELECT bowling_style, balls, runs, dismissals,
                            strike_rate, average, dot_pct, boundaries
                     FROM player_vs_bowler_style
                     WHERE batter_id = :pid
                     ORDER BY balls DESC
                 """, pid=pid).values.tolist()
-            if _mq:
-                _style_df = pd.DataFrame(_mq, columns=[
-                    "Bowling Style", "Balls", "Runs", "Dismissals",
-                    "SR", "Average", "Dot%", "Boundaries"])
-                # colour SR relative to each other
-                fig_s = go.Figure()
-                colours = {
-                    "Right-arm fast":           "#FF6B6B",
-                    "Right-arm fast-medium":    "#FF9F43",
-                    "Right-arm off-break":      "#54A0FF",
-                    "Right-arm leg-break googly":"#5F27CD",
-                    "Left-arm fast":            "#EE5A24",
-                    "Left-arm fast-medium":     "#F79F1F",
-                    "Slow left-arm orthodox":   "#1289A7",
-                    "Left-arm wrist-spin":      "#6C5CE7",
-                }
-                avg_sr = _style_df["SR"].mean()
-                for _, row in _style_df.iterrows():
-                    col = colours.get(row["Bowling Style"], "#B2BEC3")
-                    fig_s.add_trace(go.Bar(
-                        x=[row["Bowling Style"]], y=[row["SR"]],
-                        name=row["Bowling Style"],
-                        marker=dict(color=col, line=dict(color="#0D0D0D", width=2)),
-                        text=[f"{row['SR']}"],
-                        textposition="outside",
-                        customdata=[[row["Balls"], row["Dismissals"], row["Dot%"]]],
-                        hovertemplate=(
-                            "<b>%{x}</b><br>"
-                            "SR: %{y}<br>"
-                            "Balls: %{customdata[0]}<br>"
-                            "Dismissals: %{customdata[1]}<br>"
-                            "Dot%%: %{customdata[2]}<extra></extra>"
-                        ),
-                    ))
-                fig_s.add_hline(y=avg_sr, line_dash="dash", line_color="#0D0D0D",
-                                annotation_text=f"avg SR {avg_sr:.0f}")
-                fig_s.update_layout(showlegend=False,
-                                    yaxis_title="Strike Rate",
-                                    xaxis_title="",
-                                    bargap=0.3)
-                st.plotly_chart(_plotly_defaults(fig_s), width="stretch",
-                                config={"displayModeBar": False})
-                st.dataframe(
-                    _style_df.style.background_gradient(
-                        subset=["SR"], cmap="RdYlGn"),
-                    hide_index=True)
-                st.caption("Minimum 24 balls faced against that bowling type. "
-                           "Covers bowlers with known styles (~54% of T20 deliveries in DB).")
-            else:
-                st.info("No bowling-style matchup data for this player "
-                        "(fewer than 24 balls faced against any classified bowler).")
+                if _mq:
+                    _style_df = pd.DataFrame(_mq, columns=[
+                        "Bowling Style", "Balls", "Runs", "Dismissals",
+                        "SR", "Average", "Dot%", "Boundaries"])
+                    # colour SR relative to each other
+                    fig_s = go.Figure()
+                    colours = {
+                        "Right-arm fast":           "#FF6B6B",
+                        "Right-arm fast-medium":    "#FF9F43",
+                        "Right-arm off-break":      "#54A0FF",
+                        "Right-arm leg-break googly":"#5F27CD",
+                        "Left-arm fast":            "#EE5A24",
+                        "Left-arm fast-medium":     "#F79F1F",
+                        "Slow left-arm orthodox":   "#1289A7",
+                        "Left-arm wrist-spin":      "#6C5CE7",
+                    }
+                    avg_sr = _style_df["SR"].mean()
+                    for _, row in _style_df.iterrows():
+                        col = colours.get(row["Bowling Style"], "#B2BEC3")
+                        fig_s.add_trace(go.Bar(
+                            x=[row["Bowling Style"]], y=[row["SR"]],
+                            name=row["Bowling Style"],
+                            marker=dict(color=col, line=dict(color="#0D0D0D", width=2)),
+                            text=[f"{row['SR']}"],
+                            textposition="outside",
+                            customdata=[[row["Balls"], row["Dismissals"], row["Dot%"]]],
+                            hovertemplate=(
+                                "<b>%{x}</b><br>"
+                                "SR: %{y}<br>"
+                                "Balls: %{customdata[0]}<br>"
+                                "Dismissals: %{customdata[1]}<br>"
+                                "Dot%%: %{customdata[2]}<extra></extra>"
+                            ),
+                        ))
+                    fig_s.add_hline(y=avg_sr, line_dash="dash", line_color="#0D0D0D",
+                                    annotation_text=f"avg SR {avg_sr:.0f}")
+                    fig_s.update_layout(showlegend=False,
+                                        yaxis_title="Strike Rate",
+                                        xaxis_title="",
+                                        bargap=0.3)
+                    st.plotly_chart(_plotly_defaults(fig_s), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(
+                        _style_df.style.background_gradient(
+                            subset=["SR"], cmap="RdYlGn"),
+                        hide_index=True)
+                    st.caption("Minimum 24 balls faced against that bowling type. "
+                               "Covers bowlers with known styles (~54% of T20 deliveries in DB).")
+                else:
+                    st.info("No bowling-style matchup data for this player "
+                            "(fewer than 24 balls faced against any classified bowler).")
 
         with t5:
-            vdf = player_venues(pid)
-            if not vdf.empty:
-                fig = px.scatter(vdf, x="bat_factor", y="average",
-                                  size="innings", hover_name="venue",
-                                  title="Venue Difficulty vs Player Average",
-                                  color="average",
-                                  color_continuous_scale=["#FF6B9D","#FFE500","#06D6A0"])
-                fig.add_vline(x=1.0, line_dash="dash", line_color="#0D0D0D",
-                               annotation_text="neutral")
-                fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
-                st.plotly_chart(_plotly_defaults(fig), width="stretch",
-                                config={"displayModeBar": False})
-                st.dataframe(vdf, hide_index=True)
+            if t5.open:
+                vdf = player_venues(pid, tournament)
+                if not vdf.empty:
+                    fig = px.scatter(vdf, x="bat_factor", y="average",
+                                      size="innings", hover_name="venue",
+                                      title="Venue Difficulty vs Player Average",
+                                      color="average",
+                                      color_continuous_scale=["#FF6B9D","#FFE500","#06D6A0"])
+                    fig.add_vline(x=1.0, line_dash="dash", line_color="#0D0D0D",
+                                   annotation_text="neutral")
+                    fig.update_traces(marker_line_color="#0D0D0D", marker_line_width=2)
+                    st.plotly_chart(_plotly_defaults(fig), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.dataframe(vdf, hide_index=True)
 
         with t7:
-            _DISM_CLR = {
-                "caught": "#3A86FF", "bowled": "#FF6B9D", "lbw": "#FFE500",
-                "run out": "#06D6A0", "stumped": "#FF6B35", "hit wicket": "#9B5DE5",
-                "retired hurt": "#B2BEC3",
-            }
-            d_bat  = player_dismissal_bat(pid)
-            d_bowl = player_dismissal_bowl(pid)
-            dc1, dc2 = st.columns(2)
-            with dc1:
-                st.markdown('<div class="nb-label">How They Get Out (Batting)</div>',
-                            unsafe_allow_html=True)
-                if not d_bat.empty:
-                    clrs = [_DISM_CLR.get(k, "#B2BEC3") for k in d_bat["dismissal_kind"]]
-                    fig_db = go.Figure(go.Pie(
-                        labels=d_bat["dismissal_kind"], values=d_bat["count"],
-                        hole=0.55,
-                        marker=dict(colors=clrs, line=dict(color="#0D0D0D", width=2)),
-                        textinfo="label+percent",
-                        textfont=dict(family="Space Mono", size=10),
-                        hovertemplate="<b>%{label}</b><br>%{value} times (%{percent})<extra></extra>",
-                    ))
-                    fig_db.update_layout(
-                        showlegend=False,
-                        annotations=[dict(
-                            text=f"<b>{int(d_bat['count'].sum())}</b><br>dismissed",
-                            x=0.5, y=0.5,
-                            font=dict(size=13, family="Space Grotesk"),
-                            showarrow=False,
-                        )],
-                    )
-                    st.plotly_chart(_plotly_defaults(fig_db, 320), width="stretch",
-                                    config={"displayModeBar": False})
-                    st.dataframe(
-                        d_bat.rename(columns={"dismissal_kind": "Mode",
-                                               "count": "Times", "pct": "Pct%"}),
-                        hide_index=True)
-                else:
-                    st.info("No batting dismissal data.")
+            if t7.open:
+                _DISM_CLR = {
+                    "caught": "#3A86FF", "bowled": "#FF6B9D", "lbw": "#FFE500",
+                    "run out": "#06D6A0", "stumped": "#FF6B35", "hit wicket": "#9B5DE5",
+                    "retired hurt": "#B2BEC3",
+                }
+                d_bat  = player_dismissal_bat(pid, tournament)
+                d_bowl = player_dismissal_bowl(pid, tournament)
+                dc1, dc2 = st.columns(2)
+                with dc1:
+                    st.markdown('<div class="nb-label">How They Get Out (Batting)</div>',
+                                unsafe_allow_html=True)
+                    if not d_bat.empty:
+                        clrs = [_DISM_CLR.get(k, "#B2BEC3") for k in d_bat["dismissal_kind"]]
+                        fig_db = go.Figure(go.Pie(
+                            labels=d_bat["dismissal_kind"], values=d_bat["count"],
+                            hole=0.55,
+                            marker=dict(colors=clrs, line=dict(color="#0D0D0D", width=2)),
+                            textinfo="label+percent",
+                            textfont=dict(family="Space Mono", size=10),
+                            hovertemplate="<b>%{label}</b><br>%{value} times (%{percent})<extra></extra>",
+                        ))
+                        fig_db.update_layout(
+                            showlegend=False,
+                            annotations=[dict(
+                                text=f"<b>{int(d_bat['count'].sum())}</b><br>dismissed",
+                                x=0.5, y=0.5,
+                                font=dict(size=13, family="Space Grotesk"),
+                                showarrow=False,
+                            )],
+                        )
+                        st.plotly_chart(_plotly_defaults(fig_db, 320), width="stretch",
+                                        config={"displayModeBar": False})
+                        st.dataframe(
+                            d_bat.rename(columns={"dismissal_kind": "Mode",
+                                                   "count": "Times", "pct": "Pct%"}),
+                            hide_index=True)
+                    else:
+                        st.info("No batting dismissal data.")
 
-            with dc2:
-                st.markdown('<div class="nb-label">How They Take Wickets (Bowling)</div>',
-                            unsafe_allow_html=True)
-                if not d_bowl.empty:
-                    clrs_b = [_DISM_CLR.get(k, "#B2BEC3") for k in d_bowl["dismissal_kind"]]
-                    fig_dw = go.Figure(go.Pie(
-                        labels=d_bowl["dismissal_kind"], values=d_bowl["count"],
-                        hole=0.55,
-                        marker=dict(colors=clrs_b, line=dict(color="#0D0D0D", width=2)),
-                        textinfo="label+percent",
-                        textfont=dict(family="Space Mono", size=10),
-                        hovertemplate="<b>%{label}</b><br>%{value} times (%{percent})<extra></extra>",
-                    ))
-                    fig_dw.update_layout(
-                        showlegend=False,
-                        annotations=[dict(
-                            text=f"<b>{int(d_bowl['count'].sum())}</b><br>wickets",
-                            x=0.5, y=0.5,
-                            font=dict(size=13, family="Space Grotesk"),
-                            showarrow=False,
-                        )],
-                    )
-                    st.plotly_chart(_plotly_defaults(fig_dw, 320), width="stretch",
-                                    config={"displayModeBar": False})
-                    st.dataframe(
-                        d_bowl.rename(columns={"dismissal_kind": "Mode",
-                                                "count": "Times", "pct": "Pct%"}),
-                        hide_index=True)
-                else:
-                    st.info("No bowling dismissal data (non-bowler or too few wickets).")
+                with dc2:
+                    st.markdown('<div class="nb-label">How They Take Wickets (Bowling)</div>',
+                                unsafe_allow_html=True)
+                    if not d_bowl.empty:
+                        clrs_b = [_DISM_CLR.get(k, "#B2BEC3") for k in d_bowl["dismissal_kind"]]
+                        fig_dw = go.Figure(go.Pie(
+                            labels=d_bowl["dismissal_kind"], values=d_bowl["count"],
+                            hole=0.55,
+                            marker=dict(colors=clrs_b, line=dict(color="#0D0D0D", width=2)),
+                            textinfo="label+percent",
+                            textfont=dict(family="Space Mono", size=10),
+                            hovertemplate="<b>%{label}</b><br>%{value} times (%{percent})<extra></extra>",
+                        ))
+                        fig_dw.update_layout(
+                            showlegend=False,
+                            annotations=[dict(
+                                text=f"<b>{int(d_bowl['count'].sum())}</b><br>wickets",
+                                x=0.5, y=0.5,
+                                font=dict(size=13, family="Space Grotesk"),
+                                showarrow=False,
+                            )],
+                        )
+                        st.plotly_chart(_plotly_defaults(fig_dw, 320), width="stretch",
+                                        config={"displayModeBar": False})
+                        st.dataframe(
+                            d_bowl.rename(columns={"dismissal_kind": "Mode",
+                                                    "count": "Times", "pct": "Pct%"}),
+                            hide_index=True)
+                    else:
+                        st.info("No bowling dismissal data (non-bowler or too few wickets).")
 
-            # ── Dismissal Phase Heatmap ──────────────────────────────────────
-            st.markdown('<div class="nb-label" style="margin-top:1.2rem">'
-                        'Dismissal Phase Heatmap</div>', unsafe_allow_html=True)
-            hm_df = dismissal_phase_heatmap_df(pid)
-            if not hm_df.empty:
-                pivot = (hm_df.pivot_table(
-                    index="dismissal", columns="phase",
-                    values="count", aggfunc="sum", fill_value=0
-                ).reindex(columns=["Powerplay", "Middle", "Death"], fill_value=0))
-                fig_hm = go.Figure(go.Heatmap(
-                    z=pivot.values,
-                    x=pivot.columns.tolist(),
-                    y=pivot.index.tolist(),
-                    colorscale=[[0, "#FFFCF2"], [0.5, "#FFE500"], [1, "#FF6B35"]],
-                    text=pivot.values,
-                    texttemplate="%{text}",
-                    textfont=dict(family="Space Mono", size=11),
-                    hovertemplate="<b>%{y}</b> in <b>%{x}</b><br>%{z} times<extra></extra>",
-                    showscale=True,
-                    colorbar=dict(tickfont=dict(family="Space Mono", size=9)),
-                ))
-                fig_hm.update_layout(
-                    xaxis=dict(tickfont=dict(family="Space Mono", size=10)),
-                    yaxis=dict(tickfont=dict(family="Space Mono", size=10)),
-                )
-                st.plotly_chart(_plotly_defaults(fig_hm, 300), width="stretch",
-                                config={"displayModeBar": False})
-                st.caption("Counts how many times the batter was dismissed in each phase. "
-                           "Excludes run outs (fielding, not technique).")
-            else:
-                st.info("No ball-by-ball dismissal data for this player.")
+                # ── Dismissal Phase Heatmap ──────────────────────────────────────
+                st.markdown('<div class="nb-label" style="margin-top:1.2rem">'
+                            'Dismissal Phase Heatmap</div>', unsafe_allow_html=True)
+                hm_df = dismissal_phase_heatmap_df(pid, tournament)
+                if not hm_df.empty:
+                    pivot = (hm_df.pivot_table(
+                        index="dismissal", columns="phase",
+                        values="count", aggfunc="sum", fill_value=0
+                    ).reindex(columns=["Powerplay", "Middle", "Death"], fill_value=0))
+                    fig_hm = go.Figure(go.Heatmap(
+                        z=pivot.values,
+                        x=pivot.columns.tolist(),
+                        y=pivot.index.tolist(),
+                        colorscale=[[0, "#FFFCF2"], [0.5, "#FFE500"], [1, "#FF6B35"]],
+                        text=pivot.values,
+                        texttemplate="%{text}",
+                        textfont=dict(family="Space Mono", size=11),
+                        hovertemplate="<b>%{y}</b> in <b>%{x}</b><br>%{z} times<extra></extra>",
+                        showscale=True,
+                        colorbar=dict(tickfont=dict(family="Space Mono", size=9)),
+                    ))
+                    fig_hm.update_layout(
+                        xaxis=dict(tickfont=dict(family="Space Mono", size=10)),
+                        yaxis=dict(tickfont=dict(family="Space Mono", size=10)),
+                    )
+                    st.plotly_chart(_plotly_defaults(fig_hm, 300), width="stretch",
+                                    config={"displayModeBar": False})
+                    st.caption("Counts how many times the batter was dismissed in each phase. "
+                               "Excludes run outs (fielding, not technique).")
+                else:
+                    st.info("No ball-by-ball dismissal data for this player.")
 
         with t8:
-            inn_df = player_recent_innings(pid)
-            if not inn_df.empty:
-                inn_df["match_date"] = pd.to_datetime(inn_df["match_date"])
-                inn_df = inn_df.sort_values("match_date").reset_index(drop=True)
-                inn_df["innings_no"] = range(1, len(inn_df) + 1)
+            if t8.open:
+                inn_df = player_recent_innings(pid, tournament)
+                if not inn_df.empty:
+                    inn_df["match_date"] = pd.to_datetime(inn_df["match_date"])
+                    inn_df = inn_df.sort_values("match_date").reset_index(drop=True)
+                    inn_df["innings_no"] = range(1, len(inn_df) + 1)
 
-                f8c1, f8c2 = st.columns([3, 1])
-                with f8c2:
-                    window = st.slider("Rolling window", 5, 20, 10, key="form_window")
+                    f8c1, f8c2 = st.columns([3, 1])
+                    with f8c2:
+                        window = st.slider("Rolling window", 5, 20, 10, key="form_window")
 
-                inn_df["rolling_avg"] = inn_df["runs"].rolling(window, min_periods=3).mean()
-                balls_safe = inn_df["balls_faced"].replace(0, np.nan)
-                inn_df["sr_per_inn"]  = inn_df["runs"] / balls_safe * 100
-                inn_df["rolling_sr"]  = inn_df["sr_per_inn"].rolling(window, min_periods=3).mean()
+                    inn_df["rolling_avg"] = inn_df["runs"].rolling(window, min_periods=3).mean()
+                    balls_safe = inn_df["balls_faced"].replace(0, np.nan)
+                    inn_df["sr_per_inn"]  = inn_df["runs"] / balls_safe * 100
+                    inn_df["rolling_sr"]  = inn_df["sr_per_inn"].rolling(window, min_periods=3).mean()
 
-                career_avg = inn_df["runs"].mean()
-                career_sr  = (inn_df["runs"].sum() / inn_df["balls_faced"].sum() * 100
-                               if inn_df["balls_faced"].sum() > 0 else 0)
-                cv = (inn_df["runs"].std() / career_avg * 100) if career_avg > 0 else 0
-                c_label = "Very Consistent" if cv < 60 else "Moderate" if cv < 90 else "Streaky"
+                    career_avg = inn_df["runs"].mean()
+                    career_sr  = (inn_df["runs"].sum() / inn_df["balls_faced"].sum() * 100
+                                   if inn_df["balls_faced"].sum() > 0 else 0)
+                    cv = (inn_df["runs"].std() / career_avg * 100) if career_avg > 0 else 0
+                    c_label = "Very Consistent" if cv < 60 else "Moderate" if cv < 90 else "Streaky"
 
-                with f8c2:
-                    st.metric("Innings", len(inn_df))
-                    st.metric("Career Avg", f"{career_avg:.1f}")
-                    st.metric("Career SR",  f"{career_sr:.1f}")
-                    st.metric("Consistency CV", f"{cv:.0f}%",
-                               help=f"{c_label} — lower = more consistent; CV = std / mean × 100")
+                    with f8c2:
+                        st.metric("Innings", len(inn_df))
+                        st.metric("Career Avg", f"{career_avg:.1f}")
+                        st.metric("Career SR",  f"{career_sr:.1f}")
+                        st.metric("Consistency CV", f"{cv:.0f}%",
+                                   help=f"{c_label} — lower = more consistent; CV = std / mean × 100")
 
-                with f8c1:
-                    bar_colors = [
-                        "#FF6B9D" if r == 0 and not no else
-                        "#FFE500" if no else "#3A86FF"
-                        for r, no in zip(inn_df["runs"], inn_df["not_out"])
-                    ]
-                    fig_f = go.Figure()
-                    fig_f.add_trace(go.Bar(
-                        x=inn_df["innings_no"], y=inn_df["runs"],
-                        name="Runs",
-                        marker=dict(color=bar_colors, line=dict(color="#0D0D0D", width=1.2)),
-                        customdata=np.stack([
-                            inn_df["opposition"].fillna("?"),
-                            inn_df["match_date"].dt.strftime("%Y-%m-%d"),
-                            inn_df["balls_faced"],
-                        ], axis=-1),
-                        hovertemplate=(
-                            "Inn %{x} — <b>%{y} runs</b><br>"
-                            "vs %{customdata[0]}<br>"
-                            "%{customdata[1]}<br>"
-                            "Balls: %{customdata[2]}<extra></extra>"
-                        ),
-                    ))
-                    fig_f.add_trace(go.Scatter(
-                        x=inn_df["innings_no"], y=inn_df["rolling_avg"],
-                        name=f"Rolling {window}-inn Avg",
-                        mode="lines",
-                        line=dict(color="#06D6A0", width=2.5),
-                    ))
-                    fig_f.add_hline(y=career_avg, line_dash="dot", line_color="#0D0D0D",
-                                     annotation_text=f"career avg {career_avg:.1f}",
-                                     annotation_font=dict(family="Space Mono", size=9))
-                    fig_f.update_layout(
-                        title="Innings-by-Innings Runs  (yellow = not out · pink = duck)",
-                        xaxis_title="Innings #", yaxis_title="Runs",
-                        legend=dict(orientation="h", y=1.08),
-                    )
-                    st.plotly_chart(_plotly_defaults(fig_f), width="stretch",
-                                    config={"displayModeBar": False})
-
-                    fig_sr = go.Figure()
-                    fig_sr.add_trace(go.Scatter(
-                        x=inn_df["innings_no"], y=inn_df["rolling_sr"],
-                        name=f"Rolling {window}-inn SR",
-                        mode="lines+markers",
-                        line=dict(color="#FF6B35", width=2.5),
-                        marker=dict(size=5, color="#FF6B35",
-                                    line=dict(width=1.5, color="#0D0D0D")),
-                    ))
-                    fig_sr.add_hline(y=career_sr, line_dash="dot", line_color="#0D0D0D",
-                                      annotation_text=f"career SR {career_sr:.1f}",
-                                      annotation_font=dict(family="Space Mono", size=9))
-                    fig_sr.update_layout(
-                        title=f"Rolling Strike Rate (window = {window} innings)",
-                        yaxis_title="SR", xaxis_title="Innings #",
-                    )
-                    st.plotly_chart(_plotly_defaults(fig_sr, 280), width="stretch",
-                                    config={"displayModeBar": False})
-
-                st.dataframe(
-                    inn_df[["innings_no", "match_date", "opposition",
-                             "runs", "balls_faced", "not_out", "dismissal_kind"]]
-                    .rename(columns={
-                        "innings_no": "#", "match_date": "Date", "opposition": "vs",
-                        "runs": "Runs", "balls_faced": "Balls",
-                        "not_out": "NO", "dismissal_kind": "Out",
-                    }),
-                    hide_index=True,
-                )
-            else:
-                st.info("No innings data for this player.")
-
-        with t9:
-            st.markdown(
-                '<div class="nb-label">International career — all formats</div>',
-                unsafe_allow_html=True)
-            st.caption("Statsguru-backed cumulative career (ESPNcricinfo). "
-                       "The analytical DB is T20-only; this panel is cross-format "
-                       "*context* alongside that focus — T20I highlighted.")
-
-            _bat = _career_intl(pid, "batting")
-            _bowl = _career_intl(pid, "bowling")
-
-            if _bat.empty and _bowl.empty:
-                st.info("No international career data cached for this player. "
-                        "Run `scripts/crawl_career_intl.py` to populate it.")
-            else:
-                def _fmt_label(f):
-                    return _FMT_LABEL.get(f, f.upper())
-
-                if not _bat.empty:
-                    st.markdown("**Batting**")
-                    _b = _bat.copy()
-                    _b["Format"] = _b["fmt"].map(_fmt_label)
-                    _bat_view = _b[["Format", "span", "mat", "inns", "runs", "ave",
-                                    "sr", "hs", "hundreds", "fifties", "sixes"]].rename(
-                        columns={"span": "Span", "mat": "Mat", "inns": "Inns",
-                                 "runs": "Runs", "ave": "Ave", "sr": "SR", "hs": "HS",
-                                 "hundreds": "100s", "fifties": "50s", "sixes": "6s"})
-                    st.dataframe(_bat_view, hide_index=True, width="stretch")
-
-                    # cross-format Ave / SR comparison
-                    _cfig = go.Figure()
-                    _cfig.add_trace(go.Bar(
-                        x=_b["Format"], y=_b["ave"], name="Average",
-                        marker=dict(color="#3A86FF", line=dict(color="#0D0D0D", width=1.5)),
-                    ))
-                    _cfig.add_trace(go.Bar(
-                        x=_b["Format"], y=_b["sr"], name="Strike Rate",
-                        marker=dict(color="#FFE500", line=dict(color="#0D0D0D", width=1.5)),
-                    ))
-                    _cfig.update_layout(
-                        barmode="group", title="Batting — Average vs Strike Rate by format",
-                        legend=dict(orientation="h", y=1.12),
-                    )
-                    st.plotly_chart(_plotly_defaults(_cfig, 300), width="stretch",
-                                    config={"displayModeBar": False})
-
-                if not _bowl.empty:
-                    st.markdown("**Bowling**")
-                    _w = _bowl.copy()
-                    _w["Format"] = _w["fmt"].map(_fmt_label)
-                    _bowl_view = _w[["Format", "span", "mat", "inns", "wkts", "ave",
-                                     "econ", "sr", "bbi", "five_w"]].rename(
-                        columns={"span": "Span", "mat": "Mat", "inns": "Inns",
-                                 "wkts": "Wkts", "ave": "Ave", "econ": "Econ",
-                                 "sr": "SR", "bbi": "BBI", "five_w": "5W"})
-                    st.dataframe(_bowl_view, hide_index=True, width="stretch")
-
-        with t10:
-            st.markdown('<div class="nb-label">Innings log — filter by tournament</div>',
-                        unsafe_allow_html=True)
-            _bl = player_batting_log(pid)
-            _wl = player_bowling_log(pid)
-            if _bl.empty and _wl.empty:
-                st.info("No innings recorded for this player.")
-            else:
-                _codes = sorted(set(_bl["tournament"]) | set(_wl["tournament"]))
-                _lab2code = {_tourney_label(c): c for c in _codes}
-                lc1, lc2, lc3 = st.columns([3, 2, 2])
-                with lc1:
-                    _pick = st.multiselect(
-                        "Tournament", list(_lab2code), default=list(_lab2code),
-                        key=f"il_tour_{pid}",
-                        help="Pick one or more competitions, e.g. only IPL, or IPL + ETPL.")
-                _sel = [_lab2code[x] for x in _pick]
-                _seasons = sorted(
-                    set(_bl[_bl["tournament"].isin(_sel)]["season"].astype(str))
-                    | set(_wl[_wl["tournament"].isin(_sel)]["season"].astype(str)),
-                    reverse=True)
-                with lc2:
-                    _sea = st.multiselect("Season", _seasons, key=f"il_sea_{pid}",
-                                          help="Leave empty for all seasons.")
-                with lc3:
-                    _disc = st.radio("Discipline", ["Batting", "Bowling"],
-                                     horizontal=True, key=f"il_disc_{pid}")
-
-                def _flt(df):
-                    df = df[df["tournament"].isin(_sel)]
-                    if _sea:
-                        df = df[df["season"].astype(str).isin(_sea)]
-                    return df.copy()
-
-                if _disc == "Batting":
-                    d = _flt(_bl)
-                    if d.empty:
-                        st.info("No batting innings for this selection.")
-                    else:
-                        d["match_date"] = pd.to_datetime(d["match_date"]).dt.date
-                        d["Tournament"] = d["tournament"].map(_tourney_label)
-                        d["out"] = ~d["not_out"].astype(bool)
-                        n, runs = len(d), int(d["runs"].sum())
-                        dis = int(d["out"].sum())
-                        balls = int(d["balls"].sum())
-                        m1, m2, m3, m4, m5, m6 = st.columns(6)
-                        m1.metric("Innings", n)
-                        m2.metric("Runs", f"{runs:,}")
-                        m3.metric("Average", f"{runs / dis:.1f}" if dis else "—")
-                        m4.metric("Strike Rate", f"{runs / balls * 100:.1f}" if balls else "—")
-                        m5.metric("High Score", int(d["runs"].max()))
-                        m6.metric("50s / 100s",
-                                  f"{int((d['runs'] >= 50).sum() - (d['runs'] >= 100).sum())}"
-                                  f" / {int((d['runs'] >= 100).sum())}")
-
-                        g = d.groupby("Tournament").agg(
-                            Inns=("runs", "size"), Runs=("runs", "sum"),
-                            Balls=("balls", "sum"), Outs=("out", "sum"),
-                            HS=("runs", "max"), Fours=("fours", "sum"), Sixes=("sixes", "sum"),
-                        ).reset_index()
-                        g["Avg"] = (g["Runs"] / g["Outs"].replace(0, np.nan)).round(1)
-                        g["SR"] = (g["Runs"] / g["Balls"].replace(0, np.nan) * 100).round(1)
-                        st.markdown("**By tournament**")
-                        st.dataframe(g[["Tournament", "Inns", "Runs", "Avg", "SR", "HS",
-                                        "Fours", "Sixes"]].sort_values("Runs", ascending=False),
-                                     hide_index=True, width="stretch")
-
-                        fig = px.bar(d.sort_values("match_date"), x="match_date", y="runs",
-                                     color="Tournament", hover_data=["opposition", "venue", "balls"])
-                        fig.update_layout(xaxis_title=None, yaxis_title="Runs",
-                                          legend=dict(orientation="h", y=1.15))
-                        st.plotly_chart(_plotly_defaults(fig, 280), width="stretch",
+                    with f8c1:
+                        bar_colors = [
+                            "#FF6B9D" if r == 0 and not no else
+                            "#FFE500" if no else "#3A86FF"
+                            for r, no in zip(inn_df["runs"], inn_df["not_out"])
+                        ]
+                        fig_f = go.Figure()
+                        fig_f.add_trace(go.Bar(
+                            x=inn_df["innings_no"], y=inn_df["runs"],
+                            name="Runs",
+                            marker=dict(color=bar_colors, line=dict(color="#0D0D0D", width=1.2)),
+                            customdata=np.stack([
+                                inn_df["opposition"].fillna("?"),
+                                inn_df["match_date"].dt.strftime("%Y-%m-%d"),
+                                inn_df["balls_faced"],
+                            ], axis=-1),
+                            hovertemplate=(
+                                "Inn %{x} — <b>%{y} runs</b><br>"
+                                "vs %{customdata[0]}<br>"
+                                "%{customdata[1]}<br>"
+                                "Balls: %{customdata[2]}<extra></extra>"
+                            ),
+                        ))
+                        fig_f.add_trace(go.Scatter(
+                            x=inn_df["innings_no"], y=inn_df["rolling_avg"],
+                            name=f"Rolling {window}-inn Avg",
+                            mode="lines",
+                            line=dict(color="#06D6A0", width=2.5),
+                        ))
+                        fig_f.add_hline(y=career_avg, line_dash="dot", line_color="#0D0D0D",
+                                         annotation_text=f"career avg {career_avg:.1f}",
+                                         annotation_font=dict(family="Space Mono", size=9))
+                        fig_f.update_layout(
+                            title="Innings-by-Innings Runs  (yellow = not out · pink = duck)",
+                            xaxis_title="Innings #", yaxis_title="Runs",
+                            legend=dict(orientation="h", y=1.08),
+                        )
+                        st.plotly_chart(_plotly_defaults(fig_f), width="stretch",
                                         config={"displayModeBar": False})
 
-                        view = d.assign(
-                            Runs=d["runs"].astype(int).astype(str) + np.where(d["out"], "", "*"),
-                            SR=(d["runs"] / d["balls"].replace(0, np.nan) * 100).round(1),
-                            Phase=np.where(d["is_chase"].astype(bool), "Chase", "Set"),
-                        ).rename(columns={"match_date": "Date", "season": "Season", "pos": "Pos",
-                                          "balls": "B", "fours": "4s", "sixes": "6s",
-                                          "dismissal": "How out", "team": "For",
-                                          "opposition": "Vs", "venue": "Venue"})
-                        cols = ["Date", "Tournament", "Season", "For", "Vs", "Pos", "Runs", "B",
-                                "SR", "4s", "6s", "How out", "Phase", "Venue"]
-                        st.markdown("**Innings**")
-                        st.dataframe(view[cols], hide_index=True, width="stretch")
-                        st.download_button("Download CSV", view[cols].to_csv(index=False),
-                                           file_name=f"{sel}_batting_innings.csv",
-                                           mime="text/csv", key=f"il_dl_bat_{pid}")
+                        fig_sr = go.Figure()
+                        fig_sr.add_trace(go.Scatter(
+                            x=inn_df["innings_no"], y=inn_df["rolling_sr"],
+                            name=f"Rolling {window}-inn SR",
+                            mode="lines+markers",
+                            line=dict(color="#FF6B35", width=2.5),
+                            marker=dict(size=5, color="#FF6B35",
+                                        line=dict(width=1.5, color="#0D0D0D")),
+                        ))
+                        fig_sr.add_hline(y=career_sr, line_dash="dot", line_color="#0D0D0D",
+                                          annotation_text=f"career SR {career_sr:.1f}",
+                                          annotation_font=dict(family="Space Mono", size=9))
+                        fig_sr.update_layout(
+                            title=f"Rolling Strike Rate (window = {window} innings)",
+                            yaxis_title="SR", xaxis_title="Innings #",
+                        )
+                        st.plotly_chart(_plotly_defaults(fig_sr, 280), width="stretch",
+                                        config={"displayModeBar": False})
+
+                    st.dataframe(
+                        inn_df[["innings_no", "match_date", "opposition",
+                                 "runs", "balls_faced", "not_out", "dismissal_kind"]]
+                        .rename(columns={
+                            "innings_no": "#", "match_date": "Date", "opposition": "vs",
+                            "runs": "Runs", "balls_faced": "Balls",
+                            "not_out": "NO", "dismissal_kind": "Out",
+                        }),
+                        hide_index=True,
+                    )
                 else:
-                    d = _flt(_wl)
-                    if d.empty:
-                        st.info("No bowling innings for this selection.")
+                    st.info("No innings data for this player.")
+
+        with t9:
+            if t9.open:
+                st.markdown(
+                    '<div class="nb-label">International career — all formats</div>',
+                    unsafe_allow_html=True)
+                st.caption("Statsguru-backed cumulative career (ESPNcricinfo). "
+                           "The analytical DB is T20-only; this panel is cross-format "
+                           "*context* alongside that focus — T20I highlighted.")
+
+                _bat = _career_intl(pid, "batting")
+                _bowl = _career_intl(pid, "bowling")
+
+                if _bat.empty and _bowl.empty:
+                    st.info("No international career data cached for this player. "
+                            "Run `scripts/crawl_career_intl.py` to populate it.")
+                else:
+                    def _fmt_label(f):
+                        return _FMT_LABEL.get(f, f.upper())
+
+                    if not _bat.empty:
+                        st.markdown("**Batting**")
+                        _b = _bat.copy()
+                        _b["Format"] = _b["fmt"].map(_fmt_label)
+                        _bat_view = _b[["Format", "span", "mat", "inns", "runs", "ave",
+                                        "sr", "hs", "hundreds", "fifties", "sixes"]].rename(
+                            columns={"span": "Span", "mat": "Mat", "inns": "Inns",
+                                     "runs": "Runs", "ave": "Ave", "sr": "SR", "hs": "HS",
+                                     "hundreds": "100s", "fifties": "50s", "sixes": "6s"})
+                        st.dataframe(_bat_view, hide_index=True, width="stretch")
+
+                        # cross-format Ave / SR comparison
+                        _cfig = go.Figure()
+                        _cfig.add_trace(go.Bar(
+                            x=_b["Format"], y=_b["ave"], name="Average",
+                            marker=dict(color="#3A86FF", line=dict(color="#0D0D0D", width=1.5)),
+                        ))
+                        _cfig.add_trace(go.Bar(
+                            x=_b["Format"], y=_b["sr"], name="Strike Rate",
+                            marker=dict(color="#FFE500", line=dict(color="#0D0D0D", width=1.5)),
+                        ))
+                        _cfig.update_layout(
+                            barmode="group", title="Batting — Average vs Strike Rate by format",
+                            legend=dict(orientation="h", y=1.12),
+                        )
+                        st.plotly_chart(_plotly_defaults(_cfig, 300), width="stretch",
+                                        config={"displayModeBar": False})
+
+                    if not _bowl.empty:
+                        st.markdown("**Bowling**")
+                        _w = _bowl.copy()
+                        _w["Format"] = _w["fmt"].map(_fmt_label)
+                        _bowl_view = _w[["Format", "span", "mat", "inns", "wkts", "ave",
+                                         "econ", "sr", "bbi", "five_w"]].rename(
+                            columns={"span": "Span", "mat": "Mat", "inns": "Inns",
+                                     "wkts": "Wkts", "ave": "Ave", "econ": "Econ",
+                                     "sr": "SR", "bbi": "BBI", "five_w": "5W"})
+                        st.dataframe(_bowl_view, hide_index=True, width="stretch")
+
+        with t10:
+            if t10.open:
+                st.markdown('<div class="nb-label">Innings log — filter by tournament</div>',
+                            unsafe_allow_html=True)
+                _bl = player_batting_log(pid, tournament)
+                _wl = player_bowling_log(pid, tournament)
+                if _bl.empty and _wl.empty:
+                    st.info("No innings recorded for this player.")
+                else:
+                    _codes = sorted(set(_bl["tournament"]) | set(_wl["tournament"]))
+                    _lab2code = {_tourney_label(c): c for c in _codes}
+                    lc1, lc2, lc3 = st.columns([3, 2, 2])
+                    with lc1:
+                        _pick = st.multiselect(
+                            "Tournament", list(_lab2code), default=list(_lab2code),
+                            key=f"il_tour_{pid}",
+                            help="Pick one or more competitions, e.g. only IPL, or IPL + ETPL.")
+                    _sel = [_lab2code[x] for x in _pick]
+                    _seasons = sorted(
+                        set(_bl[_bl["tournament"].isin(_sel)]["season"].astype(str))
+                        | set(_wl[_wl["tournament"].isin(_sel)]["season"].astype(str)),
+                        reverse=True)
+                    with lc2:
+                        _sea = st.multiselect("Season", _seasons, key=f"il_sea_{pid}",
+                                              help="Leave empty for all seasons.")
+                    with lc3:
+                        _disc = st.radio("Discipline", ["Batting", "Bowling"],
+                                         horizontal=True, key=f"il_disc_{pid}")
+
+                    def _flt(df):
+                        df = df[df["tournament"].isin(_sel)]
+                        if _sea:
+                            df = df[df["season"].astype(str).isin(_sea)]
+                        return df.copy()
+
+                    if _disc == "Batting":
+                        d = _flt(_bl)
+                        if d.empty:
+                            st.info("No batting innings for this selection.")
+                        else:
+                            d["match_date"] = pd.to_datetime(d["match_date"]).dt.date
+                            d["Tournament"] = d["tournament"].map(_tourney_label)
+                            d["out"] = ~d["not_out"].astype(bool)
+                            n, runs = len(d), int(d["runs"].sum())
+                            dis = int(d["out"].sum())
+                            balls = int(d["balls"].sum())
+                            m1, m2, m3, m4, m5, m6 = st.columns(6)
+                            m1.metric("Innings", n)
+                            m2.metric("Runs", f"{runs:,}")
+                            m3.metric("Average", f"{runs / dis:.1f}" if dis else "—")
+                            m4.metric("Strike Rate", f"{runs / balls * 100:.1f}" if balls else "—")
+                            m5.metric("High Score", int(d["runs"].max()))
+                            m6.metric("50s / 100s",
+                                      f"{int((d['runs'] >= 50).sum() - (d['runs'] >= 100).sum())}"
+                                      f" / {int((d['runs'] >= 100).sum())}")
+
+                            g = d.groupby("Tournament").agg(
+                                Inns=("runs", "size"), Runs=("runs", "sum"),
+                                Balls=("balls", "sum"), Outs=("out", "sum"),
+                                HS=("runs", "max"), Fours=("fours", "sum"), Sixes=("sixes", "sum"),
+                            ).reset_index()
+                            g["Avg"] = (g["Runs"] / g["Outs"].replace(0, np.nan)).round(1)
+                            g["SR"] = (g["Runs"] / g["Balls"].replace(0, np.nan) * 100).round(1)
+                            st.markdown("**By tournament**")
+                            st.dataframe(g[["Tournament", "Inns", "Runs", "Avg", "SR", "HS",
+                                            "Fours", "Sixes"]].sort_values("Runs", ascending=False),
+                                         hide_index=True, width="stretch")
+
+                            fig = px.bar(d.sort_values("match_date"), x="match_date", y="runs",
+                                         color="Tournament", hover_data=["opposition", "venue", "balls"])
+                            fig.update_layout(xaxis_title=None, yaxis_title="Runs",
+                                              legend=dict(orientation="h", y=1.15))
+                            st.plotly_chart(_plotly_defaults(fig, 280), width="stretch",
+                                            config={"displayModeBar": False})
+
+                            view = d.assign(
+                                Runs=d["runs"].astype(int).astype(str) + np.where(d["out"], "", "*"),
+                                SR=(d["runs"] / d["balls"].replace(0, np.nan) * 100).round(1),
+                                Phase=np.where(d["is_chase"].astype(bool), "Chase", "Set"),
+                            ).rename(columns={"match_date": "Date", "season": "Season", "pos": "Pos",
+                                              "balls": "B", "fours": "4s", "sixes": "6s",
+                                              "dismissal": "How out", "team": "For",
+                                              "opposition": "Vs", "venue": "Venue"})
+                            cols = ["Date", "Tournament", "Season", "For", "Vs", "Pos", "Runs", "B",
+                                    "SR", "4s", "6s", "How out", "Phase", "Venue"]
+                            st.markdown("**Innings**")
+                            st.dataframe(view[cols], hide_index=True, width="stretch")
+                            st.download_button("Download CSV", view[cols].to_csv(index=False),
+                                               file_name=f"{sel}_batting_innings.csv",
+                                               mime="text/csv", key=f"il_dl_bat_{pid}")
                     else:
-                        d["match_date"] = pd.to_datetime(d["match_date"]).dt.date
-                        d["Tournament"] = d["tournament"].map(_tourney_label)
-                        balls, runs, wk = int(d["balls"].sum()), int(d["runs"].sum()), int(d["wickets"].sum())
-                        m1, m2, m3, m4, m5, m6 = st.columns(6)
-                        m1.metric("Innings", len(d))
-                        m2.metric("Wickets", wk)
-                        m3.metric("Economy", f"{runs / balls * 6:.2f}" if balls else "—")
-                        m4.metric("Average", f"{runs / wk:.1f}" if wk else "—")
-                        m5.metric("Strike Rate", f"{balls / wk:.1f}" if wk else "—")
-                        _bb = d.sort_values(["wickets", "runs"], ascending=[False, True]).iloc[0]
-                        m6.metric("Best", f"{int(_bb['wickets'])}/{int(_bb['runs'])}")
+                        d = _flt(_wl)
+                        if d.empty:
+                            st.info("No bowling innings for this selection.")
+                        else:
+                            d["match_date"] = pd.to_datetime(d["match_date"]).dt.date
+                            d["Tournament"] = d["tournament"].map(_tourney_label)
+                            balls, runs, wk = int(d["balls"].sum()), int(d["runs"].sum()), int(d["wickets"].sum())
+                            m1, m2, m3, m4, m5, m6 = st.columns(6)
+                            m1.metric("Innings", len(d))
+                            m2.metric("Wickets", wk)
+                            m3.metric("Economy", f"{runs / balls * 6:.2f}" if balls else "—")
+                            m4.metric("Average", f"{runs / wk:.1f}" if wk else "—")
+                            m5.metric("Strike Rate", f"{balls / wk:.1f}" if wk else "—")
+                            _bb = d.sort_values(["wickets", "runs"], ascending=[False, True]).iloc[0]
+                            m6.metric("Best", f"{int(_bb['wickets'])}/{int(_bb['runs'])}")
 
-                        g = d.groupby("Tournament").agg(
-                            Inns=("wickets", "size"), Balls=("balls", "sum"),
-                            Runs=("runs", "sum"), Wkts=("wickets", "sum"),
-                        ).reset_index()
-                        g["Econ"] = (g["Runs"] / g["Balls"].replace(0, np.nan) * 6).round(2)
-                        g["Avg"] = (g["Runs"] / g["Wkts"].replace(0, np.nan)).round(1)
-                        st.markdown("**By tournament**")
-                        st.dataframe(g[["Tournament", "Inns", "Wkts", "Econ", "Avg"]]
-                                     .sort_values("Wkts", ascending=False),
-                                     hide_index=True, width="stretch")
+                            g = d.groupby("Tournament").agg(
+                                Inns=("wickets", "size"), Balls=("balls", "sum"),
+                                Runs=("runs", "sum"), Wkts=("wickets", "sum"),
+                            ).reset_index()
+                            g["Econ"] = (g["Runs"] / g["Balls"].replace(0, np.nan) * 6).round(2)
+                            g["Avg"] = (g["Runs"] / g["Wkts"].replace(0, np.nan)).round(1)
+                            st.markdown("**By tournament**")
+                            st.dataframe(g[["Tournament", "Inns", "Wkts", "Econ", "Avg"]]
+                                         .sort_values("Wkts", ascending=False),
+                                         hide_index=True, width="stretch")
 
-                        view = d.assign(
-                            Overs=(d["balls"] // 6).astype(str) + "." + (d["balls"] % 6).astype(str),
-                            Econ=(d["runs"] / d["balls"].replace(0, np.nan) * 6).round(2),
-                            Fig=d["wickets"].astype(int).astype(str) + "/" + d["runs"].astype(int).astype(str),
-                        ).rename(columns={"match_date": "Date", "season": "Season", "team": "For",
-                                          "opposition": "Vs", "venue": "Venue", "dots": "Dots",
-                                          "wides": "Wd", "no_balls": "NB"})
-                        cols = ["Date", "Tournament", "Season", "For", "Vs", "Overs", "Fig",
-                                "Econ", "Dots", "Wd", "NB", "Venue"]
-                        st.markdown("**Innings**")
-                        st.dataframe(view[cols], hide_index=True, width="stretch")
-                        st.download_button("Download CSV", view[cols].to_csv(index=False),
-                                           file_name=f"{sel}_bowling_innings.csv",
-                                           mime="text/csv", key=f"il_dl_bowl_{pid}")
+                            view = d.assign(
+                                Overs=(d["balls"] // 6).astype(str) + "." + (d["balls"] % 6).astype(str),
+                                Econ=(d["runs"] / d["balls"].replace(0, np.nan) * 6).round(2),
+                                Fig=d["wickets"].astype(int).astype(str) + "/" + d["runs"].astype(int).astype(str),
+                            ).rename(columns={"match_date": "Date", "season": "Season", "team": "For",
+                                              "opposition": "Vs", "venue": "Venue", "dots": "Dots",
+                                              "wides": "Wd", "no_balls": "NB"})
+                            cols = ["Date", "Tournament", "Season", "For", "Vs", "Overs", "Fig",
+                                    "Econ", "Dots", "Wd", "NB", "Venue"]
+                            st.markdown("**Innings**")
+                            st.dataframe(view[cols], hide_index=True, width="stretch")
+                            st.download_button("Download CSV", view[cols].to_csv(index=False),
+                                               file_name=f"{sel}_bowling_innings.csv",
+                                               mime="text/csv", key=f"il_dl_bowl_{pid}")
 
     if p:
         # ── Similar Players + Breakout Alert ────────────────────────────────
@@ -3053,7 +3122,7 @@ if "01" in page:
 
         with _brk_col:
             st.markdown('<div class="nb-label">Form Alert</div>', unsafe_allow_html=True)
-            _fdf = player_form_info(pid)
+            _fdf = player_form_info(pid, tournament)
             if not _fdf.empty:
                 _f = _fdf.iloc[0]
                 _flag = bool(_f.get("breakout_flag"))
@@ -3600,10 +3669,12 @@ elif "04" in page:
         if models_exist():
             m = model_metrics()
             mc1,mc2,mc3,mc4 = st.columns(4)
-            mc1.metric("Batting R²",   f"{m.get('bat_r2',0):.3f}")
-            mc2.metric("Batting MAE",  f"{m.get('bat_mae',0):.1f} runs")
-            mc3.metric("CV MAE",       f"{m.get('bat_cv_mae',0):.1f} runs")
-            mc4.metric("Bowling R²",   f"{m.get('bowl_r2',0):.3f}")
+            mc1.metric("Batting R² (held-out)", f"{m.get('bat_r2',0):.3f}")
+            mc2.metric("Batting error",  f"±{m.get('bat_mae',0):.1f} runs")
+            mc3.metric("Simple-average error", f"±{m.get('bat_cv_mae',0):.1f} runs")
+            mc4.metric("Bowling R² (held-out)", f"{m.get('bowl_r2',0):.3f}")
+            st.caption(f"Scored on {m.get('n_bat_test',0):,} innings from {m.get('split_date','2025-01-01')} onward that the model never saw. "
+                       "A single T20 innings is very noisy, so treat these as typical expectations with a wide range, not forecasts.")
         else:
             st.info("No trained model yet — click Train to build one.")
 
@@ -3657,6 +3728,11 @@ elif "04" in page:
 
         if pp and vrow and st.button("Run Prediction"):
             player_feat = {
+                "career_runs":       pp.get("runs"),
+                "career_balls":      pp.get("balls"),
+                "career_bowl_balls": bp.get("bowl_balls"),
+                "career_bowl_runs":  bp.get("runs"),
+                "career_econ":       bp.get("economy"),
                 "career_adj_avg":    pp.get("adj_average", 20),
                 "career_adj_sr":     pp.get("adj_strike_rate", 120),
                 "career_innings":    pp.get("innings", 20),
@@ -3754,6 +3830,8 @@ elif "04" in page:
                 if not pp2: continue
                 bp2 = _get_bowl(int(pp2["id"]))
                 pf  = {
+                    "career_runs": pp2.get("runs"), "career_balls": pp2.get("balls"),
+                    "career_bowl_balls": bp2.get("bowl_balls"), "career_bowl_runs": bp2.get("runs"), "career_econ": bp2.get("economy"),
                     "career_adj_avg":  pp2.get("adj_average",20),
                     "career_adj_sr":   pp2.get("adj_strike_rate",120),
                     "career_innings":  pp2.get("innings",20),
@@ -4746,6 +4824,8 @@ if page == "06  Match Predictor":
                 shares.append((name, pos, 5.0 * bat_prob, None))
                 continue
             feat = {
+                "career_runs":      pp.get("runs"),
+                "career_balls":     pp.get("balls"),
                 "career_adj_avg":   float(pp.get("adj_average")    or 20),
                 "career_adj_sr":    float(pp.get("adj_strike_rate") or 120),
                 "career_innings":   int(pp.get("innings")           or 20),
@@ -5541,5 +5621,5 @@ elif "Career Vault" in page:
 
         st.caption(f"{len(_lead)} players match (min {_cv_minmat} matches).")
         st.dataframe(_show, hide_index=True, width="stretch")
-else:
+elif "Replacement Scout" in page:
     render_replacement_scout(Path(ROOT) / "data" / "adt10_replacement_players.csv", sql)
