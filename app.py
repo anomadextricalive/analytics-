@@ -3,19 +3,18 @@ Streamlit Cloud / Railway entry point.
 Decompresses the bundled cricket.db.gz on first run, then loads the dashboard.
 """
 import sys
-import gzip
-import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).parent
 sys.path.insert(0, str(ROOT))
 
-DB_PATH  = ROOT / "data" / "cricket.db"
 DB_GZ    = ROOT / "data" / "cricket.db.gz"
+WORK_DB  = Path("/tmp/cricket.db")   # the dashboard reads this copy
 
-# ── Decompress bundled DB if not yet extracted ──
-if not DB_PATH.exists() or DB_PATH.stat().st_size < 5_000_000:
-    if DB_GZ.exists():
+# ── Decompress bundled DB once per gz version (atomic, locked) ──
+from src.db.unpack import ensure_db, is_current
+if DB_GZ.exists() and not is_current(DB_GZ, WORK_DB):
+    if True:
         import streamlit as st
         st.set_page_config(page_title="Cricket Analytics", page_icon="🏏", layout="centered")
         st.markdown("""
@@ -27,8 +26,7 @@ if not DB_PATH.exists() or DB_PATH.stat().st_size < 5_000_000:
         p,span,div{color:#FFE500!important;}
         </style>""", unsafe_allow_html=True)
         with st.spinner("Unpacking database — one moment…"):
-            with gzip.open(DB_GZ, "rb") as f_in, open(DB_PATH, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
+            ensure_db(DB_GZ, WORK_DB)
         st.rerun()
 
 # ── Run the full dashboard ──

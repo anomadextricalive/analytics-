@@ -32,11 +32,10 @@ _gz = Path(DB_PATH).parent / "cricket.db.gz"
 _tmp_db = Path("/tmp/cricket.db")
 
 if _gz.exists():
-    import gzip, shutil
-    # Always overwrite — /tmp persists across Streamlit Cloud deployments,
-    # so a stale cached DB could survive with an old schema.
-    with gzip.open(_gz, "rb") as _f_in, open(_tmp_db, "wb") as _f_out:
-        shutil.copyfileobj(_f_in, _f_out)
+    # Unpack once per gz version (atomic, locked). /tmp persists across Streamlit Cloud deployments, so the
+    # version check also replaces a stale copy. Rewriting on every rerun corrupted live sessions.
+    from src.db.unpack import ensure_db
+    ensure_db(_gz, _tmp_db)
     import config as _cfg
     _cfg.DB_PATH = _tmp_db
     DB_PATH = _tmp_db
@@ -714,10 +713,9 @@ def _sqlite_fallback(q: str, **kw) -> pd.DataFrame:
     """Run a SQL query, decompressing the DB to /tmp if needed."""
     _tmp_db = Path("/tmp/cricket.db")
     _gz     = Path(DB_PATH).parent / "cricket.db.gz"
-    if not _tmp_db.exists() and _gz.exists():
-        import gzip, shutil
-        with gzip.open(_gz, "rb") as _fi, open(_tmp_db, "wb") as _fo:
-            shutil.copyfileobj(_fi, _fo)
+    if _gz.exists():
+        from src.db.unpack import ensure_db
+        ensure_db(_gz, _tmp_db)
     if _tmp_db.exists():
         try:
             from sqlalchemy import create_engine as _ce
