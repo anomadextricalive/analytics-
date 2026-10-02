@@ -137,7 +137,10 @@ def enrich():
     session.close()
     console.print("[green]Enrich complete.[/green]")
     # Keep cricket.db.gz in sync so the dashboard fallback path stays current
-    import gzip, shutil, tempfile
+    import gzip, shutil, tempfile, sqlite3
+    # The DB is in WAL mode: fold the WAL into the main file first, or the gz misses the last transactions.
+    engine.dispose()
+    _c = sqlite3.connect(DB_PATH); _c.execute("PRAGMA wal_checkpoint(TRUNCATE)"); _c.close()
     gz_path = Path(DB_PATH).parent / "cricket.db.gz"
     console.print("[bold]Updating cricket.db.gz…[/bold]")
     with open(DB_PATH, "rb") as _fi, gzip.open(gz_path, "wb") as _fo:
