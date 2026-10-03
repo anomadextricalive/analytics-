@@ -255,19 +255,27 @@ FINGERPRINT = [("final_effect", "Scoring (runs/120 balls vs league)"), ("eff_wkt
                ("eff_pp_rr", "Powerplay run rate"), ("eff_death_rr", "Death-over run rate"), ("boundary_mean_m", "Boundary size (m)"), ("elevation_m", "Altitude (m)")]
 
 
-def load_artifacts(q):
-    """Venue profile table, model metadata and fitted models; None when the build has not been run."""
+def load_artifacts_verbose(q):
+    """(artifacts, None) on success or (None, plain-language reason). Never raises."""
     try:
         kv = q("SELECT key, value FROM venue_model_meta")
-        if kv is None or kv.empty: return None
+        if kv is None or kv.empty: return None, "the table venue_model_meta is missing or empty in the database this server is using (an older copy of the database?)"
         meta = {r.key: json.loads(r.value) for r in kv.itertuples()}
         prof = q("""SELECT v.id AS venue_id, v.name, v.city, v.country, v.pitch_type, v.capacity, v.floodlights, p.* , g.lat, g.lon
                     FROM venues v JOIN venue_profile p ON p.venue_id = v.id LEFT JOIN venue_geo g ON g.venue_id = v.id""")
-        if prof is None or prof.empty: return None
+        if prof is None or prof.empty: return None, "the table venue_profile is missing or empty in the database this server is using"
         prof = prof.loc[:, ~prof.columns.duplicated()]
-        import joblib; return prof, meta, joblib.load(MODELS_PATH)
-    except Exception:
-        return None
+    except Exception as e:
+        return None, f"could not read the venue tables: {type(e).__name__}: {str(e)[:160]}"
+    try:
+        import joblib; return (prof, meta, joblib.load(MODELS_PATH)), None
+    except Exception as e:
+        return None, f"could not load {MODELS_PATH.name} ({type(e).__name__}: {str(e)[:160]})"
+
+
+def load_artifacts(q):
+    """Venue profile table, model metadata and fitted models; None when unavailable (see load_artifacts_verbose for why)."""
+    return load_artifacts_verbose(q)[0]
 
 
 def _next_row(hist: pd.DataFrame, **over) -> pd.DataFrame:

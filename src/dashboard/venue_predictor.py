@@ -15,9 +15,36 @@ _TRAIT_LABEL = {"elevation_m": "Altitude", "boundary_mean_m": "Boundary size", "
                 "capacity": "Capacity", "floodlights": "Floodlights", "pt_drop_in": "Drop-in pitch", "pt_synthetic": "Synthetic pitch"}
 
 
+def _direct_q(sql):
+    """Query the unpacked SQLite file directly. The venue model is SQLite-only, and the app's shared helper hides errors and can be pointed at Mongo.
+    Falls back to the shared helper when no database file is found."""
+    import sqlite3
+    from pathlib import Path
+    for path in (Path("/tmp/cricket.db"), Path(__file__).parents[2] / "data" / "cricket.db"):
+        if path.exists() and path.stat().st_size > 5_000_000:
+            def q(statement, **kw):
+                con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+                try: return pd.read_sql(statement, con, params=kw or None)
+                finally: con.close()
+            try:
+                q("SELECT 1"); return q
+            except Exception:
+                continue
+    return sql
+
+
 @st.cache_resource(show_spinner="Loading venue model…")
-def _art(_sql, version: str):
-    return V.load_artifacts(_sql)
+def _art_cached(_q, version: str):
+    art, why = V.load_artifacts_verbose(_q)
+    if art is None: raise RuntimeError(why)          # an exception is not cached, so a failure never sticks
+    return art
+
+
+def _art(sql, version: str):
+    """(artifacts, reason). Failures are not cached; a reload retries."""
+    q = _direct_q(sql)
+    try: return _art_cached(q, version), None, q
+    except Exception as e: return None, str(e), q
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -54,9 +81,10 @@ def _fingerprint_chart(prof: pd.DataFrame, vid: int, plot_defaults):
 
 
 def render_venue_predictor(sql, plot_defaults=None, player_id=None, compact=False, key="vp"):
-    art = _art(sql, "v1")
+    art, why, sql = _art(sql, "v1")
     if art is None:
-        st.warning("The venue model has not been built yet. Run `python scripts/build_venue_model.py --build`."); return
+        st.warning(f"The venue model could not be loaded: {why}. If this is the hosted app, reboot it so it picks up the latest database; "
+                   "locally run `python scripts/build_venue_model.py --build`."); return
     prof, meta, mdl = art; players = _players(sql, "v1")
     if players.empty: st.info("No players available."); return
     tour_names = _tour_names(sql)
@@ -190,8 +218,8 @@ def render_venue_predictor(sql, plot_defaults=None, player_id=None, compact=Fals
 
 def render_venue_compare(sql, plot_defaults=None, seed_player_id=None, key="vc"):
     """Compare up to 8 players at one stadium: baseline, expected when setting and when chasing, lift, range and chances, plus economy for bowlers."""
-    art = _art(sql, "v1")
-    if art is None: st.warning("The venue model has not been built yet. Run `python scripts/build_venue_model.py --build`."); return
+    art, why, sql = _art(sql, "v1")
+    if art is None: st.warning(f"The venue model could not be loaded: {why}. If this is the hosted app, reboot it so it picks up the latest database."); return
     prof, meta, mdl = art; players = _players(sql, "v1"); tour_names = _tour_names(sql)
     ids = players["id"].astype(int).tolist(); name_of = {int(r.id): r.name + (f" · {r.country}" if isinstance(r.country, str) else "") for r in players.itertuples()}
     seed = int(seed_player_id) if seed_player_id is not None and int(seed_player_id) in ids else ids[0]
