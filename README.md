@@ -10,6 +10,7 @@ Built on ball-by-ball data from [cricsheet.org](https://cricsheet.org) with a fu
 
 | Version | Date | Highlights |
 |---|---|---|
+| **v0.8** | 2026-10-03 | Venue Predictor: likely score (batters) or economy (bowlers) at any stadium, from a ground effect adjusted for who plays there plus an altitude and boundary-size prior, backtested; compare up to 8 players at one stadium; player profile with ESPN Cricinfo career lines; hosting fix for the unpacked database |
 | **v0.7** | 2026-10-03 | Men's T20 coverage doubled (12,491 matches, 60 tournaments), wides/no-ball accuracy fix, exact player identity via the Cricsheet register, ESPN Cricinfo career lines for 13,908 players (Statsguru), `people` collection in the Mongo serving layer, prediction model v2, architecture doc |
 | **v0.6** | 2026-07-08 | Cross-format international career stats (T20I/ODI/Test) via ESPN Statsguru, Career Vault leaderboard page, tournament metadata table, 2026 season backfill (+477 matches) |
 | **v0.5** | 2026-05-16 | Cosmic dark UI theme (void/mint/amber/magenta palette) |
@@ -385,6 +386,37 @@ Six pages, Cosmic dark theme (void background, mint/amber/magenta accents, Oswal
 **Prediction Engine** — Train/retrain the GBM models with a single button. Feature importance charts. Live prediction: select any player + venue → predicted runs (first innings and chasing), 80% CI, predicted economy, comparison against historical actuals at that venue. Multi-player venue comparison table.
 
 **Cricket GPT** — Natural language insight interface. Ask any question about player performance, matchups, venues, or trends in plain English. Backed by an LLM with full schema context and persistent chat history.
+
+### Venue Predictor (`src/dashboard/venue_predictor.py`)
+
+Pick a player and a stadium and see the likely score (batters) or economy (bowlers) there. It lives under **Predict → Venue Predictor**, and as a toggle under a player's profile in **Player Explorer** ("Predict at a stadium", and "Compare players at a stadium" for up to 8 players at one ground). Theory, formulas, backtest and limits: [docs/VENUE_PREDICTOR_THEORY.md](docs/VENUE_PREDICTOR_THEORY.md).
+
+**What the numbers mean**
+
+| Number | Meaning |
+|---|---|
+| **His baseline** | His expected runs per innings with no stadium information (see below). |
+| **Venue lift** | How much this ground moves that expectation, with an uncertainty band. |
+| **Expected runs** | Baseline plus lift: the likely score here. |
+| **Typical range (10 to 90%)** | Where 80% of his innings like this fall. Wide, because one T20 innings is mostly luck. |
+| **Chance of 30+ / 50+** | Read off the real distribution of innings by players with a similar expectation. |
+
+**What the baseline is.** The baseline is not entered by the user. The model works it out for every player from his own record: his career runs per innings and strike rate (pulled toward the league average when he has few innings, so one hot innings does not make anyone elite), his powerplay, middle and death-over rates, and the situation: batting position, league and year. These default to his recent usual position and latest league and can be changed in the full tab. It is a **mean**, so a few big scores pull it above his typical innings (Kohli's expected 40 corresponds to a median innings of about 32).
+
+**How it varies across players** (snapshot 2026-10-03). It is different for every player and is never 100. Across the 833 players with 50+ innings it runs from about 3 to 51 with a median of about 22. Among the 203 regulars (150+ innings), the middle 80% sit between about 14 and 31.
+
+| Player type | Baseline (runs per innings) |
+|---|---|
+| Elite top-order batter | 35 to 48 (Kohli 39.5) |
+| Strong T20 batters | about 30 (Buttler 30.8, Pooran 29.8, du Plessis 29.1) |
+| Finishers and all-rounders | about 19 to 23 (Pollard 23.0, Russell 18.9) |
+| Lower-order hitters | single digits (Bravo 6.8, Rashid Khan 8.1) |
+
+**Position changes it a lot.** Kohli's baseline is 39 as an opener, 35 at number 3, 30 at number 5 and 18 at number 7, so set the position the player would actually bat in.
+
+**Why the baseline is shown.** It separates "how good is he, anywhere" from "what does this ground do to that". Without it, a lift of -0.8 runs means nothing: it could be 4% of a star or 12% of a tail-ender. It also lets a scout check the player data. If the baseline looks wrong, the problem is the player's record, not the stadium.
+
+**How big the ground effect is.** Honest headline: a ground that scores 10% above average moves a typical batter's runs by about 4.4%, one or two runs. A single innings has a spread of about 19 runs, so treat the output as a tilt on a wide distribution, not a forecast. Bigger boundaries go with lower scoring and higher altitude with higher scoring; together with a few other traits they explain about a tenth of how grounds differ, and grounds with few matches lean on them.
 
 ### Health Dashboard (`src/dashboard/health.py`)
 
