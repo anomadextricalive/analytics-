@@ -113,7 +113,8 @@ def render_venue_predictor(sql, plot_defaults=None, player_id=None, compact=Fals
     else:
         rec = res["record"]; m[3].metric("His record here", f"{rec['econ']:.2f}" if rec["econ"] else "never bowled here", f"{rec['overs']:.0f} overs" if rec["econ"] else None, delta_color="off")
     pct = abs(res["lift"]) / max(res["baseline"], 1e-6) * 100
-    st.caption(f"**How to read this:** the ground moves his expectation by about **{res['lift']:+.1f} {unit}** (range {res['lift_lo']:+.1f} to {res['lift_hi']:+.1f}, {pct:.1f}%). "
+    st.caption(f"**How to read this:** this ground moves his expectation by about **{res['lift']:+.1f} {unit}**, which is {pct:.1f}% of his usual "
+               f"(plausible between {res['lift_lo']:+.1f} and {res['lift_hi']:+.1f}, allowing for how well we know the ground). "
                f"A single innings varies far more than that, as the range above shows. Treat the number as a tilt, not a forecast.")
     if compact:
         st.caption("Open **Predict → Venue Predictor** for the full breakdown: how this ground plays, why the number, and similar grounds."); return
