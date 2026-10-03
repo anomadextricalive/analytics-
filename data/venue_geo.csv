@@ -1,0 +1,473 @@
+venue_id,venue,city_used,country_used,lat,lon,elevation_m,matched_place,matched_country,confidence
+1,Melbourne Cricket Ground,Melbourne,Australia,-37.814,144.96332,25.0,Melbourne,Australia,country match
+3,Adelaide Oval,Adelaide,Australia,-34.92866,138.59863,59.0,Adelaide,Australia,country match
+5,Harare Sports Club,Harare,Zimbabwe,-17.82772,31.05337,1494.0,Harare,Zimbabwe,country match
+6,McLean Park,Napier,New Zealand,-39.4926,176.91232,6.0,Napier City,New Zealand,country match
+7,Bay Oval,Mt Maunganui,New Zealand,,,,,,none: not found
+8,Eden Park,Auckland,NZ,-36.84853,174.76349,43.0,Auckland,New Zealand,"unverified: 'NZ' is a place name, took top result (New Zealand)"
+9,The Rose Bowl,Southampton,UK,50.90395,-1.40428,19.0,Southampton,United Kingdom,country match (alias)
+10,County Ground,Taunton,UK,41.9001,-71.08977,5.0,Taunton,United States,"weak: country 'UK' not matched, took United States"
+11,Sophia Gardens,Cardiff,UK,51.48,-3.18,17.0,Cardiff,United Kingdom,country match (alias)
+12,Riverside Ground,Chester-le-S,UK,54.85862,-1.57408,13.0,Chester-le-Street,United Kingdom,country match (alias)
+13,Green Park,Kanpur,India,26.46523,80.34975,137.0,Kanpur,India,country match
+14,"Vidarbha Cricket Association Stadium, Jamtha",Nagpur,India,21.14631,79.08491,319.0,Nagpur,India,country match
+15,M Chinnaswamy Stadium,Bangalore,India,24.8717,67.0839,16.0,Bangalore Town,Pakistan,"weak: country 'India' not matched, took Pakistan"
+16,Central Broward Regional Park Stadium Turf Ground,Lauderhill,USA,26.14036,-80.21338,1.0,Lauderhill,United States,country match (alias)
+17,Dubai International Cricket Stadium,Dubai,UAE,25.07725,55.30927,24.0,Dubai,United Arab Emirates,country match (alias)
+18,Sheikh Zayed Stadium,Abu Dhabi,UAE,24.45118,54.39696,6.0,Abu Dhabi,United Arab Emirates,country match (alias)
+19,Sydney Cricket Ground,Sydney,Australia,-33.86785,151.20732,58.0,Sydney,Australia,country match
+20,Bellerive Oval,Hobart,Australia,-42.87936,147.3294,19.0,Hobart,Australia,country match
+21,"Sky Stadium, Wellington",Wellington,New Zealand,-41.28664,174.77557,31.0,Wellington,New Zealand,country match
+22,Seddon Park,Hamilton,New Zealand,-37.78333,175.28333,39.0,Hamilton,New Zealand,country match
+23,Mangaung Oval,Bloemfontein,South Africa,-29.12107,26.214,1396.0,Bloemfontein,South Africa,country match
+24,Senwes Park,Potchefstroom,South Africa,-26.71667,27.1,1335.0,Potchefstroom,South Africa,country match
+25,"Kensington Oval, Bridgetown",Bridgetown,Barbados,13.10732,-59.62021,10.0,Bridgetown,Barbados,country match
+26,"Queen's Park Oval, Port of Spain",Port of Spain,Trinidad,10.66668,-61.51889,21.0,Port of Spain,Trinidad and Tobago,country match
+28,"Sabina Park, Kingston",Kingston,Jamaica,17.99702,-76.79358,65.0,Kingston,Jamaica,country match
+32,JSCA International Stadium Complex,Ranchi,India,23.34316,85.3094,643.0,Ranchi,India,country match
+34,Edgbaston,Birmingham,UK,52.48142,-1.89983,149.0,Birmingham,United Kingdom,country match (alias)
+35,Old Trafford,Manchester,UK,53.48095,-2.23743,51.0,Manchester,United Kingdom,country match (alias)
+37,Saurashtra Cricket Association Stadium,Rajkot,India,22.29161,70.79322,140.0,Rajkot,India,country match
+38,Greenfield International Stadium,Trivandrum,India,8.48212,76.92011,4.0,Trivandrum International Airport,India,country match
+40,SuperSport Park,Centurion,South Africa,-25.85891,28.18577,1432.0,Centurion,South Africa,country match
+41,Newlands,Cape Town,South Africa,-33.92584,18.42322,25.0,Cape Town,South Africa,country match
+42,Barabati Stadium,Cuttack,India,20.46497,85.87927,30.0,Cuttack,India,country match
+43,Holkar Cricket Stadium,Indore,India,22.71792,75.8333,550.0,Indore,India,country match
+44,Wankhede Stadium,Mumbai,India,19.07283,72.88261,8.0,Mumbai,India,country match
+47,Sylhet International Cricket Stadium,Sylhet,Bangladesh,24.89904,91.87198,26.0,Sylhet,Bangladesh,country match
+49,"The Village, Malahide",Malahide,Ireland,53.45083,-6.15444,11.0,Malahide,Ireland,country match
+50,Lord's,London,UK,51.50853,-0.12574,25.0,London,United Kingdom,country match (alias)
+51,Hazelaarweg,Rotterdam,Netherlands,51.9225,4.47917,9.0,Rotterdam,The Netherlands,country match
+53,VRA Ground,Amstelveen,Netherlands,52.30083,4.86389,,Amstelveen,The Netherlands,country match; no elevation
+54,Buffalo Park,East London,South Africa,-33.01529,27.91162,48.0,East London,South Africa,country match
+55,Carrara Oval,Gold Coast,Australia,-28.00029,153.43088,12.0,Gold Coast,Australia,country match
+56,"Brisbane Cricket Ground, Woolloongabba",Brisbane,Australia,-27.46794,153.02809,27.0,Brisbane,Australia,country match
+58,Eden Gardens,Kolkata,India,22.56263,88.36304,11.0,Kolkata,India,country match
+60,"MA Chidambaram Stadium, Chepauk",Chennai,India,13.08784,80.27847,14.0,Chennai,India,country match
+63,Tolerance Oval,Abu Dhabi,UAE,24.45118,54.39696,6.0,Abu Dhabi,United Arab Emirates,country match (alias)
+64,Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium,Vizag,India,17.68009,83.20161,24.0,Visakhapatnam,India,country match
+68,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 1),Al Amarat,Oman,23.52417,58.4975,83.0,Al Amarat,Oman,country match
+71,Manuka Oval,Canberra,Australia,-35.28346,149.12807,571.0,Canberra,Australia,country match
+72,Perth Stadium,Perth,Australia,-31.95224,115.8614,34.0,Perth,Australia,country match
+73,Kyambogo Cricket Oval,Kampala,Uganda,0.31628,32.58219,1223.0,Kampala,Uganda,country match
+74,Lugogo Cricket Oval,Kampala,Uganda,0.31628,32.58219,1223.0,Kampala,Uganda,country match
+75,King George V Sports Ground,Castel,Guernsey,49.46757,-2.60015,5.0,Castel,,country match
+76,College Field,St Peter Port,Guernsey,49.45981,-2.53527,10.0,St Peter Port,,country match
+77,Kingsmead,Durban,South Africa,-29.8579,31.0292,21.0,Durban,South Africa,country match
+78,"St George's Park, Gqeberha",Gqeberha,South Africa,-33.96109,25.61494,61.0,Port Elizabeth,South Africa,country match
+79,Kinrara Academy Oval,Kuala Lumpur,Malaysia,3.1412,101.68653,56.0,Kuala Lumpur,Malaysia,country match
+81,"Rajiv Gandhi International Stadium, Uppal",Hyderabad,India,17.38405,78.45636,515.0,Hyderabad,India,country match
+83,"Providence Stadium, Guyana",Guyana,Guyana,5.0,-59.0,157.0,Guyana,Guyana,country match
+84,Indian Association Ground,Singapore,Singapore,1.28967,103.85007,23.0,Singapore,Singapore,country match
+86,Pallekele International Cricket Stadium,Kandy,Sri Lanka,7.2906,80.6336,500.0,Kandy,Sri Lanka,country match
+87,Zahur Ahmed Chowdhury Stadium,Chattogram,Bangladesh,22.3384,91.83168,15.0,Chittagong,Bangladesh,country match
+88,"White Hill Field, Sandys Parish",Sandys Parish,Bermuda,32.29637,-64.86931,1.0,Sandys Parish,,country match
+89,Bermuda National Stadium,Hamilton,Bermuda,43.25011,-79.84963,95.0,Hamilton,Canada,"unverified: 'Bermuda' is a place name, took top result (Canada)"
+91,ICC Academy Ground No 2,Dubai,UAE,25.07725,55.30927,24.0,Dubai,United Arab Emirates,country match (alias)
+92,La Manga Club Bottom Ground,Murcia,Spain,37.98704,-1.13004,53.0,Murcia,Spain,country match
+93,"Maharashtra Cricket Association Stadium, Pune",Pune,India,18.51957,73.85535,554.0,Pune,India,country match
+97,Al Amerat Cricket Ground Oman Cricket (Ministry Turf 2),Al Amarat,Oman,23.52417,58.4975,83.0,Al Amarat,Oman,country match
+98,Terdthai Cricket Ground,Bangkok,Thailand,13.75398,100.50144,12.0,Bangkok,Thailand,country match
+99,Pierre Werner Cricket Ground,Walferdange,Luxembourg,49.66321,6.13224,232.0,Walferdange,Luxembourg,country match
+100,Rawalpindi Cricket Stadium,Rawalpindi,Pakistan,33.59733,73.0479,501.0,Rawalpindi,Pakistan,country match
+106,"Headingley, Leeds",Leeds,UK,53.79648,-1.54785,50.0,Leeds,United Kingdom,country match (alias)
+115,"Coolidge Cricket Ground, Antigua",Antigua,Antigua,17.07607,-61.79543,70.0,Antigua,Antigua and Barbuda,country match
+118,"Wanderers Cricket Ground, Windhoek",Windhoek,Namibia,-22.55941,17.08323,1700.0,Windhoek,Namibia,country match
+119,"Tribhuvan University International Cricket Ground, Kirtipur",Kirtipur,Nepal,27.67851,85.27574,1343.0,Ki̇̄rtipur,Nepal,country match
+120,"R Premadasa Stadium, Colombo",Colombo,Sri Lanka,6.93548,79.84868,7.0,Colombo,Sri Lanka,country match
+121,"National Cricket Stadium, St George's, Grenada",St George's,Grenada,32.37249,-64.69756,1.0,Saint George's Parish,,country match
+122,"Daren Sammy National Cricket Stadium, Gros Islet, St Lucia",Gros Islet,St Lucia,14.06667,-60.95,58.0,Gros Islet,Saint Lucia,"unverified: 'St Lucia' is a place name, took top result (Saint Lucia)"
+124,"Scott Page Field, Vinor",Prague,Czech Rep,50.08804,14.42076,202.0,Prague,Czechia,"unverified: 'Czech Rep' is a place name, took top result (Czechia)"
+125,"National Sports Academy, Sofia",Sofia,Bulgaria,42.69751,23.32415,562.0,Sofia,Bulgaria,country match
+126,Marsa Sports Club,Marsa,Malta,35.87925,14.49462,8.0,Marsa,Malta,country match
+127,Bayer Uerdingen Cricket Ground,Krefeld,Germany,51.33645,6.55381,43.0,Krefeld,Germany,country match
+128,"Castle Avenue, Dublin",Dublin,Ireland,53.33306,-6.24889,17.0,Dublin,Ireland,country match
+129,"Bready Cricket Club, Magheramason",Bready,Ireland,54.9154,-7.41926,18.0,Bready,United Kingdom,"weak: country 'Ireland' not matched, took United Kingdom"
+130,"Svanholm Park, Brondby",Brondby,Denmark,,,,,,none: not found
+131,Gucherre Cricket Ground,Albergaria,Portugal,40.69318,-8.47994,128.0,Albergaria-a-Velha,Portugal,country match
+133,Kerava National Cricket Ground,Kerava,Finland,60.40338,25.105,54.0,Kerava,Finland,country match
+134,"Grange Cricket Club Ground, Raeburn Place, Edinburgh",Edinburgh,Scotland,55.95206,-3.19648,66.0,Edinburgh,United Kingdom,country match (alias)
+135,"Zayed Cricket Stadium, Abu Dhabi",Abu Dhabi,UAE,24.45118,54.39696,6.0,Abu Dhabi,United Arab Emirates,country match (alias)
+136,Sharjah Cricket Stadium,Sharjah,UAE,25.3342,55.41221,15.0,Sharjah city,United Arab Emirates,country match (alias)
+137,Entebbe Cricket Oval,Entebbe,Uganda,0.05621,32.47949,1151.0,Entebbe,Uganda,country match
+138,"Desert Springs Cricket Ground, Almeria",Almeria,Spain,36.83814,-2.45974,21.0,Almería,Spain,country match
+139,"Moara Vlasiei Cricket Ground, Ilfov County",Ilfov County,Romania,,,,,,none: not found
+145,"Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",Lucknow,India,26.83928,80.92313,126.0,Lucknow,India,country match
+152,Happy Valley Ground,Episkopi,Cyprus,35.32821,24.33525,127.0,Episkopi,Greece,"unverified: 'Cyprus' is a place name, took top result (Greece)"
+153,"ICC Academy, Dubai",Dubai,UAE,25.07725,55.30927,24.0,Dubai,United Arab Emirates,country match (alias)
+154,Integrated Polytechnic Regional Centre,Kigali,Rwanda,-1.94995,30.05885,1542.0,Kigali,Rwanda,country match
+155,University of Lagos Cricket Oval,Lagos,Nigeria,6.45407,3.39467,11.0,Lagos,Nigeria,country match
+156,"West End Park International Cricket Stadium, Doha",Doha,Qatar,25.28545,51.53096,11.0,Doha,Qatar,country match
+157,"Sir Vivian Richards Stadium, North Sound, Antigua",Antigua,Antigua,17.07607,-61.79543,70.0,Antigua,Antigua and Barbuda,country match
+158,"National Stadium, Karachi",Karachi,Pakistan,24.8608,67.0104,8.0,Karachi,Pakistan,country match
+159,"Gaddafi Stadium, Lahore",Lahore,Pakistan,31.558,74.35071,216.0,Lahore,Pakistan,country match
+160,"Central Broward Regional Park Stadium Turf Ground, Lauderhill",Lauderhill,USA,26.14036,-80.21338,1.0,Lauderhill,United States,country match (alias)
+161,"GMHBA Stadium, South Geelong",Geelong,Australia,-38.14711,144.36069,23.0,Geelong,Australia,country match
+164,"United Cricket Club Ground, Windhoek",Windhoek,Namibia,-22.55941,17.08323,1700.0,Windhoek,Namibia,country match
+166,"Sportpark Westvliet, The Hague",The Hague,Netherlands,52.07667,4.29861,4.0,The Hague,The Netherlands,country match
+167,"Queens Sports Club, Bulawayo",Bulawayo,Zimbabwe,-20.15,28.58333,1348.0,Bulawayo,Zimbabwe,country match
+168,"Windsor Park, Roseau, Dominica",Roseau,Dominica,15.30174,-61.38808,11.0,Roseau,Dominica,country match
+170,"Warner Park, Basseterre, St Kitts",Basseterre,St Kitts,17.2955,-62.72499,22.0,Basseterre,Saint Kitts and Nevis,"unverified: 'St Kitts' is a place name, took top result (Saint Kitts and Nevis)"
+172,"Meersen, Gent",Ghent,Belgium,51.05,3.71667,10.0,Ghent,Belgium,country match
+173,"Royal Brussels Cricket Club Ground, Waterloo",Waterloo,Belgium,50.71469,4.3991,119.0,Waterloo,Belgium,country match
+174,Tikkurila Cricket Ground,Vantaa,Finland,60.29414,25.04099,18.0,Vantaa,Finland,country match
+175,"Indian Association Ground, Singapore",Singapore,Singapore,1.28967,103.85007,23.0,Singapore,Singapore,country match
+176,Bulawayo Athletic Club,Bulawayo,Zimbabwe,-20.15,28.58333,1348.0,Bulawayo,Zimbabwe,country match
+177,"UKM-YSD Cricket Oval, Bangi",Bangi,Malaysia,2.9,101.78333,25.0,Bangi,Malaysia,country match
+180,"Hagley Oval, Christchurch",Christchurch,New Zealand,-43.53333,172.63333,14.0,Christchurch,New Zealand,country match
+182,"University Oval, Dunedin",Dunedin,New Zealand,-45.87416,170.50362,21.0,Dunedin,New Zealand,country match
+183,"John Davies Oval, Queenstown",Queenstown,New Zealand,-45.03023,168.6627,328.0,Queenstown,New Zealand,country match
+184,Lisicji Jarak Cricket Ground,Belgrade,Serbia,44.80401,20.46513,120.0,Belgrade,Serbia,country match
+189,"Barsapara Cricket Stadium, Guwahati",Guwahati,India,26.1844,91.7458,59.0,Guwahati,India,country match
+191,"Gymkhana Club Ground, Nairobi",Nairobi,Kenya,-1.28333,36.81667,1684.0,Nairobi,Kenya,country match
+192,"Willowmoore Park, Benoni",Benoni,South Africa,-26.18848,28.32078,1641.0,Benoni,South Africa,country match
+193,"Independence Park, Port Vila",Port Vila,Vanuatu,-17.73648,168.31366,10.0,Port Vila,Vanuatu,country match
+194,Sano International Cricket Ground,Sano,Japan,36.31667,139.58333,36.0,Sano,Japan,country match
+198,"Narendra Modi Stadium, Ahmedabad",Ahmedabad,India,23.02579,72.58727,56.0,Ahmedabad,India,country match
+199,"Gahanga International Cricket Stadium, Rwanda",Kigali,Rwanda,-1.94995,30.05885,1542.0,Kigali,Rwanda,country match
+201,"St Albans Club, Buenos Aires",Buenos Aires,Argentina,-34.61315,-58.37723,31.0,Buenos Aires,Argentina,country match
+202,"Belgrano Athletic Club Ground, Buenos Aires",Buenos Aires,Argentina,-34.61315,-58.37723,31.0,Buenos Aires,Argentina,country match
+203,"Hurlingham Club Ground, Buenos Aires",Buenos Aires,Argentina,-34.61315,-58.37723,31.0,Buenos Aires,Argentina,country match
+204,"Mission Road Ground, Mong Kok, Hong Kong",Mong Kok,Hong Kong,22.31935,114.17136,35.0,Mong Kok,,country match
+205,Santarem Cricket Ground,Albergaria,Portugal,40.69318,-8.47994,128.0,Albergaria-a-Velha,Portugal,country match
+206,Europa Sports Complex,Gibraltar,Gibraltar,36.14474,-5.35257,11.0,Gibraltar,,country match
+207,"Solvangs Park, Glostrup",Glostrup,Denmark,55.6666,12.40377,18.0,Glostrup Municipality,Denmark,country match
+208,"Kingsmead, Durban",Durban,South Africa,-29.8579,31.0292,21.0,Durban,South Africa,country match
+209,"Sportpark Het Schootsveld, Deventer",Deventer,Netherlands,52.255,6.16389,12.0,Deventer,The Netherlands,country match
+210,"Goldenacre, Edinburgh",Edinburgh,Scotland,55.95206,-3.19648,66.0,Edinburgh,United Kingdom,country match (alias)
+211,"Amini Park, Port Moresby",Port Moresby,PNG,-9.47723,147.1509,25.0,Port Moresby,Papua New Guinea,country match (alias)
+212,"Bayuemas Oval, Kuala Lumpur",Kuala Lumpur,Malaysia,3.1412,101.68653,56.0,Kuala Lumpur,Malaysia,country match
+220,"GB Oval, Szodliget",Szodliget,Hungary,47.73259,19.14749,113.0,Sződliget,Hungary,country match
+221,Zhejiang University of Technology Cricket Field,Hangzhou,China,30.29365,120.16142,12.0,Hangzhou,China,country match
+222,"National Stadium, Hamilton",Hamilton,Bermuda,43.25011,-79.84963,95.0,Hamilton,Canada,"unverified: 'Bermuda' is a place name, took top result (Canada)"
+223,"Tafawa Balewa Square Cricket Oval, Lagos",Lagos,Nigeria,6.45407,3.39467,11.0,Lagos,Nigeria,country match
+224,Mulpani Cricket Ground,Kathmandu,Nepal,27.70169,85.3206,1317.0,Kathmandu,Nepal,country match
+225,St Georges Quilmes,Quilmes,Argentina,-34.72065,-58.25454,24.0,Quilmes,Argentina,country match
+226,Udayana Cricket Ground,Bali,Indonesia,-8.33333,115.0,618.0,Bali,Indonesia,country match
+227,"Grand Prairie Stadium, Dallas",Dallas,USA,32.78306,-96.80667,128.0,Dallas,United States,country match (alias)
+228,"Nassau County International Cricket Stadium, New York",New York,USA,40.71427,-74.00597,10.0,New York,United States,country match (alias)
+229,"Arnos Vale Ground, Kingstown, St Vincent",Kingstown,St Vincent,18.41784,-64.59952,124.0,Kingstown,,country match
+230,"Terdthai Cricket Ground, Bangkok",Bangkok,Thailand,13.75398,100.50144,12.0,Bangkok,Thailand,country match
+231,University of Doha for Science and Technology,Doha,Qatar,25.28545,51.53096,11.0,Doha,Qatar,country match
+232,"Achimota Senior Secondary School A Field, Accra",Accra,Ghana,5.55602,-0.1969,33.0,Accra,Ghana,country match
+233,"Achimota Senior Secondary School B Field, Accra",Accra,Ghana,5.55602,-0.1969,33.0,Accra,Ghana,country match
+234,Prairie View Cricket Complex,Houston,USA,29.76328,-95.36327,12.0,Houston,United States,country match (alias)
+235,La Manga Club Top Ground,Murcia,Spain,37.98704,-1.13004,53.0,Murcia,Spain,country match
+236,Los Reyes Polo Club,Guacima,Costa Rica,9.9622,-84.25479,808.0,Guácima,Costa Rica,country match
+237,Dreux Sport Cricket Club,Dreux,France,48.73649,1.36566,96.0,Dreux,France,country match
+238,Roma Cricket Ground,Spinaceto,Italy,41.77861,12.44236,50.0,Spinaceto,Italy,country match
+239,"Simar Cricket Ground, Rome",Rome,Italy,41.89193,12.51133,20.0,Rome,Italy,country match
+240,"Shrimant Madhavrao Scindia Cricket Stadium, Gwalior",Gwalior,India,26.22983,78.17337,220.0,Gwalior,India,country match
+242,"King George V Sports Ground, Castel",Castel,Guernsey,49.46757,-2.60015,5.0,Castel,,country match
+243,"Guernsey Rovers Athletic Club Ground, Port Soif",Guernsey,Guernsey,49.45853,-2.5787,76.0,Guernsey,,country match
+244,"Sikh Union Club Ground, Nairobi",Nairobi,Kenya,-1.28333,36.81667,1684.0,Nairobi,Kenya,country match
+245,"Saxton Oval, Nelson",Nelson,New Zealand,-41.27078,173.28404,11.0,Nelson,New Zealand,country match
+246,"Mladost Cricket Ground, Zagreb",Zagreb,Croatia,45.81444,15.97798,135.0,Zagreb,Croatia,country match
+247,"Faleata Oval No 2, Apia",Apia,Samoa,-13.83333,-171.76666,9.0,Apia,Samoa,country match
+248,"Sportpark Maarschalkerweerd, Utrecht",Utrecht,Netherlands,52.09083,5.12222,13.0,Utrecht,The Netherlands,country match
+249,"Selangor Turf Club, Kuala Lumpur",Kuala Lumpur,Malaysia,3.1412,101.68653,56.0,Kuala Lumpur,Malaysia,country match
+250,"YSD-UKM Cricket Oval, Bangi",Bangi,Malaysia,2.9,101.78333,25.0,Bangi,Malaysia,country match
+251,"Gymkhana Club Ground, Dar-es-Salaam",Dar-es-Salaam,Tanzania,9.73333,-11.83333,477.0,Dar-es-Salaam,Sierra Leone,"unverified: 'Tanzania' is a place name, took top result (Sierra Leone)"
+252,University of Dar-es-Salaam Ground,Dar-es-Salaam,Tanzania,9.73333,-11.83333,477.0,Dar-es-Salaam,Sierra Leone,"unverified: 'Tanzania' is a place name, took top result (Sierra Leone)"
+253,"Yeonhui Cricket Ground, Incheon",Incheon,South Korea,37.45646,126.70515,43.0,Incheon,South Korea,country match
+254,"Maple Leaf North-West Ground, King City",King City,Canada,43.92856,-79.52694,306.0,King City,Canada,country match
+255,Rangiri Dambulla International Stadium,Dambulla,Sri Lanka,7.86,80.65167,168.0,Dambulla,Sri Lanka,country match
+256,Sao Fernando Polo and Cricket Club,Seropedica,Brazil,-22.74389,-43.7075,40.0,Seropédica,Brazil,country match
+257,Gelephu International Cricket Ground,Gelephu,Bhutan,26.88389,90.46836,276.0,Gelephu Airport,Bhutan,country match
+258,"Ruaraka Sports Club Ground, Nairobi",Nairobi,Kenya,-1.28333,36.81667,1684.0,Nairobi,Kenya,country match
+259,"TCA Oval, Blantyre",Blantyre,Malawi,-15.78499,35.00854,1041.0,Blantyre,Malawi,country match
+260,Jinja Cricket Ground,Jinja,Uganda,0.43902,33.20317,1187.0,Jinja,Uganda,country match
+261,"Nigeria Cricket Federation Oval 1, Abuja",Abuja,Nigeria,9.05785,7.49508,476.0,Abuja,Nigeria,country match
+262,"Nigeria Cricket Federation Oval 2, Abuja",Abuja,Nigeria,9.05785,7.49508,476.0,Abuja,Nigeria,country match
+263,"St George's College Ground, Buenos Aires",Buenos Aires,Argentina,-34.61315,-58.37723,31.0,Buenos Aires,Argentina,country match
+264,Singapore National Cricket Ground,Singapore,Singapore,1.28967,103.85007,23.0,Singapore,Singapore,country match
+265,"Namibia Cricket Ground, Windhoek",Windhoek,Namibia,-22.55941,17.08323,1700.0,Windhoek,Namibia,country match
+266,"Marrara Stadium, Darwin",Darwin,Australia,-12.46113,130.84184,31.0,Darwin,Australia,country match
+267,"Cazaly's Stadium, Cairns",Cairns,Australia,-16.92366,145.76613,7.0,Cairns,Australia,country match
+269,"Clayton Panama, Panama City",Panama City,Panama,8.9936,-79.51973,17.0,Panama City,Panama,country match
+270,"Jimmy Powell Oval, Cayman Islands",George Town,Cayman Islands,19.2866,-81.37436,3.0,George Town,,country match
+271,"Velden Cricket Ground, Latschach",Latschach,Austria,46.55611,13.92889,629.0,Latschach ober dem Faakersee,Austria,country match
+272,"Stars Arena Hofstade, Zemst",Zemst,Belgium,50.98318,4.46079,11.0,Zemst,Belgium,country match
+273,"Titwood, Glasgow",Glasgow,Scotland,55.86515,-4.25763,40.0,Glasgow,United Kingdom,country match (alias)
+274,"Ballpark Ground, Graz",Graz,Austria,47.06733,15.44197,362.0,Graz,Austria,country match
+275,"Grainville, St Saviour",St Saviour,Jersey,,,,,,none: not found
+276,"Ishoj Cricket Club, Vejledalen",Ishoj,Denmark,,,,,,none: not found
+277,Koge Cricket Club,Koge,Denmark,35.40995,134.25491,66.0,Kōge,Japan,"weak: country 'Denmark' not matched, took Japan"
+278,"Maple Leaf North-East Ground, King City",King City,Canada,43.92856,-79.52694,306.0,King City,Canada,country match
+280,"Vassil Levski National Sports Academy, Sofia",Sofia,Bulgaria,42.69751,23.32415,562.0,Sofia,Bulgaria,country match
+281,Estonian National Cricket and Rugby Field,Tallinn,Estonia,59.43696,24.75353,12.0,Tallinn,Estonia,country match
+282,"Botkyrka Cricket Center, Stockholm",Stockholm,Sweden,59.32938,18.06871,17.0,Stockholm,Sweden,country match
+283,"Stubberudmyra Cricket Ground, Oslo",Oslo,Norway,59.91273,10.74609,26.0,Oslo,Norway,country match
+284,Malkerns Country Club oval,Malkerns,Eswatini,-26.52872,31.19193,807.0,Malkerns,Eswatini,country match
+285,"Takashinga Sports Club, Highfield, Harare",Harare,Zimbabwe,-17.82772,31.05337,1494.0,Harare,Zimbabwe,country match
+286,"Bir Sreshtho Flight Lieutenant Matiur Rahman Stadium, Chattogram",Chattogram,Bangladesh,22.3384,91.83168,15.0,Chittagong,Bangladesh,country match
+287,Happy Valley Ground 2,Episkopi,Cyprus,35.32821,24.33525,127.0,Episkopi,Greece,"unverified: 'Cyprus' is a place name, took top result (Greece)"
+288,"Sao Fernando Polo and Cricket Club, Campo Sede",Seropedica,Brazil,-22.74389,-43.7075,40.0,Seropédica,Brazil,country match
+289,"New Wanderers Stadium, Johannesburg",Johannesburg,South Africa,-26.20227,28.04363,1767.0,Johannesburg,South Africa,country match
+290,"Kennington Oval, London",London,UK,51.50853,-0.12574,25.0,London,United Kingdom,country match (alias)
+291,"Western Australia Cricket Association Ground, Perth",Perth,Australia,-31.95224,115.8614,34.0,Perth,Australia,country match
+293,Jade Stadium,Christchurch,New Zealand,-43.53333,172.63333,14.0,Christchurch,New Zealand,country match
+294,Gymkhana Club Ground,Nairobi,Kenya,-1.28333,36.81667,1684.0,Nairobi,Kenya,country match
+295,"Civil Service Cricket Club, Stormont, Belfast",Belfast,Ireland,54.59682,-5.92541,7.0,Belfast,United Kingdom,"weak: country 'Ireland' not matched, took United Kingdom"
+296,Trent Bridge,Nottingham,UK,52.9536,-1.15047,46.0,Nottingham,United Kingdom,country match (alias)
+298,AMI Stadium,Christchurch,New Zealand,-43.53333,172.63333,14.0,Christchurch,New Zealand,country match
+301,"Punjab Cricket Association IS Bindra Stadium, Mohali",Mohali,India,30.67995,76.72211,312.0,Mohali,India,country match
+303,OUTsurance Oval,Bloemfontein,South Africa,-29.12107,26.214,1396.0,Bloemfontein,South Africa,country match
+304,De Beers Diamond Oval,Kimberley,South Africa,-28.73226,24.76232,1224.0,Kimberley,South Africa,country match
+305,Moses Mabhida Stadium,Durban,South Africa,-29.8579,31.0292,21.0,Durban,South Africa,country match
+306,Stadium Australia,Sydney,Australia,-33.86785,151.20732,58.0,Sydney,Australia,country match
+307,"Shere Bangla National Stadium, Mirpur",Mirpur,Bangladesh,28.02136,69.54914,76.0,Mirpur Mathelo,Pakistan,"weak: country 'Bangladesh' not matched, took Pakistan"
+309,Mombasa Sports Club Ground,Mombasa,Kenya,-4.05466,39.66359,20.0,Mombasa,Kenya,country match
+312,ICC Global Cricket Academy,Dubai,UAE,25.07725,55.30927,24.0,Dubai,United Arab Emirates,country match (alias)
+318,P Sara Oval,Colombo,Sri Lanka,6.93548,79.84868,7.0,Colombo,Sri Lanka,country match
+320,Himachal Pradesh Cricket Association Stadium,Dharamshala,India,27.15979,77.76877,173.0,Dharamshāla,India,country match
+321,"Arun Jaitley Stadium, Delhi",Delhi,India,28.65195,77.23149,227.0,Delhi,India,country match
+323,Tony Ireland Stadium,Townsville,Australia,-19.26639,146.8057,15.0,Townsville,Australia,country match
+324,Sheikh Abu Naser Stadium,Khulna,Bangladesh,22.80979,89.56439,8.0,Khulna,Bangladesh,country match
+325,Khan Shaheb Osman Ali Stadium,Fatullah,Bangladesh,23.65,90.49,5.0,Fatullah,Bangladesh,country match
+329,Sawai Mansingh Stadium,Jaipur,India,26.91962,75.78781,435.0,Jaipur,India,country match
+330,"Brabourne Stadium, Mumbai",Mumbai,India,19.07283,72.88261,8.0,Mumbai,India,country match
+331,"Dr DY Patil Sports Academy, Mumbai",Mumbai,India,19.07283,72.88261,8.0,Mumbai,India,country match
+332,"Maharaja Yadavindra Singh International Cricket Stadium, Mullanpur",Mullanpur,India,30.85457,75.66089,243.0,Mūllānpur,India,country match
+334,Nehru Stadium,Kochi,India,9.93988,76.26022,9.0,Kochi,India,country match
+335,Shaheed Veer Narayan Singh International Stadium,Raipur,India,21.23333,81.63333,296.0,Raipur,India,country match
+336,Multan Cricket Stadium,Multan,Pakistan,30.19679,71.47824,126.0,Multan,Pakistan,country match
+338,Sydney Showground Stadium,Sydney,Australia,-33.86785,151.20732,58.0,Sydney,Australia,country match
+339,"Marvel Stadium, Melbourne",Melbourne,Australia,-37.814,144.96332,25.0,Melbourne,Australia,country match
+341,Aurora Stadium,Launceston,Australia,-41.43876,147.13467,11.0,Launceston,Australia,country match
+343,Traeger Park,Alice Springs,Australia,-23.69748,133.88362,583.0,Alice Springs,Australia,country match
+344,Geelong Cricket Ground,Geelong,Australia,-38.14711,144.36069,23.0,Geelong,Australia,country match
+345,Ted Summerton Reserve,Moe,Australia,-38.17828,146.26099,76.0,Yallourn,Australia,country match
+346,International Sports Stadium,Coffs Harbour,Australia,-30.29626,153.11351,6.0,Coffs Harbour,Australia,country match
+350,"Junction Oval, Melbourne",Melbourne,Australia,-37.814,144.96332,25.0,Melbourne,Australia,country match
+351,"International Sports Stadium, Coffs Harbour",Coffs Harbour,Australia,-30.29626,153.11351,6.0,Coffs Harbour,Australia,country match
+352,"University of Tasmania Stadium, Launceston",Launceston,Australia,-41.43876,147.13467,11.0,Launceston,Australia,country match
+353,"Lavington Sports Oval, Albury",Albury,Australia,-36.07482,146.92401,164.0,Albury,Australia,country match
+354,"North Sydney Oval, Sydney",Sydney,Australia,-33.86785,151.20732,58.0,Sydney,Australia,country match
+356,"Brian Lara Stadium, Tarouba",Tarouba,Trinidad,10.27479,-61.43422,30.0,Tarouba,Trinidad and Tobago,country match
+359,"Mahinda Rajapaksa International Cricket Stadium, Sooriyawewa, Hambantota",Hambantota,Sri Lanka,6.1241,81.1185,10.0,Hambantota,Sri Lanka,country match
+362,"Boland Park, Paarl",Paarl,South Africa,-33.73378,18.97523,107.0,Paarl,South Africa,country match
+363,"SuperSport Park, Centurion",Centurion,Centurion,-25.85891,28.18577,1432.0,Centurion,South Africa,"unverified: 'Centurion' is a place name, took top result (South Africa)"
+364,"The Wanderers Stadium, Johannesburg",Johannesburg,Johannesburg,-26.20227,28.04363,1767.0,Johannesburg,South Africa,"unverified: 'Johannesburg' is a place name, took top result (South Africa)"
+365,"Vidarbha Cricket Association Stadium, Jamtha, Nagpur",Nagpur,Nagpur,21.14631,79.08491,319.0,Nagpur,India,"unverified: 'Nagpur' is a place name, took top result (India)"
+366,"Shaheed Veer Narayan Singh International Stadium, Raipur",Raipur,Raipur,21.23333,81.63333,296.0,Raipur,India,"unverified: 'Raipur' is a place name, took top result (India)"
+367,"Dr. Y.S. Rajasekhara Reddy ACA-VDCA Cricket Stadium, Visakhapatnam",Visakhapatnam,Visakhapatnam,17.68009,83.20161,24.0,Visakhapatnam,India,"unverified: 'Visakhapatnam' is a place name, took top result (India)"
+368,"Greenfield International Stadium, Thiruvananthapuram",Thiruvananthapuram,Thiruvananthapuram,8.4855,76.94924,18.0,Thiruvananthapuram,India,"unverified: 'Thiruvananthapuram' is a place name, took top result (India)"
+369,"Bay Oval, Mount Maunganui",Mount Maunganui,Mount Maunganui,-37.64167,176.18611,8.0,Mount Maunganui,New Zealand,"unverified: 'Mount Maunganui' is a place name, took top result (New Zealand)"
+370,"Seddon Park, Hamilton",Hamilton,Hamilton,43.25011,-79.84963,95.0,Hamilton,Canada,"unverified: 'Hamilton' is a place name, took top result (Canada)"
+371,"Eden Park, Auckland",Auckland,Auckland,-36.84853,174.76349,43.0,Auckland,New Zealand,"unverified: 'Auckland' is a place name, took top result (New Zealand)"
+372,"Riverside Ground, Chester-le-Street",Chester-le-Street,Chester-le-Street,54.85862,-1.57408,13.0,Chester-le-Street,United Kingdom,"unverified: 'Chester-le-Street' is a place name, took top result (United Kingdom)"
+373,"Sinhalese Sports Club Ground, Colombo",Colombo,Colombo,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: 'Colombo' is a place name, took top result (Sri Lanka)"
+374,"Eden Gardens, Kolkata",Kolkata,Kolkata,22.56263,88.36304,11.0,Kolkata,India,"unverified: 'Kolkata' is a place name, took top result (India)"
+375,"Wankhede Stadium, Mumbai",Mumbai,Mumbai,19.07283,72.88261,8.0,Mumbai,India,"unverified: 'Mumbai' is a place name, took top result (India)"
+376,"MA Chidambaram Stadium, Chepauk, Chennai",Chennai,Chennai,13.08784,80.27847,14.0,Chennai,India,"unverified: 'Chennai' is a place name, took top result (India)"
+377,"7he Sevens Stadium, Dubai",Dubai,Dubai,25.07725,55.30927,24.0,Dubai,United Arab Emirates,"unverified: 'Dubai' is a place name, took top result (United Arab Emirates)"
+378,"Botswana Cricket Association Oval 1, Gaborone",Gaborone,Gaborone,-24.65451,25.90859,1011.0,Gaborone,Botswana,"unverified: 'Gaborone' is a place name, took top result (Botswana)"
+379,"Reforma Athletic Club, Naucalpan",Naucalpan,Naucalpan,19.47851,-99.23963,2300.0,Naucalpan,Mexico,"unverified: 'Naucalpan' is a place name, took top result (Mexico)"
+380,"Korogi Sports Park, Nisshin",Nisshin,Nisshin,35.13676,137.05238,45.0,Nisshin,Japan,"unverified: 'Nisshin' is a place name, took top result (Japan)"
+381,Sano International Cricket Ground 2,Sano,,36.31667,139.58333,36.0,Sano,Japan,"unverified: country unknown, took top result"
+382,"Botswana Cricket Association Oval 2, Gaborone",Gaborone,Gaborone,-24.65451,25.90859,1011.0,Gaborone,Botswana,"unverified: 'Gaborone' is a place name, took top result (Botswana)"
+383,"Sabina Park, Kingston, Jamaica",Kingston,Jamaica,17.99702,-76.79358,65.0,Kingston,Jamaica,country match
+384,"M Chinnaswamy Stadium, Bengaluru",Bengaluru,Bengaluru,12.97194,77.59369,920.0,Bengaluru,India,"unverified: 'Bengaluru' is a place name, took top result (India)"
+385,"Maharaja Yadavindra Singh International Cricket Stadium, New Chandigarh",New Chandigarh,New Chandigarh,,,,,,none: not found
+386,"Rajiv Gandhi International Stadium, Uppal, Hyderabad",Hyderabad,Hyderabad,17.38405,78.45636,515.0,Hyderabad,India,"unverified: 'Hyderabad' is a place name, took top result (India)"
+387,"Sawai Mansingh Stadium, Jaipur",Jaipur,Jaipur,26.91962,75.78781,435.0,Jaipur,India,"unverified: 'Jaipur' is a place name, took top result (India)"
+388,"Himachal Pradesh Cricket Association Stadium, Dharamsala",Dharamsala,Dharamsala,32.22006,76.32013,1359.0,Dharamsala,India,"unverified: 'Dharamsala' is a place name, took top result (India)"
+389,"Docklands Stadium, Melbourne",Melbourne,Melbourne,-37.814,144.96332,25.0,Melbourne,Australia,"unverified: 'Melbourne' is a place name, took top result (Australia)"
+390,"Bellerive Oval, Hobart",Hobart,Hobart,-42.87936,147.3294,19.0,Hobart,Australia,"unverified: 'Hobart' is a place name, took top result (Australia)"
+391,"Brisbane Cricket Ground, Woolloongabba, Brisbane",Brisbane,Brisbane,-27.46794,153.02809,27.0,Brisbane,Australia,"unverified: 'Brisbane' is a place name, took top result (Australia)"
+392,"The Village, Malahide, Dublin",Dublin,Dublin,53.33306,-6.24889,17.0,Dublin,Ireland,"unverified: 'Dublin' is a place name, took top result (Ireland)"
+393,"Queen's Park Oval, Port of Spain, Trinidad",Port of Spain,Trinidad,10.66668,-61.51889,21.0,Port of Spain,Trinidad and Tobago,country match
+394,"Kensington Oval, Bridgetown, Barbados",Bridgetown,Barbados,13.10732,-59.62021,10.0,Bridgetown,Barbados,country match
+395,"Sheikh Zayed Stadium, Abu Dhabi",Abu Dhabi,Abu Dhabi,24.45118,54.39696,6.0,Abu Dhabi,United Arab Emirates,"unverified: 'Abu Dhabi' is a place name, took top result (United Arab Emirates)"
+396,"Newlands, Cape Town",Cape Town,Cape Town,-33.92584,18.42322,25.0,Cape Town,South Africa,"unverified: 'Cape Town' is a place name, took top result (South Africa)"
+397,Grand Prairie Stadium,Grand Prairie,,32.74596,-96.99778,157.0,Grand Prairie,United States,"unverified: country unknown, took top result"
+398,"Church Street Park, Morrisville",Morrisville,Morrisville,35.82348,-78.82556,92.0,Morrisville,United States,"unverified: 'Morrisville' is a place name, took top result (United States)"
+399,"Oakland Coliseum,Oakland",Oakland,Oakland,37.80437,-122.2708,13.0,Oakland,United States,"unverified: 'Oakland' is a place name, took top result (United States)"
+400,"Knight Riders Cricket Ground, Pomona",Pomona,Pomona,34.05529,-117.75228,259.0,Pomona,United States,"unverified: 'Pomona' is a place name, took top result (United States)"
+401,"Zahur Ahmed Chowdhury Stadium, Chittagong",Chattogram,Chittagong,22.3384,91.83168,15.0,Chittagong,Bangladesh,"unverified: 'Chittagong' is a place name, took top result (Bangladesh)"
+402,"Zahur Ahmed Chowdhury Stadium, Chattogram",Chattogram,Chattogram,22.3384,91.83168,15.0,Chittagong,Bangladesh,"unverified: 'Chattogram' is a place name, took top result (Bangladesh)"
+403,"Sheikh Abu Naser Stadium, Khulna",Khulna,Khulna,22.80979,89.56439,8.0,Khulna,Bangladesh,"unverified: 'Khulna' is a place name, took top result (Bangladesh)"
+404,"MA Aziz Stadium, Chittagong",Chattogram,Chittagong,22.3384,91.83168,15.0,Chittagong,Bangladesh,"unverified: 'Chittagong' is a place name, took top result (Bangladesh)"
+405,"Mangaung Oval, Bloemfontein",Bloemfontein,Bloemfontein,-29.12107,26.214,1396.0,Bloemfontein,South Africa,"unverified: 'Bloemfontein' is a place name, took top result (South Africa)"
+406,"Senwes Park, Potchefstroom",Potchefstroom,Potchefstroom,-26.71667,27.1,1335.0,Potchefstroom,South Africa,"unverified: 'Potchefstroom' is a place name, took top result (South Africa)"
+407,"St George's Park, Port Elizabeth",Port Elizabeth,Port Elizabeth,-33.96109,25.61494,61.0,Port Elizabeth,South Africa,"unverified: 'Port Elizabeth' is a place name, took top result (South Africa)"
+408,"Diamond Oval, Kimberley",Kimberley,Kimberley,-28.73226,24.76232,1224.0,Kimberley,South Africa,"unverified: 'Kimberley' is a place name, took top result (South Africa)"
+409,"Buffalo Park, East London",East London,East London,-33.01529,27.91162,48.0,East London,South Africa,"unverified: 'East London' is a place name, took top result (South Africa)"
+410,"City Oval, Pietermaritzburg",Pietermaritzburg,Pietermaritzburg,-29.61679,30.39278,636.0,Pietermaritzburg,South Africa,"unverified: 'Pietermaritzburg' is a place name, took top result (South Africa)"
+411,"De Beers Diamond Oval, Kimberley",Kimberley,Kimberley,-28.73226,24.76232,1224.0,Kimberley,South Africa,"unverified: 'Kimberley' is a place name, took top result (South Africa)"
+412,"Chevrolet Park, Bloemfontein",Bloemfontein,Bloemfontein,-29.12107,26.214,1396.0,Bloemfontein,South Africa,"unverified: 'Bloemfontein' is a place name, took top result (South Africa)"
+413,Eden Park Outer Oval,Auckland,,-36.84853,174.76349,43.0,Auckland,New Zealand,"unverified: country unknown, took top result"
+414,Hagley Oval,Christchurch,,-43.53333,172.63333,14.0,Christchurch,New Zealand,"unverified: country unknown, took top result"
+415,Saxton Oval,Nelson,,-41.27078,173.28404,11.0,Nelson,New Zealand,"unverified: country unknown, took top result"
+416,Basin Reserve,Wellington,,-41.28664,174.77557,31.0,Wellington,New Zealand,"unverified: country unknown, took top result"
+417,Mainpower Oval,Rangiora,,-43.30437,172.58356,36.0,Rangiora,New Zealand,"unverified: country unknown, took top result"
+418,Molyneux Park,Alexandra,,-26.10528,28.09884,1542.0,Alexandra,South Africa,"unverified: country unknown, took top result"
+419,Pukekura Park,New Plymouth,,-39.06667,174.08333,64.0,New Plymouth,New Zealand,"unverified: country unknown, took top result"
+420,University Oval,Dunedin,,-45.87416,170.50362,21.0,Dunedin,New Zealand,"unverified: country unknown, took top result"
+421,Queen's Park,Invercargill,,-46.4,168.35,6.0,Invercargill,New Zealand,"unverified: country unknown, took top result"
+422,"Pukekura Park, New Plymouth",New Plymouth,New Plymouth,-39.06667,174.08333,64.0,New Plymouth,New Zealand,"unverified: 'New Plymouth' is a place name, took top result (New Zealand)"
+423,"Eden Park Outer Oval, Auckland",Auckland,Auckland,-36.84853,174.76349,43.0,Auckland,New Zealand,"unverified: 'Auckland' is a place name, took top result (New Zealand)"
+424,"Basin Reserve, Wellington",Wellington,Wellington,-41.28664,174.77557,31.0,Wellington,New Zealand,"unverified: 'Wellington' is a place name, took top result (New Zealand)"
+425,"McLean Park, Napier",Napier,Napier,-39.4926,176.91232,6.0,Napier City,New Zealand,"unverified: 'Napier' is a place name, took top result (New Zealand)"
+426,"Fitzherbert Park, Palmerston North",Palmerston North,Palmerston North,-40.35636,175.61113,34.0,Palmerston North,New Zealand,"unverified: 'Palmerston North' is a place name, took top result (New Zealand)"
+427,"Cobham Oval (New), Whangarei",Whangarei,Whangarei,-35.73167,174.32391,7.0,Whangarei,New Zealand,"unverified: 'Whangarei' is a place name, took top result (New Zealand)"
+428,"Molyneux Park, Alexandra",Alexandra,Alexandra,-26.10528,28.09884,1542.0,Alexandra,South Africa,"unverified: 'Alexandra' is a place name, took top result (South Africa)"
+429,Headingley,Leeds,,53.79648,-1.54785,50.0,Leeds,United Kingdom,"unverified: country unknown, took top result"
+430,College Ground,Cheltenham,,51.90006,-2.07972,60.0,Cheltenham,United Kingdom,"unverified: country unknown, took top result"
+431,"County Ground, New Road",Worcester,New Road,42.26259,-71.80229,147.0,Worcester,United States,"unverified: 'New Road' is a place name, took top result (United States)"
+432,Arundel Castle Cricket Club Ground,,,,,,,,none: no city
+433,Kennington Oval,London,,51.50853,-0.12574,25.0,London,United Kingdom,"unverified: country unknown, took top result"
+434,Aigburth,Liverpool,,53.41058,-2.97794,30.0,Liverpool,United Kingdom,"unverified: country unknown, took top result"
+435,The Kent County Cricket Ground,Beckenham,,51.40878,-0.02526,45.0,Beckenham,United Kingdom,"unverified: country unknown, took top result"
+436,Uxbridge Cricket Club Ground,,,,,,,,none: no city
+437,St Lawrence Ground,Canterbury,,43.33702,-71.56535,178.0,Canterbury,United States,"unverified: country unknown, took top result"
+438,Old Deer Park,Richmond,,37.55376,-77.46026,64.0,Richmond,United States,"unverified: country unknown, took top result"
+439,Grace Road,Leicester,,52.6386,-1.13169,65.0,Leicester,United Kingdom,"unverified: country unknown, took top result"
+440,The Cooper Associates County Ground,Taunton,,41.9001,-71.08977,5.0,Taunton,United States,"unverified: country unknown, took top result"
+441,"County Ground, Hove",Brighton,Hove,50.82838,-0.13947,29.0,Brighton,United Kingdom,"unverified: 'Hove' is a place name, took top result (United Kingdom)"
+442,Radlett Cricket Club,Radlett,,51.68593,-0.31868,74.0,Radlett,United Kingdom,"unverified: country unknown, took top result"
+443,"St Lawrence Ground, Canterbury",Canterbury,Canterbury,43.33702,-71.56535,178.0,Canterbury,United States,"unverified: 'Canterbury' is a place name, took top result (United States)"
+444,"Old Trafford, Manchester",Manchester,Manchester,53.48095,-2.23743,51.0,Manchester,United Kingdom,"unverified: 'Manchester' is a place name, took top result (United Kingdom)"
+445,"County Ground, New Road, Worcester",Worcester,Worcester,42.26259,-71.80229,147.0,Worcester,United States,"unverified: 'Worcester' is a place name, took top result (United States)"
+446,"The Cooper Associates County Ground, Taunton",Taunton,Taunton,41.9001,-71.08977,5.0,Taunton,United States,"unverified: 'Taunton' is a place name, took top result (United States)"
+447,"Lord's, London",London,London,51.50853,-0.12574,25.0,London,United Kingdom,"unverified: 'London' is a place name, took top result (United Kingdom)"
+448,"Sophia Gardens, Cardiff",Cardiff,Cardiff,51.48,-3.18,17.0,Cardiff,United Kingdom,"unverified: 'Cardiff' is a place name, took top result (United Kingdom)"
+449,"County Ground, Bristol",Bristol,Bristol,51.45523,-2.59665,21.0,Bristol,United Kingdom,"unverified: 'Bristol' is a place name, took top result (United Kingdom)"
+450,"County Ground, Chelmsford",Chelmsford,Chelmsford,51.73575,0.46958,33.0,Chelmsford,United Kingdom,"unverified: 'Chelmsford' is a place name, took top result (United Kingdom)"
+451,"County Ground, Northampton",Northampton,Northampton,52.25,-0.88333,97.0,Northampton,United Kingdom,"unverified: 'Northampton' is a place name, took top result (United Kingdom)"
+452,"Trent Bridge, Nottingham",Nottingham,Nottingham,52.9536,-1.15047,46.0,Nottingham,United Kingdom,"unverified: 'Nottingham' is a place name, took top result (United Kingdom)"
+453,"Grace Road, Leicester",Leicester,Leicester,52.6386,-1.13169,65.0,Leicester,United Kingdom,"unverified: 'Leicester' is a place name, took top result (United Kingdom)"
+454,"County Ground, Derby",Derby,Derby,52.92277,-1.47663,55.0,Derby,United Kingdom,"unverified: 'Derby' is a place name, took top result (United Kingdom)"
+455,"Radlett Cricket Club, Radlett",Radlett,Radlett,51.68593,-0.31868,74.0,Radlett,United Kingdom,"unverified: 'Radlett' is a place name, took top result (United Kingdom)"
+456,"Edgbaston, Birmingham",Birmingham,Birmingham,52.48142,-1.89983,149.0,Birmingham,United Kingdom,"unverified: 'Birmingham' is a place name, took top result (United Kingdom)"
+457,"The Rose Bowl, Southampton",Southampton,Southampton,50.90395,-1.40428,19.0,Southampton,United Kingdom,"unverified: 'Southampton' is a place name, took top result (United Kingdom)"
+458,"College Ground, Cheltenham",Cheltenham,Cheltenham,51.90006,-2.07972,60.0,Cheltenham,United Kingdom,"unverified: 'Cheltenham' is a place name, took top result (United Kingdom)"
+459,"Queen's Park, Chesterfield",Chesterfield,Chesterfield,53.25,-1.41667,89.0,Chesterfield,United Kingdom,"unverified: 'Chesterfield' is a place name, took top result (United Kingdom)"
+460,"Stanley Park, Blackpool",Blackpool,Blackpool,53.81667,-3.05,21.0,Blackpool,United Kingdom,"unverified: 'Blackpool' is a place name, took top result (United Kingdom)"
+461,"Merchant Taylors' School Ground, Northwood",Northwood,Northwood,43.44412,-93.22104,375.0,Northwood,United States,"unverified: 'Northwood' is a place name, took top result (United States)"
+462,York Cricket Club,York,,53.95763,-1.08271,17.0,York,United Kingdom,"unverified: country unknown, took top result"
+463,"Old Deer Park, Richmond",Richmond,Richmond,37.55376,-77.46026,64.0,Richmond,United States,"unverified: 'Richmond' is a place name, took top result (United States)"
+464,Merchant Taylors' School Ground,Northwood,,43.44412,-93.22104,375.0,Northwood,United States,"unverified: country unknown, took top result"
+465,Castle Park Cricket Ground,Colchester,,51.88921,0.90421,29.0,Colchester,United Kingdom,"unverified: country unknown, took top result"
+466,Nevill Ground,Tunbridge Wells,,,,,,,none: not found
+467,Kent County Cricket Ground,Beckenham,,51.40878,-0.02526,45.0,Beckenham,United Kingdom,"unverified: country unknown, took top result"
+468,Arun Jaitley Stadium,,,,,,,,none: no city
+469,Dr. Y.S. Rajasekhara Reddy ACA VDCA Cricket Stadium,,,,,,,,none: no city
+470,Dr P.V.G. Raju ACA Sports Complex,,,,,,,,none: no city
+471,"JU Second Campus, Salt Lake",Salt Lake,Salt Lake,21.36022,-157.91838,31.0,Salt Lake,United States,"unverified: 'Salt Lake' is a place name, took top result (United States)"
+472,"Dr. Gokaraju Laila Ganga Raju ACA Cricket Complex -DVR Ground,Mulapadu",Mulapadu,Mulapadu,17.33773,81.61714,36.0,Mūlapādu,India,"unverified: 'Mulapadu' is a place name, took top result (India)"
+473,"Dr. Gokaraju Laila Ganga Raju ACA Cricket Complex -CP Ground,Mulapadu",Mulapadu,Mulapadu,17.33773,81.61714,36.0,Mūlapādu,India,"unverified: 'Mulapadu' is a place name, took top result (India)"
+474,Lalbhai Contractor Stadium,,,,,,,,none: no city
+475,C B Patel Ground,,,,,,,,none: no city
+476,Holkar Stadium,,,,,,,,none: no city
+477, Emerald Heights International School Ground,,,,,,,,none: no city
+478,DRIEMS Ground,,,,,,,,none: no city
+479,"Airforce Complex ground, Palam",Palam,Palam,36.92338,50.23752,470.0,Palām,Iran,"unverified: 'Palam' is a place name, took top result (Iran)"
+480,"Airforce Complex ground, Palam II",Palam II,Palam II,,,,,,none: not found
+481,St'Xavier's KCA Cricket Ground,,,,,,,,none: no city
+482,Greenfield Stadium,,,,,,,,none: no city
+483,"Cricket Stadium, Sector-16",Sector-16,Sector-16,,,,,,none: not found
+484,"GSSS, Sector 26",Sector 26,Sector 26,33.40085,44.44219,39.0,Sector 26,Iraq,"unverified: 'Sector 26' is a place name, took top result (Iraq)"
+485,BKC Ground,,,,,,,,none: no city
+486,Alur Cricket Stadium,,,,,,,,none: no city
+487,Alur Cricket Stadium II,,,,,,,,none: no city
+488,Alur Cricket Stadium III,,,,,,,,none: no city
+489,Jadavpur University Campus,,,,,,,,none: no city
+490,Motibaug Cricket Ground,,,,,,,,none: no city
+491,F B Colony Ground,,,,,,,,none: no city
+492,Reliance Cricket Stadium,,,,,,,,none: no city
+493,Sharad Pawar Cricket Academy BKC,,,,,,,,none: no city
+494,SSN College Ground,,,,,,,,none: no city
+495,T I Murugappa Ground,,,,,,,,none: no city
+496,Sri Ramachandra Medical College,,,,,,,,none: no city
+497,IC-Gurunanak College Ground,,,,,,,,none: no city
+498,"Narendra Modi Stadium Ground 'A', Motera",Motera,Motera,21.40769,81.04003,313.0,Motera,India,"unverified: 'Motera' is a place name, took top result (India)"
+499,Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium,,,,,,,,none: no city
+500,Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium B,,,,,,,,none: no city
+501,"ACA Stadium, Barsapara",Barsapara,Barsapara,,,,,,none: not found
+502,Gurugram Cricket Ground (SRNCC),,,,,,,,none: no city
+503,Chaudhry Bansi Lal Cricket Stadium,,,,,,,,none: no city
+504,Gokaraju Liala Gangaaraju ACA Cricket Ground,,,,,,,,none: no city
+505,"ACA Stadium,Mangalagiri",Mangalagiri,Mangalagiri,16.43083,80.56815,34.0,Mangalagiri,India,"unverified: 'Mangalagiri' is a place name, took top result (India)"
+506,Alembic 2  Cricket Ground,,,,,,,,none: no city
+507,"Saurashtra Cricket Association Stadium, Rajkot",Rajkot,Rajkot,22.29161,70.79322,140.0,Rajkot,India,"unverified: 'Rajkot' is a place name, took top result (India)"
+508,"Holkar Cricket Stadium, Indore",Indore,Indore,22.71792,75.8333,550.0,Indore,India,"unverified: 'Indore' is a place name, took top result (India)"
+509,"Jadavpur University Campus 2nd Ground, Kolkata",Kolkata,Kolkata,22.56263,88.36304,11.0,Kolkata,India,"unverified: 'Kolkata' is a place name, took top result (India)"
+510,"JSCA International Stadium Complex, Ranchi",Ranchi,Ranchi,23.34316,85.3094,643.0,Ranchi,India,"unverified: 'Ranchi' is a place name, took top result (India)"
+511,"Abhimanyu Cricket Academy, Dehradun",Dehra Dun,Dehradun,,,,,,none: not found
+512,"Punjab Cricket Association IS Bindra Stadium, Mohali, Chandigarh",Chandigarh,Chandigarh,30.73629,76.7884,351.0,Chandigarh,India,"unverified: 'Chandigarh' is a place name, took top result (India)"
+513,"KSCA Cricket Ground, Alur",Bengaluru,Alur,12.97194,77.59369,920.0,Bengaluru,India,"unverified: 'Alur' is a place name, took top result (India)"
+514,VCA Ground,,,,,,,,none: no city
+515,Jawaharlal Nehru Stadium,,,,,,,,none: no city
+516,St  Pauls college ground  Kalamassery,,,,,,,,none: no city
+517,Alembic 1 Cricket Ground,,,,,,,,none: no city
+518,"Bloomfield Cricket and Athletic Club Ground, Colombo",Colombo,Colombo,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: 'Colombo' is a place name, took top result (Sri Lanka)"
+519,"Army Ground, Panagoda",Panagoda,Panagoda,6.9671,81.1447,878.0,Panagoda,Sri Lanka,"unverified: 'Panagoda' is a place name, took top result (Sri Lanka)"
+520,"Nondescripts Cricket Club Ground, Colombo",Colombo,Colombo,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: 'Colombo' is a place name, took top result (Sri Lanka)"
+521,"Surrey Village, Maggona",Maggona,Maggona,6.5041,79.9811,12.0,Maggona,Sri Lanka,"unverified: 'Maggona' is a place name, took top result (Sri Lanka)"
+522,"P Sara Oval, Colombo",Colombo,Colombo,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: 'Colombo' is a place name, took top result (Sri Lanka)"
+523,"Colts Cricket Club Ground, Colombo",Colombo,Colombo,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: 'Colombo' is a place name, took top result (Sri Lanka)"
+524,Colombo Cricket Club Ground,Colombo,,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: country unknown, took top result"
+525,"Police Park Ground, Colombo",Colombo,Colombo,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: 'Colombo' is a place name, took top result (Sri Lanka)"
+526,"The Green, Comber",Comber,Comber,54.54937,-5.74379,8.0,Comber,United Kingdom,"unverified: 'Comber' is a place name, took top result (United Kingdom)"
+527,"Bready Cricket Club, Magheramason, Bready",Bready,Bready,54.9154,-7.41926,18.0,Bready,United Kingdom,"unverified: 'Bready' is a place name, took top result (United Kingdom)"
+528,"Merrion Cricket Club Ground, Dublin",Dublin,Dublin,53.33306,-6.24889,17.0,Dublin,Ireland,"unverified: 'Dublin' is a place name, took top result (Ireland)"
+529,New Strabane Park,Strabane,,54.82373,-7.46916,7.0,Strabane,United Kingdom,"unverified: country unknown, took top result"
+530,"Instonians Cricket Club, Shaw's Bridge Lower Ground, Belfast",Belfast,Belfast,54.59682,-5.92541,7.0,Belfast,United Kingdom,"unverified: 'Belfast' is a place name, took top result (United Kingdom)"
+531,"Woodvale Road, Eglinton",Eglinton,Eglinton,55.01667,-7.18333,26.0,Eglinton,United Kingdom,"unverified: 'Eglinton' is a place name, took top result (United Kingdom)"
+532,"Church of Ireland Young Men's Society Cricket Club Ground, Belfast",Belfast,Belfast,54.59682,-5.92541,7.0,Belfast,United Kingdom,"unverified: 'Belfast' is a place name, took top result (United Kingdom)"
+533,"Mardyke, Cork",Cork,Cork,51.89797,-8.47061,10.0,Cork,Ireland,"unverified: 'Cork' is a place name, took top result (Ireland)"
+534,"Pembroke Cricket Club, Sandymount, Dublin",Dublin,Dublin,53.33306,-6.24889,17.0,Dublin,Ireland,"unverified: 'Dublin' is a place name, took top result (Ireland)"
+535,Oak Hill Cricket Club,Wicklow,,52.975,-6.04944,53.0,Wicklow,Ireland,"unverified: country unknown, took top result"
+536,"Lisburn Cricket Club, Wallace Park, Lisburn",Lisburn,Lisburn,54.52337,-6.03527,53.0,Lisburn,United Kingdom,"unverified: 'Lisburn' is a place name, took top result (United Kingdom)"
+537,"Sharjah Cricket Stadium, Sharjah",Sharjah,Sharjah,25.3342,55.41221,15.0,Sharjah city,United Arab Emirates,"unverified: 'Sharjah' is a place name, took top result (United Arab Emirates)"
+538,"Shere Bangla National Stadium, Dhaka",Dhaka,Dhaka,23.7104,90.40744,23.0,Dhaka,Bangladesh,"unverified: 'Dhaka' is a place name, took top result (Bangladesh)"
+539,"Polokwane Cricket Club, Polokwane",Polokwane,Polokwane,-23.90449,29.46885,1315.0,Polokwane,South Africa,"unverified: 'Polokwane' is a place name, took top result (South Africa)"
+540,"North-West University No1 Ground, Potchefstroom",Potchefstroom,Potchefstroom,-26.71667,27.1,1335.0,Potchefstroom,South Africa,"unverified: 'Potchefstroom' is a place name, took top result (South Africa)"
+541,"ICC Academy Ground, Dubai",Dubai,Dubai,25.07725,55.30927,24.0,Dubai,United Arab Emirates,"unverified: 'Dubai' is a place name, took top result (United Arab Emirates)"
+542,"ICC Academy Ground No 2, Dubai",Dubai,Dubai,25.07725,55.30927,24.0,Dubai,United Arab Emirates,"unverified: 'Dubai' is a place name, took top result (United Arab Emirates)"
+543,"CAA Centre, Brampton, Ontario","Brampton, Ontario",Ontario,43.68341,-79.76633,221.0,Brampton,Canada,"unverified: 'Ontario' is a place name, took top result (Canada)"
+544,"Sector 16 Stadium, Chandigarh",Chandigarh,Chandigarh,30.73629,76.7884,351.0,Chandigarh,India,"unverified: 'Chandigarh' is a place name, took top result (India)"
+545,"Mission Road Ground, Mong Kok",Mong Kok,Mong Kok,22.31935,114.17136,35.0,Mong Kok,,country match
+546,"M.Chinnaswamy Stadium, Bengaluru",Bengaluru,Bengaluru,12.97194,77.59369,920.0,Bengaluru,India,"unverified: 'Bengaluru' is a place name, took top result (India)"
+547,"Srikantadatta Narasimha Raja Wadiyar Ground, Mysore",Mysore,Mysore,12.95515,77.55292,881.0,Mysore Road Tolgate,India,"unverified: 'Mysore' is a place name, took top result (India)"
+548,"KSCA Hubli Cricket Ground, Hubli",Hubli,Hubli,18.6429,76.21599,662.0,Hubli,India,"unverified: 'Hubli' is a place name, took top result (India)"
+549,"Miraj International Cricket Stadium, Udaipur",Udaipur,Udaipur,24.58584,73.71346,565.0,Udaipur,India,"unverified: 'Udaipur' is a place name, took top result (India)"
+550,"Dr DY Patil Sports Academy, Navi Mumbai ",Navi Mumbai,Navi Mumbai,19.03681,73.01582,14.0,Navi Mumbai,India,"unverified: 'Navi Mumbai' is a place name, took top result (India)"
+551,"BCA Stadium, Vadodara",Vadodara,Vadodara,22.29941,73.20812,46.0,Vadodara,India,"unverified: 'Vadodara' is a place name, took top result (India)"
+552,"Pallekele International Cricket Stadium, Pallekele",Pallekele,Pallekele,7.2945,80.7225,487.0,Pallekele,Sri Lanka,"unverified: 'Pallekele' is a place name, took top result (Sri Lanka)"
+553,"Barkatullah Khan Stadium, Jodhpur",Jodhpur,Jodhpur,26.26841,73.00594,237.0,Jodhpur,India,"unverified: 'Jodhpur' is a place name, took top result (India)"
+554,"Lalabhai Contractor Stadium, Surat",Surat,Surat,21.19594,72.83023,20.0,Surat,India,"unverified: 'Surat' is a place name, took top result (India)"
+555,"Molana Azad Stadium, Jammu",Jammu,Jammu,32.73528,74.86167,357.0,Jammu,India,"unverified: 'Jammu' is a place name, took top result (India)"
+556,"Bakshi Stadium, Srinagar",Srinagar,Srinagar,34.08565,74.80555,1589.0,Srinagar,India,"unverified: 'Srinagar' is a place name, took top result (India)"
+557,"Indira Gandhi International Cricket Stadium, Haldwani",Haldwani,Haldwani,29.22254,79.5286,447.0,Haldwani,India,"unverified: 'Haldwani' is a place name, took top result (India)"
+558,"Sri Ramakrishna College of Arts and Science Ground, Coimbatore",Coimbatore,Coimbatore,11.00555,76.96612,411.0,Coimbatore,India,"unverified: 'Coimbatore' is a place name, took top result (India)"
+559,"Gandhi Sports Complex Ground, Amritsar",Amritsar,Amritsar,31.62234,74.87534,244.0,Amritsar,India,"unverified: 'Amritsar' is a place name, took top result (India)"
+560,"Al Amerat Cricket Ground (Ministry Turf 1), Al Amerat",Al Amerat,Al Amerat,,,,,,none: not found
+561,"Barabati Stadium, Cuttack",Cuttack,Cuttack,20.46497,85.87927,30.0,Cuttack,India,"unverified: 'Cuttack' is a place name, took top result (India)"
+562,"Rajiv Gandhi International Cricket Stadium, Dehradun",Dehradun,Dehradun,30.32443,78.03392,664.0,Dehradun,India,"unverified: 'Dehradun' is a place name, took top result (India)"
+563,"Green Park, Kanpur",Kanpur,Kanpur,26.46523,80.34975,137.0,Kanpur,India,"unverified: 'Kanpur' is a place name, took top result (India)"
+564,"1919 Sportz Cricket Stadium, Goa",Goa,Goa,-21.11667,165.3,76.0,Goa,,country match
+565,"Srikantadatta Narasimha Raja Wadeyar Ground, Mysore",Mysore,Mysore,12.95515,77.55292,881.0,Mysore Road Tolgate,India,"unverified: 'Mysore' is a place name, took top result (India)"
+566,"Holkar Stadium, Indore",Indore,Indore,22.71792,75.8333,550.0,Indore,India,"unverified: 'Indore' is a place name, took top result (India)"
+567,"Daly College Ground, Indore",Indore,Indore,22.71792,75.8333,550.0,Indore,India,"unverified: 'Indore' is a place name, took top result (India)"
+568,"Cricket Association Puducherry Siechem Ground, Puducherry",Puducherry,Puducherry,11.93381,79.82979,11.0,Puducherry,India,"unverified: 'Puducherry' is a place name, took top result (India)"
+569,"KL Saini Ground, Jaipur",Jaipur,Jaipur,26.91962,75.78781,435.0,Jaipur,India,"unverified: 'Jaipur' is a place name, took top result (India)"
+570,"DY Patil Academy, Ambi, Pune",Pune,Pune,18.51957,73.85535,554.0,Pune,India,"unverified: 'Pune' is a place name, took top result (India)"
+571,"Maharaja Yadavindra Singh International Cricket Stadium, Mullanpur, Chandigarh",Chandigarh,Chandigarh,30.73629,76.7884,351.0,Chandigarh,India,"unverified: 'Chandigarh' is a place name, took top result (India)"
+572,"R.Premadasa Stadium, Colombo",Colombo,Colombo,6.93548,79.84868,7.0,Colombo,Sri Lanka,"unverified: 'Colombo' is a place name, took top result (Sri Lanka)"
+573,"Rangiri Dambulla International Stadium, Dambulla",Dambulla,Dambulla,7.86,80.65167,168.0,Dambulla,Sri Lanka,"unverified: 'Dambulla' is a place name, took top result (Sri Lanka)"
+574,"Harare Sports Club, Harare",Harare,Harare,-17.82772,31.05337,1494.0,Harare,Zimbabwe,"unverified: 'Harare' is a place name, took top result (Zimbabwe)"
+575,"Karen Rolton Oval, Adelaide, South Australia","Adelaide, South Australia",South Australia,-34.92866,138.59863,59.0,Adelaide,Australia,country match
+576,"Allan Border Oval, Mosman",Mosman,Mosman,-33.83902,151.23956,24.0,Mosman,Australia,"unverified: 'Mosman' is a place name, took top result (Australia)"
+577,"Cricket Central, Sydney",Sydney,Sydney,-33.86785,151.20732,58.0,Sydney,Australia,"unverified: 'Sydney' is a place name, took top result (Australia)"
+578,"Blacktown International Sportspark, Sydney",Sydney,Sydney,-33.86785,151.20732,58.0,Sydney,Australia,"unverified: 'Sydney' is a place name, took top result (Australia)"
+579,"Blacktown Olympic Park No 2 Oval, Sydney",Sydney,Sydney,-33.86785,151.20732,58.0,Sydney,Australia,"unverified: 'Sydney' is a place name, took top result (Australia)"
+580,"Drummoyne Oval, Sydney",Sydney,Sydney,-33.86785,151.20732,58.0,Sydney,Australia,"unverified: 'Sydney' is a place name, took top result (Australia)"
+581,"Rajiv Gandhi International Stadium, Hyderabad",Hyderabad,Hyderabad,17.38405,78.45636,515.0,Hyderabad,India,"unverified: 'Hyderabad' is a place name, took top result (India)"
+582,"SNR College Cricket Ground, Coimbatore",Coimbatore,Coimbatore,11.00555,76.96612,411.0,Coimbatore,India,"unverified: 'Coimbatore' is a place name, took top result (India)"
+583,"SCF Cricket Ground, Salem",Salem,Salem,11.65376,78.15538,283.0,Salem,India,"unverified: 'Salem' is a place name, took top result (India)"
+584,"Indian Cement Company Ground, Tirunelveli",Tirunelveli,Tirunelveli,8.72742,77.6838,49.0,Tirunelveli,India,"unverified: 'Tirunelveli' is a place name, took top result (India)"
+585,"NPR College Ground, Dindigul",Dindigul,Dindigul,10.36896,77.98036,285.0,Dindigul,India,"unverified: 'Dindigul' is a place name, took top result (India)"
+586,"MA Chidambaram Stadium, Chennai",Chennai,Chennai,13.08784,80.27847,14.0,Chennai,India,"unverified: 'Chennai' is a place name, took top result (India)"

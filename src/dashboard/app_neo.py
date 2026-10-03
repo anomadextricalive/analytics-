@@ -25,6 +25,7 @@ from config import DB_PATH
 from src.db.schema import get_engine
 from src.dashboard.replacement_players import render_replacement_scout
 from src.dashboard.player_profile import render_profile
+from src.dashboard.venue_predictor import render_venue_predictor
 from src.dashboard import league_scope as _ls
 
 # DB_PATH comes from config which always resolves correctly.
@@ -1069,12 +1070,13 @@ _NAV_PAGES = [
     "Admin",
     "Career Vault",
     "Replacement Scout",
+    "Venue Predictor",       # appended last so the numbered page ids above stay stable
 ]
 # Two-level navigation: 5 groups, then the page inside the group (page names/numbering unchanged for the dispatcher)
 _NAV_GROUPS = {
     "Players":            ["Player Explorer", "Player Comparison", "Career Vault"],
     "Matchups & Venues":  ["Head-to-Head", "Matchup Lab", "Pitch Intelligence"],
-    "Predict":            ["Prediction Engine", "Match Predictor"],
+    "Predict":            ["Prediction Engine", "Match Predictor", "Venue Predictor"],
     "Teams":              ["Squad Manager", "Replacement Scout"],
     "More":               ["Cricket GPT", "Admin"],
 }
@@ -2483,6 +2485,9 @@ if "01" in page:
         pid = int(p["id"])
         # ── profile: photo, bio, ESPN Cricinfo career ──
         render_profile(sql, p, sel_display)
+        st.session_state["vp_player_id"] = pid          # the Venue Predictor tab opens on this player
+        if st.toggle("🏟 Predict at a stadium", key="pe_venue_toggle", help="Likely score at any ground, from altitude, boundary size and what has happened there."):
+            render_venue_predictor(sql, _plotly_defaults, player_id=pid, compact=True, key="vp_pe")
 
         # ── headline metrics: batting + role ratings ──
         mc1, mc2, mc3, mc4, mc5, mc6 = st.columns(6)
@@ -5635,3 +5640,10 @@ elif "Career Vault" in page:
         st.dataframe(_show, hide_index=True, width="stretch")
 elif "Replacement Scout" in page:
     render_replacement_scout(Path(ROOT) / "data" / "adt10_replacement_players.csv", sql)
+elif "Venue Predictor" in page:
+    st.markdown("""
+    <div class="nb-page-header">
+      <h2>Venue Predictor</h2>
+      <p>Pick a player and a stadium · likely score from altitude, boundary size and what has happened there</p>
+    </div>""", unsafe_allow_html=True)
+    render_venue_predictor(sql, _plotly_defaults)
