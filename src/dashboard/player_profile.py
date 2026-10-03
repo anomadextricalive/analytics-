@@ -137,7 +137,7 @@ def render_profile(query_fn, p: dict, display_name: str):
             return
         fmts = [f for f in ("t20", "t20i") if f in ex["career"]]
         for tab, f in zip(st.tabs([{"t20": "All T20", "t20i": "T20I"}[f] for f in fmts]), fmts):
-            with tab:
+            with tab, st.container(key=f"pp_career_{f}"):
                 bat, bowl = ex["career"][f].get("bat"), ex["career"][f].get("bowl")
                 if bat and bat.get("inns"):
                     c = st.columns(6)

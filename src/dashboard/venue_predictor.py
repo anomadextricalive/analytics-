@@ -103,7 +103,7 @@ def render_venue_predictor(sql, plot_defaults=None, player_id=None, compact=Fals
     # ── headline ──
     st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
     st.markdown(f'<div class="nb-label">{"Likely score" if bat else "Likely economy"} · {html.escape(v["name"])}</div>', unsafe_allow_html=True)
-    m = st.columns(5 if bat else 4)
+    _head = st.container(key=f"{key}_headline"); m = _head.columns(5 if bat else 4)
     m[0].metric("Expected " + ("runs" if bat else "economy"), f"{res['expected']:.1f}" if bat else f"{res['expected']:.2f}",
                 f"{res['lift']:+.2f} vs his usual ground" if not bat else f"{res['lift']:+.1f} vs his usual ground", delta_color="normal" if bat else "inverse")
     m[1].metric("His baseline", f"{res['baseline']:.1f}" if bat else f"{res['baseline']:.2f}", help="What the model expects from him with no venue information, in this league and year.")
@@ -185,3 +185,51 @@ def render_venue_predictor(sql, plot_defaults=None, player_id=None, compact=Fals
 5. **Range and probabilities.** The empirical spread of real innings by players with a similar expectation, rescaled to his level.
 
 **Backtest (train before {meta['backtest']['split']}, test after, {meta['backtest']['n_test_innings']:,} innings).** The ground adjustment improved bowler error significantly (RMSE {pw['all test']['rmse']:.3f} vs {bt['bowling']['baseline: bowler only (no venue)']['all test']['rmse']:.3f}) and batter RMSE very slightly ({pb['all test']['rmse']:.3f} vs {bt['batting']['baseline: player only (no venue)']['all test']['rmse']:.3f}); the typical-innings error (MAE) was not better for batters. The ground is a real but small effect, and one innings is mostly luck.""")
+
+
+def render_venue_compare(sql, plot_defaults=None, seed_player_id=None, key="vc"):
+    """Compare up to 8 players at one stadium: baseline, expected when setting and when chasing, lift, range and chances, plus economy for bowlers."""
+    art = _art(sql, "v1")
+    if art is None: st.warning("The venue model has not been built yet. Run `python scripts/build_venue_model.py --build`."); return
+    prof, meta, mdl = art; players = _players(sql, "v1"); tour_names = _tour_names(sql)
+    ids = players["id"].astype(int).tolist(); name_of = {int(r.id): r.name + (f" · {r.country}" if isinstance(r.country, str) else "") for r in players.itertuples()}
+    seed = int(seed_player_id) if seed_player_id is not None and int(seed_player_id) in ids else ids[0]
+    top = players[players.id != seed].sort_values("bat_n", ascending=False).head(3)["id"].astype(int).tolist()
+    st.markdown('<div class="nb-label">Compare players at one stadium (max 8)</div>', unsafe_allow_html=True)
+    chosen = st.multiselect("Players", ids, default=[seed] + top, max_selections=8, format_func=lambda i: name_of[i], key=f"{key}_players")
+    vlist = prof.sort_values("n_innings", ascending=False).reset_index(drop=True); vids = vlist.venue_id.astype(int).tolist()
+    hist0 = V.bat_frame(sql, seed); fav = int(hist0.venue_id.value_counts().index[0]) if len(hist0) else vids[0]
+    c1, c2 = st.columns([3, 2])
+    with c1:
+        vid = vids[st.selectbox("Stadium (type to search)", range(len(vids)), index=vids.index(fav) if fav in vids else 0, key=f"{key}_venue", format_func=lambda i: _venue_label(vlist.iloc[i]))]
+    with c2:
+        cats = ["Each player's latest league"] + list(mdl["bat_cats"])
+        tour = st.selectbox("League context", cats, key=f"{key}_tour", format_func=lambda c: c if c == cats[0] else tour_names.get(c, c))
+    if not (chosen and st.button("Compare at stadium", key=f"{key}_go")): return
+    rows = []
+    with st.spinner("Predicting…"):
+        for pid in chosen:
+            info = players[players.id == pid].iloc[0]; rec = {"Player": info["name"], "Country": info["country"] if isinstance(info["country"], str) else "—"}
+            tour_arg = None if tour == cats[0] else tour
+            if int(info["bat_n"]) >= 15:
+                h = V.bat_frame(sql, pid); a = V.predict_batter(sql, art, pid, vid, chasing=False, tournament=tour_arg, hist=h); b = V.predict_batter(sql, art, pid, vid, chasing=True, tournament=tour_arg, hist=h)
+                rec.update({"Pos": a["pos"], "Baseline runs": a["baseline"], "Setting": a["expected"], "Chasing": b["expected"], "Lift": a["lift"],
+                            "Range 10-90%": f"{a['range'][0]:.0f}-{a['range'][1]:.0f}", "30+": a["p30"] * 100, "50+": a["p50"] * 100})
+            if int(info["bowl_n"]) >= 15:
+                w = V.predict_bowler(sql, art, pid, vid, tournament=tour_arg); rec.update({"Baseline econ": w["baseline"], "Econ here": w["expected"], "Econ lift": w["lift"]})
+            rows.append(rec)
+    df = pd.DataFrame(rows)
+    if "Setting" in df: df = df.sort_values("Setting", ascending=False, na_position="last")
+    st.markdown(f'<div class="nb-label">{html.escape(prof[prof.venue_id == vid].iloc[0]["name"])}</div>', unsafe_allow_html=True)
+    cfg = {"Baseline runs": st.column_config.NumberColumn(format="%.1f"), "Setting": st.column_config.NumberColumn("Setting target", format="%.1f"),
+           "Chasing": st.column_config.NumberColumn(format="%.1f"), "Lift": st.column_config.NumberColumn("Venue lift", format="%+.1f"),
+           "30+": st.column_config.NumberColumn("Chance 30+", format="%.0f%%"), "50+": st.column_config.NumberColumn("Chance 50+", format="%.0f%%"),
+           "Baseline econ": st.column_config.NumberColumn(format="%.2f"), "Econ here": st.column_config.NumberColumn(format="%.2f"), "Econ lift": st.column_config.NumberColumn(format="%+.2f")}
+    st.dataframe(df.reset_index(drop=True), hide_index=True, width="stretch", column_config=cfg)
+    if "Setting" in df and df["Setting"].notna().any():
+        d = df.dropna(subset=["Setting"]); fig = go.Figure()
+        for nm, col, colr in (("His usual (baseline)", "Baseline runs", "#B8B8B8"), ("Setting a target", "Setting", "#3A86FF"), ("Chasing", "Chasing", "#FF6B9D")):
+            fig.add_trace(go.Bar(name=nm, x=d["Player"], y=d[col], marker=dict(color=colr, line=dict(color="#0D0D0D", width=2))))
+        fig.update_layout(barmode="group", title="Expected runs at this stadium", yaxis_title="runs")
+        st.plotly_chart(plot_defaults(fig, 340) if plot_defaults else fig, width="stretch", config={"displayModeBar": False})
+    st.caption("Venue lifts are small (about 1 to 2 runs for a typical batter). Differences between players are mostly the players, not the ground. Ranges and chances are for a single innings.")

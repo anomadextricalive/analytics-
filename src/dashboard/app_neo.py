@@ -25,7 +25,7 @@ from config import DB_PATH
 from src.db.schema import get_engine
 from src.dashboard.replacement_players import render_replacement_scout
 from src.dashboard.player_profile import render_profile
-from src.dashboard.venue_predictor import render_venue_predictor
+from src.dashboard.venue_predictor import render_venue_predictor, render_venue_compare
 from src.dashboard import league_scope as _ls
 
 # DB_PATH comes from config which always resolves correctly.
@@ -225,6 +225,9 @@ html, body,
     font-family: var(--font-display, 'Oswald', sans-serif); font-size: 2rem; font-weight: 700; color: var(--cosmic-mint-500); }
 .pe-link { display: inline-block; margin-top: .7rem; font-family: var(--font-mono, 'JetBrains Mono', monospace);
     font-size: .72rem; color: var(--cosmic-mint-500) !important; text-decoration: none; border-bottom: 1px dotted var(--cosmic-mint-500); }
+[class*="st-key-pp_career"] [data-testid="stMetricValue"], [class*="st-key-pp_career"] [data-testid="stMetricValue"] *,
+[class*="_headline"] [data-testid="stMetricValue"], [class*="_headline"] [data-testid="stMetricValue"] * { font-size: 1.55rem !important; line-height: 1.15 !important; white-space: normal !important; overflow: visible !important; }
+[class*="st-key-pp_career"] [data-testid="stMetricLabel"] * { font-size: .62rem !important; }
 .pp-facts { width: 100%; border-collapse: collapse; font-size: .82rem; }
 .pp-facts td { padding: .38rem .5rem; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: top; }
 .pp-facts .pp-k { width: 38%; color: var(--cosmic-ink-500) !important; font-family: var(--font-mono, 'JetBrains Mono', monospace); font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; }
@@ -2488,6 +2491,8 @@ if "01" in page:
         st.session_state["vp_player_id"] = pid          # the Venue Predictor tab opens on this player
         if st.toggle("🏟 Predict at a stadium", key="pe_venue_toggle", help="Likely score at any ground, from altitude, boundary size and what has happened there."):
             render_venue_predictor(sql, _plotly_defaults, player_id=pid, compact=True, key="vp_pe")
+        if st.toggle("👥 Compare players at a stadium", key="pe_compare_toggle", help="Up to 8 players at one ground: expected runs when setting and chasing, lift, range and chances."):
+            render_venue_compare(sql, _plotly_defaults, seed_player_id=pid, key="vc_pe")
 
         # ── headline metrics: batting + role ratings ──
         mc1, mc2, mc3, mc4, mc5, mc6 = st.columns(6)
@@ -5647,3 +5652,5 @@ elif "Venue Predictor" in page:
       <p>Pick a player and a stadium · likely score from altitude, boundary size and what has happened there</p>
     </div>""", unsafe_allow_html=True)
     render_venue_predictor(sql, _plotly_defaults)
+    st.markdown('<div class="nb-divider"></div>', unsafe_allow_html=True)
+    render_venue_compare(sql, _plotly_defaults, seed_player_id=st.session_state.get("vp_player_id"), key="vc_tab")

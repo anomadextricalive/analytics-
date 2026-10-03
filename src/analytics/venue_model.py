@@ -307,8 +307,8 @@ def _dist(bins, level, additive=False):
     out["p30"] = float((g >= 30).mean()); out["p50"] = float((g >= 50).mean()); return out
 
 
-def predict_batter(q, art, pid: int, vid: int, position=None, chasing=False, tournament=None):
-    prof, meta, mdl = art; hist = bat_frame(q, pid)
+def predict_batter(q, art, pid: int, vid: int, position=None, chasing=False, tournament=None, hist=None):
+    prof, meta, mdl = art; hist = bat_frame(q, pid) if hist is None else hist
     if hist.empty: return None
     pos = int(position or round(hist.batting_position.tail(30).median())); tour = tournament or hist.tournament.iloc[-1]
     rows = _next_row(hist, runs=0, balls_faced=1, pp_runs=0, pp_balls=0, mid_runs=0, mid_balls=0, death_runs=0, death_balls=0, batting_position=pos,
@@ -325,8 +325,8 @@ def predict_batter(q, art, pid: int, vid: int, position=None, chasing=False, tou
                             sr=float(here.runs.sum() / max(here.balls_faced.sum(), 1) * 100) if len(here) else None, best=int(here.runs.max()) if len(here) else None))
 
 
-def predict_bowler(q, art, pid: int, vid: int, tournament=None):
-    prof, meta, mdl = art; hist = bowl_frame(q, pid)
+def predict_bowler(q, art, pid: int, vid: int, tournament=None, hist=None):
+    prof, meta, mdl = art; hist = bowl_frame(q, pid) if hist is None else hist
     if hist.empty: return None
     tour = tournament or hist.tournament.iloc[-1]
     rows = _next_row(hist, balls_bowled=24, runs_conceded=0, dot_balls=0, pp_balls=0, pp_runs=0, mid_balls=0, mid_runs=0, death_balls=0, death_runs=0,
