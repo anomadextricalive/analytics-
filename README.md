@@ -418,6 +418,22 @@ Pick a player and a stadium and see the likely score (batters) or economy (bowle
 
 **How big the ground effect is.** Honest headline: a ground that scores 10% above average moves a typical batter's runs by about 4.4%, one or two runs. A single innings has a spread of about 19 runs, so treat the output as a tilt on a wide distribution, not a forecast. Bigger boundaries go with lower scoring and higher altitude with higher scoring; together with a few other traits they explain about a tenth of how grounds differ, and grounds with few matches lean on them.
 
+**Compare players at one stadium.** Pick up to 8 players and one ground. Each player is predicted at his own usual batting position and league (or a league you choose): baseline, expected runs when setting a target and when chasing, venue lift, 10 to 90% range, chance of 30+ and 50+, and expected economy for bowlers. Under a player's profile in Player Explorer, switch on "Compare players at a stadium".
+
+**Venue data and tables.** Grounds' altitude and coordinates come from the free Open-Meteo geocoder by city (`scripts/geocode_venues.py`; 418 of 472 grounds, with a per-ground `confidence` note in `data/venue_geo.csv`). Boundary sizes, capacity and pitch type come from the project's venue records (248 of 472 grounds). The model writes three tables into `cricket.db`: `venue_geo`, `venue_profile` (per-ground effect and uncertainty) and `venue_model_meta` (elasticities, prior, backtest, distribution tables), plus `data/models/venue_models.joblib`.
+
+**Rebuild.**
+
+```bash
+python scripts/build_venue_model.py            # backtest only, prints results
+python scripts/build_venue_model.py --build    # refit on all data, write tables and models
+# then checkpoint the WAL and regenerate data/cricket.db.gz so the hosted app sees the new tables
+```
+
+**If the page says the venue model could not be loaded.** The message names the reason (missing table, older database copy, or an unreadable model file). On Streamlit Cloud, reboot the app so it unpacks the latest database. The venue pages read the unpacked SQLite file directly and never cache a failed load.
+
+**Next candidates** (each must beat the baseline in the time-split backtest before it is shown): match-day weather and day or night, a pitch fingerprint from ball-by-ball (bounce, seam, spin), and Test and ODI data as ground knowledge.
+
 ### Health Dashboard (`src/dashboard/health.py`)
 
 Backend monitoring dashboard showing: 8 overview stat cards (players, matches, deliveries, venues, ratings, model status), fill-bar audit of all 38 tables, tournament coverage, matches-per-year bar chart, pipeline stage checklist, and command reference.

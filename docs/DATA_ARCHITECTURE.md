@@ -63,6 +63,11 @@ Indexes: `player_id`, `country`.
 Adds `espn_id` and `career_espn: { t20: {bat, bowl}, t20i: {bat, bowl} }` beside the existing per-tournament blocks.
 Index on `espn_id`.
 
+### SQLite venue tables (new, SQLite only)
+`venue_geo` (altitude and coordinates per ground), `venue_profile` (adjusted ground effect, physical prior, uncertainty, pooling weight) and `venue_model_meta`
+(elasticities, prior, backtest, distribution tables). They ship inside `cricket.db.gz` and are read by the Venue Predictor pages. They are **not mirrored to Mongo yet**.
+Theory: `docs/VENUE_PREDICTOR_THEORY.md`.
+
 ### Unchanged
 `matches`, `venues`, `tournaments`, `leaderboards`, `innings_balls` as in `scripts/build_mongo_serving.py`.
 
